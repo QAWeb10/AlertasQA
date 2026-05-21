@@ -1,19 +1,20 @@
-<!DOCTYPE html><!DOCTYPE lang="es">
-<head>
+<!DOCTYPE html>
+<html lang="es">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- ✅ LIBRERÍAS CORRECTAS -->
+<!-- ✅ LIBRERÍAS BIEN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+
 body{
   font-family: Arial;
   background:#ffcc00;
   margin:0;
 }
-  
 .card{
   background:white;
   padding:25px;
@@ -75,6 +76,7 @@ canvas{
 <select id="elaborado">
 <option>Analista1</option>
 <option>Analista2</option>
+
 </select>
 
 <select id="turno">
@@ -117,21 +119,21 @@ Descargar PDF
 
 <script>
 
-// ✅ CONFIGURACIÓN SUPABASE
+// ✅ CONEXIÓN CORRECTA
 const supabaseClient = supabase.createClient(
-  "https://wpitemofrqjzcsetmmim.supabase.co",
-  "PEGA_AQUI_TU_KEY"
+ "https://wpitemofrqzjcsetmmim.supabase.co",
+ "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
 );
 
 // ✅ LOGIN
 function login(){
- let u = document.getElementById("user").value;
- let p = document.getElementById("pass").value;
+ let u=document.getElementById("user").value;
+ let p=document.getElementById("pass").value;
 
- if((u==="admin" && p==="1234") || (u==="analista1" && p==="1111")){
-   loginBox.classList.add("hidden");
-   formBox.classList.remove("hidden");
- } else {
+ if((u=="admin" && p=="1234") || (u=="analista1" && p=="1111")){
+   document.getElementById("loginBox").classList.add("hidden");
+   document.getElementById("formBox").classList.remove("hidden");
+ }else{
    alert("Usuario incorrecto");
  }
 }
@@ -144,7 +146,7 @@ let dibujando=false;
 canvas.onmousedown=()=>dibujando=true;
 canvas.onmouseup=()=>dibujando=false;
 canvas.onmousemove=e=>{
- if(!dibujando) return;
+ if(!dibujando)return;
  ctx.lineTo(e.offsetX,e.offsetY);
  ctx.stroke();
 };
@@ -153,12 +155,7 @@ function limpiar(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-// ✅ VARIABLES
-let ultimoRegistro=null;
-let ultimaFoto=null;
-let ultimaFirma=null;
-
-// ✅ CONVERTIR FOTO
+// ✅ BASE64
 function toBase64(file){
  return new Promise(res=>{
   let r=new FileReader();
@@ -167,48 +164,51 @@ function toBase64(file){
  });
 }
 
+// ✅ VARIABLES
+let ultimoRegistro=null;
+let ultimaFoto=null;
+let ultimaFirma=null;
+
 // ✅ ENVÍO
 document.getElementById("form").addEventListener("submit", async e=>{
  e.preventDefault();
 
- try {
+ try{
 
  let fotoFile=foto.files[0];
  let fotoBase64="";
  if(fotoFile) fotoBase64=await toBase64(fotoFile);
 
  let firma=canvas.toDataURL();
+let data = {
+  fecha: fecha.value,
+  elaborado: elaborado.value,
+  turno: turno.value,
+  ubicacion: ubicacion.value || null,
+  area: area.value,
+  hallazgo: hallazgo.value,
+  codigo: codigo.value ? parseInt(codigo.value) : null
+};
 
- let data={
-  fecha:fecha.value,
-  elaborado:elaborado.value,
-  turno:turno.value,
-  ubicacion:ubicacion.value,
-  area:area.value,
-  hallazgo:hallazgo.value,
-  codigo:codigo.value
- };
-
- // ✅ CAMBIO CLAVE: RESPETA MAYÚSCULA
- const { data:result, error } = await supabaseClient
+const { data: result, error } = await supabaseClient
   .from("Reportes")
   .insert([data])
   .select();
 
- if(error){
-   console.log(error);
-   alert("Error guardando: "+error.message);
-   return;
- }
+if (error) {
+  console.error("ERROR SUPABASE:", error);
+  alert("Error: " + error.message);
+  return;
+}
 
- ultimoRegistro={...data, folio: result[0].id};
+ ultimoRegistro={...data, folio:result[0].id};
  ultimaFoto=fotoBase64;
  ultimaFirma=firma;
 
  mensaje.innerText="✅ Registro guardado correctamente";
  btnPDF.classList.remove("hidden");
 
- } catch(err){
+ }catch(err){
   console.log(err);
   alert("Error general");
  }
