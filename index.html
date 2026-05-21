@@ -1,74 +1,54 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><!DOCTYPE lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- ✅ LIBRERÍAS BIEN ESCRITAS -->
+<!-- ✅ LIBRERÍAS CORRECTAS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body {
+body{
   font-family: Arial;
-  background: #ffcc00;
-  margin: 0;
+  background:#ffcc00;
+  margin:0;
 }
-
-.card {
-  background: white;
-  padding: 25px;
-  margin: auto;
-  margin-top: 30px;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+.card{
+  background:white;
+  padding:25px;
+  margin:auto;
+  margin-top:40px;
+  width:90%;
+  max-width:500px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.3);
 }
-
-h2 {
-  text-align: center;
-  color: #d40511;
+h2{
+  text-align:center;
+  color:#d40511;
 }
-
-input, select {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+input,select{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
-
-button {
-  width: 100%;
-  padding: 12px;
-  background: #d40511;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  margin-top: 10px;
+button{
+  width:100%;
+  padding:12px;
+  background:#d40511;
+  color:white;
+  border:none;
+  border-radius:8px;
+  margin-top:10px;
+  font-weight:bold;
 }
-
-button:hover {
-  background: #a3030c;
+canvas{
+  border:1px solid #ccc;
 }
-
-canvas {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-.hidden {
-  display: none;
-}
-
-.msg {
-  text-align: center;
-  font-weight: bold;
-  color: green;
-  margin-top: 10px;
-}
+.hidden{display:none;}
+.msg{color:green;text-align:center;}
 </style>
 
 </head>
@@ -85,8 +65,7 @@ canvas {
 
 <!-- FORM -->
 <div class="card hidden" id="formBox">
-
-<h2>Reporte de Calidad</h2>
+<h2>Reporte Calidad</h2>
 
 <form id="form">
 
@@ -130,140 +109,141 @@ canvas {
 <p id="mensaje" class="msg"></p>
 
 <button id="btnPDF" onclick="descargarPDF()" class="hidden">
-📄 Descargar PDF
+Descargar PDF
 </button>
 
 </div>
 
 <script>
 
-// ✅ CONEXIÓN REAL
+// ✅ CONFIGURACIÓN SUPABASE
 const supabaseClient = supabase.createClient(
   "https://wpitemofrqjzcsetmmim.supabase.co",
-  "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
+  "PEGA_AQUI_TU_KEY"
 );
 
-// VARIABLES
-let ultimoRegistro = null;
-let ultimaFoto = null;
-let ultimaFirma = null;
-
-// LOGIN
+// ✅ LOGIN
 function login(){
-  let u = user.value;
-  let p = pass.value;
+ let u = document.getElementById("user").value;
+ let p = document.getElementById("pass").value;
 
-  if((u=="admin" && p=="1234") || (u=="analista1" && p=="1111")){
-    loginBox.classList.add("hidden");
-    formBox.classList.remove("hidden");
-  } else {
-    alert("Usuario incorrecto");
-  }
+ if((u==="admin" && p==="1234") || (u==="analista1" && p==="1111")){
+   loginBox.classList.add("hidden");
+   formBox.classList.remove("hidden");
+ } else {
+   alert("Usuario incorrecto");
+ }
 }
 
-// FIRMA
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
-let d = false;
+// ✅ FIRMA
+let canvas=document.getElementById("canvas");
+let ctx=canvas.getContext("2d");
+let dibujando=false;
 
-canvas.onmousedown = () => d=true;
-canvas.onmouseup = () => d=false;
-canvas.onmousemove = e=>{
-  if(!d) return;
-  ctx.lineTo(e.offsetX,e.offsetY);
-  ctx.stroke();
+canvas.onmousedown=()=>dibujando=true;
+canvas.onmouseup=()=>dibujando=false;
+canvas.onmousemove=e=>{
+ if(!dibujando) return;
+ ctx.lineTo(e.offsetX,e.offsetY);
+ ctx.stroke();
 };
 
 function limpiar(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-// BASE64
+// ✅ VARIABLES
+let ultimoRegistro=null;
+let ultimaFoto=null;
+let ultimaFirma=null;
+
+// ✅ CONVERTIR FOTO
 function toBase64(file){
-  return new Promise(res=>{
-    let r=new FileReader();
-    r.onload=()=>res(r.result);
-    r.readAsDataURL(file);
-  });
+ return new Promise(res=>{
+  let r=new FileReader();
+  r.onload=()=>res(r.result);
+  r.readAsDataURL(file);
+ });
 }
 
-// GUARDAR
-form.addEventListener("submit", async e=>{
-  e.preventDefault();
+// ✅ ENVÍO
+document.getElementById("form").addEventListener("submit", async e=>{
+ e.preventDefault();
 
-  try {
+ try {
 
-    let fotoFile = foto.files[0];
-    let fotoBase64 = "";
-    if(fotoFile) fotoBase64 = await toBase64(fotoFile);
+ let fotoFile=foto.files[0];
+ let fotoBase64="";
+ if(fotoFile) fotoBase64=await toBase64(fotoFile);
 
-    let firma = canvas.toDataURL();
+ let firma=canvas.toDataURL();
 
-    let data = {
-      fecha: fecha.value,
-      elaborado: elaborado.value,
-      turno: turno.value,
-      ubicacion: ubicacion.value,
-      area: area.value,
-      hallazgo: hallazgo.value,
-      codigo: codigo.value
-    };
+ let data={
+  fecha:fecha.value,
+  elaborado:elaborado.value,
+  turno:turno.value,
+  ubicacion:ubicacion.value,
+  area:area.value,
+  hallazgo:hallazgo.value,
+  codigo:codigo.value
+ };
 
-    // ✅ INSERT REAL
-    const { data:result, error } = await supabaseClient
-      .from("reportes")
-      .insert([data])
-      .select();
+ // ✅ CAMBIO CLAVE: RESPETA MAYÚSCULA
+ const { data:result, error } = await supabaseClient
+  .from("Reportes")
+  .insert([data])
+  .select();
 
-    if(error){
-      console.error(error);
-      alert("Error guardando: " + error.message);
-      return;
-    }
+ if(error){
+   console.log(error);
+   alert("Error guardando: "+error.message);
+   return;
+ }
 
-    // ✅ GUARDAR PARA PDF
-    ultimoRegistro = {...data, folio: result[0].id};
-    ultimaFoto = fotoBase64;
-    ultimaFirma = firma;
+ ultimoRegistro={...data, folio: result[0].id};
+ ultimaFoto=fotoBase64;
+ ultimaFirma=firma;
 
-    mensaje.innerText="✅ Registro guardado correctamente";
-    btnPDF.classList.remove("hidden");
+ mensaje.innerText="✅ Registro guardado correctamente";
+ btnPDF.classList.remove("hidden");
 
-  } catch(err){
-    console.error(err);
-    alert("Error grave, revisa consola (F12)");
-  }
+ } catch(err){
+  console.log(err);
+  alert("Error general");
+ }
+
 });
 
-// PDF
+// ✅ PDF
 function descargarPDF(){
-  const { jsPDF } = window.jspdf;
-  let doc = new jsPDF();
+ const {jsPDF}=window.jspdf;
+ let doc=new jsPDF();
 
-  doc.text("REPORTE DE CALIDAD DHL",20,20);
-  doc.text("FOLIO: FOL-"+ultimoRegistro.folio,20,30);
+ doc.text("REPORTE DE CALIDAD DHL",20,20);
+ doc.text("FOLIO: FOL-"+ultimoRegistro.folio,20,30);
 
-  let y=40;
+ let y=40;
 
-  for(let k in ultimoRegistro){
-    if(k!="folio"){
-      doc.text(k+": "+ultimoRegistro[k],20,y);
-      y+=10;
-    }
+ for(let k in ultimoRegistro){
+  if(k!="folio"){
+   doc.text(k+": "+ultimoRegistro[k],20,y);
+   y+=10;
   }
+ }
 
-  if(ultimaFoto){
-    doc.addImage(ultimaFoto,"JPEG",20,y,60,60);
-    y+=70;
-  }
+ if(ultimaFoto){
+  doc.addImage(ultimaFoto,"JPEG",20,y,60,60);
+  y+=70;
+ }
 
-  doc.text("Firma:",20,y);
-  doc.addImage(ultimaFirma,"PNG",20,y+10,60,30);
+ doc.text("Firma:",20,y);
+ doc.addImage(ultimaFirma,"PNG",20,y+10,60,30);
 
-  doc.save("FOL-"+ultimoRegistro.folio+".pdf");
+ doc.save("FOL-"+ultimoRegistro.folio+".pdf");
 }
 
 </script>
 
 </body>
 </html>
+``
