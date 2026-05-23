@@ -14,7 +14,9 @@ body{
  margin:0;
  font-family:Arial;
 
- background:url("./glo-dgf-zoom-wallpaper3-1920x1080.jpg") no-repeat center center;
+ background:url("glo-dgf-zoom-wallpaper3-1920x1080.jpg") no-repeat center center;
+background-size:cover;
+background-attachment:fixed;
  background-size:cover;
  background-attachment:fixed;
 
@@ -78,9 +80,23 @@ body{
  margin-top:10px;
  width:100%;
  padding:12px;
- .login-btn{
+ border:none;
+ border-radius:20px;
+ font-weight:bold;
+ font-size:14px;
+ cursor:pointer;
+ transition:0.2s;
+ box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+.login-btn{
  margin-top:15px;
 }
+
+.login-btn{
+ margin-top:15px;
+}
+
  border:none;
  border-radius:20px;
  font-weight:bold;
@@ -318,8 +334,8 @@ REPORTE ALERTA DE CALIDAD<br>
 
 <div class="section">
 <label>Firma</label>
-<canvas id="firma"></canvas>
-<button class="btn-app btn-gris" onclick="limpiarFirma()">Limpiar Firma</button>
+
+<canvas id="firma" onclick="abrirFirma()" style="cursor:pointer;"></canvas>
 </div>
 
 <div class="botones-row">
@@ -331,6 +347,34 @@ REPORTE ALERTA DE CALIDAD<br>
 <button class="btn-app btn-rojo" onclick="logout()">Cerrar sesión</button>
 
 <p id="msg"></p>
+</div>
+
+<div id="firmaModal" class="hidden" style="
+ position:fixed;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ background:rgba(0,0,0,0.8);
+ justify-content:center;
+ align-items:center;
+ z-index:999;
+">
+
+ <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:400px;">
+  
+  <h3 style="text-align:center;">Firma</h3>
+
+  <canvas id="firmaGrande" style="width:100%;height:200px;border:1px solid black;"></canvas>
+
+  <div style="display:flex;gap:10px;margin-top:10px;">
+   <button class="btn-app btn-verde" onclick="guardarFirma()">Aceptar</button>
+   <button class="btn-app btn-gris" onclick="limpiarFirmaGrande()">Limpiar</button>
+   <button class="btn-app btn-rojo" onclick="cerrarFirma()">Salir</button>
+</div>
+  </div>
+
+ </div>
 </div>
 
 <script>
@@ -349,6 +393,10 @@ function fechaFormato(){
 }
 fechaLogin.value=fechaFormato();
 
+function cerrarFirma(){
+ document.getElementById("firmaModal").classList.add("hidden");
+
+}
 // PERSONAL
 const personal = {
 
@@ -490,6 +538,144 @@ function cambiarTipo(){
 // FIRMA
 let canvas=document.getElementById("firma");
 let ctx=canvas.getContext("2d");
+
+// ===== FIRMA GRANDE (MODAL) =====
+let canvasGrande;
+let ctxGrande;
+
+
+function abrirFirma(){
+ document.getElementById("firmaModal").classList.remove("hidden");
+
+ setTimeout(()=>{
+
+  canvasGrande = document.getElementById("firmaGrande");
+  ctxGrande = canvasGrande.getContext("2d");
+
+  canvasGrande.width = canvasGrande.offsetWidth;
+  canvasGrande.height = 200;
+
+  ctxGrande.strokeStyle = "black";
+  ctxGrande.lineWidth = 2;
+
+  let d2 = false;
+
+  // mouse
+  canvasGrande.onmousedown = () => d2 = true;
+
+  canvasGrande.onmouseup = () => {
+   d2 = false;
+   ctxGrande.beginPath();
+  };
+
+  canvasGrande.onmousemove = e=>{
+   if(!d2) return;
+   ctxGrande.lineTo(e.offsetX, e.offsetY);
+   ctxGrande.stroke();
+  };
+
+  // touch
+  canvasGrande.ontouchstart = e=>{
+   e.preventDefault();
+   d2 = true;
+
+   const rect = canvasGrande.getBoundingClientRect();
+   const touch = e.touches[0];
+
+   ctxGrande.beginPath();
+   ctxGrande.moveTo(
+    touch.clientX - rect.left,
+    touch.clientY - rect.top
+   );
+  };
+
+  canvasGrande.ontouchend = ()=>{
+   d2 = false;
+   ctxGrande.beginPath();
+  };
+
+  canvasGrande.ontouchmove = e=>{
+   if(!d2) return;
+   e.preventDefault();
+
+   const rect = canvasGrande.getBoundingClientRect();
+   const touch = e.touches[0];
+
+   ctxGrande.lineTo(
+    touch.clientX - rect.left,
+    touch.clientY - rect.top
+   );
+
+   ctxGrande.stroke();
+  };
+
+ },100);
+}
+
+function limpiarFirmaGrande(){
+ ctxGrande.clearRect(0,0,canvasGrande.width,canvasGrande.height);
+}
+
+function guardarFirma(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(canvasGrande,0,0,canvas.width,canvas.height);
+
+ document.getElementById("firmaModal").classList.add("hidden");
+}
+// ===== DIBUJO FIRMA GRANDE =====
+
+let d2 = false;
+
+// PC (mouse)
+canvasGrande.addEventListener("mousedown", () => d2 = true);
+
+canvasGrande.addEventListener("mouseup", () => { 
+ d2 = false; 
+ ctxGrande.beginPath(); 
+});
+
+canvasGrande.addEventListener("mousemove", e=>{
+ if(!d2) return;
+
+ ctxGrande.lineTo(e.offsetX, e.offsetY);
+ ctxGrande.stroke();
+});
+
+// MÓVIL (touch)
+canvasGrande.addEventListener("touchstart", e=>{
+ e.preventDefault();
+
+ d2 = true;
+
+ const rect = canvasGrande.getBoundingClientRect();
+ const touch = e.touches[0];
+
+ ctxGrande.beginPath();
+ ctxGrande.moveTo(
+  touch.clientX - rect.left,
+  touch.clientY - rect.top
+ );
+});
+
+canvasGrande.addEventListener("touchend", ()=>{
+ d2 = false;
+ ctxGrande.beginPath();
+});
+
+canvasGrande.addEventListener("touchmove", e=>{
+ if(!d2) return;
+ e.preventDefault();
+
+ const rect = canvasGrande.getBoundingClientRect();
+ const touch = e.touches[0];
+
+ ctxGrande.lineTo(
+  touch.clientX - rect.left,
+  touch.clientY - rect.top
+ );
+
+ ctxGrande.stroke();
+});
 ctx.strokeStyle = "black";
 ctx.lineWidth = 2;
 
@@ -788,56 +974,61 @@ window.onload = function(){
 
   if(ahora < parseInt(expiraEn)){
 
- loginBox.classList.add("hidden");
- systemBox.classList.remove("hidden");
+   // mostrar sistema
+   document.getElementById("loginBox").classList.add("hidden");
+   document.getElementById("systemBox").classList.remove("hidden");
 
- // ✅ restaurar usuario
- let nombreGuardado = localStorage.getItem("usuarioNombre");
+   let nombreGuardado = localStorage.getItem("usuarioNombre");
 
- if(nombreGuardado){
+   if(nombreGuardado){
 
- let user = personal[nombreGuardado];
+    let user = personal[nombreGuardado];
 
- let turnoGuardado = localStorage.getItem("usuarioTurno");
- let fechaGuardado = localStorage.getItem("usuarioFecha");
+    let turnoGuardado = localStorage.getItem("usuarioTurno");
+    let fechaGuardada = localStorage.getItem("usuarioFecha");
 
- datosGenerales = {
-  nombre: nombreGuardado,
-  cuadrilla: user.cuadrilla,
-  area: user.area,
-  turno: turnoGuardado,
-  fecha: fechaGuardado
- };
+    datosGenerales = {
+     nombre: nombreGuardado,
+     cuadrilla: user.cuadrilla,
+     area: user.area,
+     turno: turnoGuardado,
+     fecha: fechaGuardada
+    };
 
- bienvenida.innerText = "BIENVENIDO: " + nombreGuardado.toUpperCase();
+    // texto de bienvenida
+    document.getElementById("bienvenida").innerText =
+     "BIENVENIDO: " + nombreGuardado.toUpperCase();
 
- cuadrilla.value = user.cuadrilla;
- areaLogin.value = user.area;
- turno.value = turnoGuardado;
- fechaLogin.value = fechaGuardado;
+    // restaurar campos
+    document.getElementById("cuadrilla").value = user.cuadrilla;
+    document.getElementById("areaLogin").value = user.area;
+    document.getElementById("turno").value = turnoGuardado;
+    document.getElementById("fechaLogin").value = fechaGuardada;
 
- // ✅ GENERAR FOLIO correctamente
- (async function(){
-  let folio = await generarFolio();
-  folioGlobal = folio;
-  folioBox.innerText = "Folio: " + folioGlobal;
- })();
+    // generar folio nuevo
+    (async function(){
+     let folio = await generarFolio();
+     folioGlobal = folio;
+     document.getElementById("folioBox").innerText = "Folio: " + folioGlobal;
+    })();
 
- if(user && user.admin){
-  adminBtn.classList.remove("hidden");
- }
+    // admin
+    if(user && user.admin){
+     document.getElementById("adminBtn").classList.remove("hidden");
+    }
 
-}
+   }
 
+  } else {
 
-}
-  }else{
-   // ❌ sesión expirada
+   // sesión expirada
    localStorage.removeItem("sesionActiva");
    localStorage.removeItem("expiraEn");
+
   }
 
- }
+}
+};
 function logout(){
 
  // borrar sesión completa
@@ -899,6 +1090,7 @@ function filtrarNombres(){
  });
 
 }
+
 </script>
 </body>
 </html>
