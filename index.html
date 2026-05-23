@@ -394,7 +394,8 @@ async function login(){
   return;
  }
 
- let user = personal[nombre.value];
+let nombreLimpio = nombre.value.trim();
+let user = personal[nombreLimpio];
 
 if(!user){
  alert("Usuario inválido");
@@ -410,8 +411,8 @@ let esAdmin = user.admin === true;
  }
 
  // ✅ si pasa todo
- datosGenerales={
-  nombre:nombre.value,
+datosGenerales={
+  nombre:nombreLimpio,
   cuadrilla:user.cuadrilla,
   area:user.area,
   turno:turno.value,
@@ -432,7 +433,7 @@ let esAdmin = user.admin === true;
 let tiempoExp = new Date().getTime() + (30 * 60 * 1000);
 localStorage.setItem("sesionActiva", "true");
 localStorage.setItem("expiraEn", tiempoExp.toString());
-localStorage.setItem("usuarioNombre", nombre.value);
+localStorage.setItem("usuarioNombre", nombreLimpio);
 localStorage.setItem("usuarioTurno", turno.value);
 localStorage.setItem("usuarioFecha", fechaLogin.value);
  if(esAdmin){
