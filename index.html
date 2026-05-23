@@ -213,7 +213,7 @@ REPORTE ALERTA DE CALIDAD<br>
 <div class="section">
 <label>Evidencia fotográfica</label>
 
-<input type="file" id="foto" accept="image/*" capture multiple>
+<input type="file" id="foto" accept="image/*" multiple>
 
 </div>
 
@@ -345,15 +345,44 @@ let ctx=canvas.getContext("2d");
 
 canvas.width=300;height=120;
 
-let d=false;
+let d = false;
 
-canvas.onmousedown=()=>d=true;
-canvas.onmouseup=()=>{d=false;ctx.beginPath();}
-canvas.onmousemove=e=>{
- if(!d)return;
- ctx.lineTo(e.offsetX,e.offsetY);
+// MOUSE (PC)
+canvas.addEventListener("mousedown", ()=> d = true);
+canvas.addEventListener("mouseup", ()=> { d = false; ctx.beginPath(); });
+canvas.addEventListener("mousemove", e=>{
+ if(!d) return;
+ ctx.lineTo(e.offsetX, e.offsetY);
  ctx.stroke();
-};
+});
+
+// TOUCH (CELULAR)
+canvas.addEventListener("touchstart", e=>{
+ d = true;
+ const rect = canvas.getBoundingClientRect();
+ const touch = e.touches[0];
+ ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchend", ()=>{
+ d = false;
+ ctx.beginPath();
+});
+
+canvas.addEventListener("touchmove", e=>{
+ if(!d) return;
+ e.preventDefault();
+
+ const rect = canvas.getBoundingClientRect();
+ const touch = e.touches[0];
+
+ ctx.lineTo(
+  touch.clientX - rect.left,
+  touch.clientY - rect.top
+ );
+ ctx.stroke();
+});
+``
 
 function limpiarFirma(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
