@@ -33,6 +33,69 @@ body{
 }
 
 .hidden{display:none;}
+
+.btn-gris{
+ background:#6c757d;
+ color:white;
+}
+
+.btn-gris:hover{
+ background:#5a6268;
+ transform:scale(1.03);
+}
+
+.botones-row{
+ display:flex;
+ gap:10px;
+ margin-top:15px;
+}
+
+.btn-app{
+ flex:1;
+ padding:12px;
+ border:none;
+ border-radius:20px;
+ font-weight:bold;
+ font-size:14px;
+ cursor:pointer;
+ transition:0.2s;
+ box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+.btn-verde{
+ background:#2e7d32;
+ color:white;
+}
+
+.btn-verde:hover{
+ background:#256628;
+ transform:scale(1.03);
+}
+
+.btn-rojo{
+ background:#d40511;
+ color:white;
+}
+
+.btn-rojo:hover{
+ background:#a6030c;
+ transform:scale(1.03);
+}
+
+.btn-admin{
+ background:#6f42c1;
+ color:white;
+}
+
+.btn-admin:hover{
+ background:#5935a3;
+ transform:scale(1.03);
+}
+
+.btn-app:active{
+ transform:scale(0.97);
+}
+
 h2{text-align:center;color:#d40511;}
 
 label{margin-top:6px;font-size:12px;font-weight:bold;}
@@ -87,18 +150,19 @@ canvas{
 <h2>REPORTE ALERTA DE CALIDAD</h2>
 
 <label>Nombre</label>
-<select id="nombre" onchange="autocompletar()">
-<option value="">Selecciona</option>
-<option>Angel Moreno</option>
-<option>Antonio Badillo</option>
-<option>Areli Rosas</option>
-<option>Ivan Coxanteje</option>
-<option>Gregorio Pérez</option>
-<option>Jesús Gonzalez</option>
-<option>Gabriela Alvarado</option>
-<option>Carlos Cruz</option>
-<option>Felix Montoya</option>
-</select>
+<input list="listaNombres" id="nombre" placeholder="Escribe el nombre" onchange="autocompletar()">
+
+<datalist id="listaNombres">
+<option value="Angel Moreno">
+<option value="Antonio Badillo">
+<option value="Areli Rosas">
+<option value="Ivan Coxanteje">
+<option value="Gregorio Pérez">
+<option value="Jesús Gonzalez">
+<option value="Gabriela Alvarado">
+<option value="Carlos Cruz">
+<option value="Felix Montoya">
+</datalist>
 
 <label>Password</label>
 <input id="password" type="password" placeholder="Ingresa tu contraseña">
@@ -162,48 +226,49 @@ REPORTE ALERTA DE CALIDAD<br>
 </div>
 
 <label>Hallazgo</label>
-<select id="hallazgo">
-<option value="">Selecciona</option>
-<option>CAJAS ABIERTAS</option>
-<option>CAJAS DAÑADAS</option>
-<option>CAVERNA</option>
-<option>CODIGO ERRONEO</option>
-<option>COLAPSO</option>
-<option>CORTINA DAÑADA</option>
-<option>DERRAME DE PRODUCTO</option>
-<option>DESVIACIÓN</option>
-<option>DIMENSIÓN INADECUADA</option>
-<option>ENVOLTURAS (DULCES)</option>
-<option>ETIQUETA DAÑADA</option>
-<option>ETIQUETA DESPRENDIDA</option>
-<option>ETIQUETA SIN INFORMACIÓN</option>
-<option>FALTANTE</option>
-<option>GOTERA </option>
-<option>MAL EMPLAYADO</option>
-<option>MEZCLA DE CÓDIGOS</option>
-<option>MEZCLA DE LOTES</option>
-<option>MURO</option>
-<option>ORDEN Y LIMPIEZA</option>
-<option>ORIENTACIÓN INCORRECTA</option>
-<option>PALLET CON POLVO</option>
-<option>PALLET CON RESTO</option>
-<option>PALLET LADEADO</option>
-<option>PALLET SIN ETIQUETA</option>
-<option>PALLET SOBRE PASILLO</option>
-<option>PALLET VACÍO EN UBICACIÓN</option>
-<option>PIRAMIDE DE FRAGILIDAD</option>
-<option>PLAGA</option>
-<option>PRODUCTO "SUELTO"</option>
-<option>PRODUCTO MOJADO</option>
-<option>RACK DAÑADO</option>
-<option>REGLETA DAÑADA</option>
-<option>REGLETA NO LEGIBLE</option>
-<option>SECTORIZACIÓN INCORRECTA</option>
-<option>SOBRANTE</option>
-<option>SUSTRACCION</option>
-<option>TARIMA DAÑADA</option>
 
-</select>
+<input list="listaHallazgos" id="hallazgo" placeholder="Escribe el hallazgo" onchange="validarHallazgo()">
+
+<datalist id="listaHallazgos">
+<option value="CAJAS ABIERTAS">
+<option value="CAJAS DAÑADAS">
+<option value="CAVERNA">
+<option value="CODIGO ERRONEO">
+<option value="COLAPSO">
+<option value="CORTINA DAÑADA">
+<option value="DERRAME DE PRODUCTO">
+<option value="DESVIACIÓN">
+<option value="DIMENSIÓN INADECUADA">
+<option value="ENVOLTURAS (DULCES)">
+<option value="ETIQUETA DAÑADA">
+<option value="ETIQUETA DESPRENDIDA">
+<option value="ETIQUETA SIN INFORMACIÓN">
+<option value="FALTANTE">
+<option value="GOTERA">
+<option value="MAL EMPLAYADO">
+<option value="MEZCLA DE CÓDIGOS">
+<option value="MEZCLA DE LOTES">
+<option value="MURO">
+<option value="ORDEN Y LIMPIEZA">
+<option value="ORIENTACIÓN INCORRECTA">
+<option value="PALLET CON POLVO">
+<option value="PALLET CON RESTO">
+<option value="PALLET LADEADO">
+<option value="PALLET SIN ETIQUETA">
+<option value="PALLET SOBRE PASILLO">
+<option value="PALLET VACÍO EN UBICACIÓN">
+<option value="PIRAMIDE DE FRAGILIDAD">
+<option value="PLAGA">
+<option value='PRODUCTO "SUELTO"'>
+<option value="PRODUCTO MOJADO">
+<option value="RACK DAÑADO">
+<option value="REGLETA DAÑADA">
+<option value="REGLETA NO LEGIBLE">
+<option value="SECTORIZACIÓN INCORRECTA">
+<option value="SOBRANTE">
+<option value="SUSTRACCION">
+<option value="TARIMA DAÑADA">
+</datalist>
 
 <label>Ubicación</label>
 <input id="ubicacion" placeholder="Ingresa la ubicación">
@@ -219,12 +284,15 @@ REPORTE ALERTA DE CALIDAD<br>
 <div class="section">
 <label>Firma</label>
 <canvas id="firma"></canvas>
-<button onclick="limpiarFirma()">Limpiar Firma</button>
+<button class="btn-app btn-gris" onclick="limpiarFirma()">Limpiar Firma</button>
 </div>
 
-<button onclick="guardar()">Guardar</button>
-<button onclick="pdf()">Descargar PDF</button>
+<div class="botones-row">
+<button class="btn-verde" onclick="guardar()">Guardar</button>
+<button class="btn-verde" onclick="pdf()">PDF</button>
+</div>
 <button id="adminBtn" class="hidden" onclick="accionAdmin()">Panel Admin</button>
+<button class="btn-app btn-rojo" onclick="logout()">Cerrar sesión</button>
 
 <p id="msg"></p>
 </div>
@@ -275,6 +343,28 @@ function autocompletar(){
  cuadrilla.value=p?.cuadrilla || "";
  areaLogin.value=p?.area || "";
 }
+
+function validarHallazgo(){
+
+ let valor = hallazgo.value.trim();
+ let opciones = document.getElementById("listaHallazgos").options;
+
+ let valido = false;
+
+ for(let i=0; i<opciones.length; i++){
+  if(opciones[i].value === valor){
+   valido = true;
+   break;
+  }
+ }
+
+ if(!valido){
+  alert("Selecciona un hallazgo válido de la lista");
+  hallazgo.value = "";
+ }
+
+}
+
 
 let datosGenerales={},folioGlobal="";
 
@@ -338,6 +428,13 @@ let esAdmin = user.admin === true;
 
  loginBox.classList.add("hidden");
  systemBox.classList.remove("hidden");
+ // ✅ guardar sesión con expiración (30 min)
+let tiempoExp = new Date().getTime() + (30 * 60 * 1000);
+localStorage.setItem("sesionActiva", "true");
+localStorage.setItem("expiraEn", tiempoExp.toString());
+localStorage.setItem("usuarioNombre", nombre.value);
+localStorage.setItem("usuarioTurno", turno.value);
+localStorage.setItem("usuarioFecha", fechaLogin.value);
  if(esAdmin){
  adminBtn.classList.remove("hidden");
 }
@@ -395,7 +492,6 @@ canvas.addEventListener("touchmove", e=>{
  );
  ctx.stroke();
 });
-``
 
 function limpiarFirma(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -628,8 +724,80 @@ function pdf(){
  }
 
 }
+window.onload = function(){
 
-``
+ let sesion = localStorage.getItem("sesionActiva");
+ let expiraEn = localStorage.getItem("expiraEn");
+
+ if(sesion === "true" && expiraEn){
+
+  let ahora = new Date().getTime();
+
+  if(ahora < parseInt(expiraEn)){
+
+ loginBox.classList.add("hidden");
+ systemBox.classList.remove("hidden");
+
+ // ✅ restaurar usuario
+ let nombreGuardado = localStorage.getItem("usuarioNombre");
+
+ if(nombreGuardado){
+
+ let user = personal[nombreGuardado];
+
+ let turnoGuardado = localStorage.getItem("usuarioTurno");
+ let fechaGuardado = localStorage.getItem("usuarioFecha");
+
+ datosGenerales = {
+  nombre: nombreGuardado,
+  cuadrilla: user.cuadrilla,
+  area: user.area,
+  turno: turnoGuardado,
+  fecha: fechaGuardado
+ };
+
+ bienvenida.innerText = "BIENVENIDO: " + nombreGuardado.toUpperCase();
+
+ cuadrilla.value = user.cuadrilla;
+ areaLogin.value = user.area;
+ turno.value = turnoGuardado;
+ fechaLogin.value = fechaGuardado;
+
+ // ✅ GENERAR FOLIO correctamente
+ (async function(){
+  let folio = await generarFolio();
+  folioGlobal = folio;
+  folioBox.innerText = "Folio: " + folioGlobal;
+ })();
+
+ if(user && user.admin){
+  adminBtn.classList.remove("hidden");
+ }
+
+}
+
+
+}
+  }else{
+   // ❌ sesión expirada
+   localStorage.removeItem("sesionActiva");
+   localStorage.removeItem("expiraEn");
+  }
+
+ }
+function logout(){
+
+ // borrar sesión completa
+ localStorage.removeItem("sesionActiva");
+ localStorage.removeItem("expiraEn");
+ localStorage.removeItem("usuarioNombre");
+ localStorage.removeItem("usuarioTurno");
+ localStorage.removeItem("usuarioFecha");
+
+ // regresar a login
+ location.reload();
+
+}
 </script>
 </body>
 </html>
