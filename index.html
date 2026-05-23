@@ -13,13 +13,18 @@
 body{
  margin:0;
  font-family:Arial;
-background: url("glo-dgf-zoom-wallpaper3-1920x1080.jpg") center/cover no-repeat fixed;
+
+ background:url("./glo-dgf-zoom-wallpaper3-1920x1080.jpg") no-repeat center center;
+ background-size:cover;
+ background-attachment:fixed;
+
  display:flex;
  justify-content:center;
  align-items:flex-start;
  min-height:100vh;
  padding:15px;
 }
+
 
 .card{
  background:rgba(255,230,128,0.95);
@@ -485,9 +490,16 @@ function cambiarTipo(){
 // FIRMA
 let canvas=document.getElementById("firma");
 let ctx=canvas.getContext("2d");
+ctx.strokeStyle = "black";
+ctx.lineWidth = 2;
 
-canvas.width = canvas.offsetWidth;
-canvas.height = 150;
+function ajustarCanvas(){
+ canvas.width = canvas.offsetWidth;
+ canvas.height = 150;
+}
+
+// esperar a que cargue bien
+setTimeout(ajustarCanvas, 200);
 
 let d = false;
 
