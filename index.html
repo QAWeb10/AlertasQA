@@ -33,6 +33,26 @@ body{
 }
 
 .hidden{display:none;}
+.lista-autocomplete{
+ background:white;
+ border:1px solid #ccc;
+ border-radius:8px;
+ max-height:150px;
+ overflow-y:auto;
+ position:absolute;
+ width:100%;
+ z-index:100;
+}
+
+.item-autocomplete{
+ padding:12px;
+ font-size:14px;
+ cursor:pointer;
+}
+
+.item-autocomplete:hover{
+ background:#ffcc00;
+}
 
 .btn-gris{
  background:#6c757d;
@@ -102,16 +122,17 @@ label{margin-top:6px;font-size:12px;font-weight:bold;}
 
 input,select{
  width:100%;
- padding:10px;
- margin-top:4px;
+ padding:12px;
+ font-size:16px; /* evita zoom automático */
  border-radius:8px;
  border:1px solid #bbb;
 }
 
-button{
+
+button:not(.btn-app){
  width:100%;
  padding:12px;
- margin-top:10px;
+ font-size:16px;
  background:#d40511;
  color:white;
  border:none;
@@ -150,19 +171,12 @@ canvas{
 <h2>REPORTE ALERTA DE CALIDAD</h2>
 
 <label>Nombre</label>
-<input list="listaNombres" id="nombre" placeholder="Escribe el nombre" onchange="autocompletar()">
 
-<datalist id="listaNombres">
-<option value="Angel Moreno">
-<option value="Antonio Badillo">
-<option value="Areli Rosas">
-<option value="Ivan Coxanteje">
-<option value="Gregorio Pérez">
-<option value="Jesús Gonzalez">
-<option value="Gabriela Alvarado">
-<option value="Carlos Cruz">
-<option value="Felix Montoya">
-</datalist>
+<div style="position:relative;">
+ <input id="nombre" placeholder="Escribe el nombre" oninput="filtrarNombres()">
+ <div id="listaResultados" class="lista-autocomplete"></div>
+</div>
+
 
 <label>Password</label>
 <input id="password" type="password" placeholder="Ingresa tu contraseña">
@@ -288,10 +302,11 @@ REPORTE ALERTA DE CALIDAD<br>
 </div>
 
 <div class="botones-row">
-<button class="btn-verde" onclick="guardar()">Guardar</button>
-<button class="btn-verde" onclick="pdf()">PDF</button>
+<button class="btn-app btn-verde" onclick="guardar()">Guardar</button>
+<button class="btn-app btn-verde" onclick="pdf()">PDF</button>
 </div>
-<button id="adminBtn" class="hidden" onclick="accionAdmin()">Panel Admin</button>
+<button id="adminBtn" class="hidden btn-app btn-admin" onclick="accionAdmin()">Panel Admin</button>
+
 <button class="btn-app btn-rojo" onclick="logout()">Cerrar sesión</button>
 
 <p id="msg"></p>
@@ -454,7 +469,8 @@ function cambiarTipo(){
 let canvas=document.getElementById("firma");
 let ctx=canvas.getContext("2d");
 
-canvas.width=300;height=120;
+canvas.width = canvas.offsetWidth;
+canvas.height = 150;
 
 let d = false;
 
@@ -469,9 +485,16 @@ canvas.addEventListener("mousemove", e=>{
 
 // TOUCH (CELULAR)
 canvas.addEventListener("touchstart", e=>{
+ e.preventDefault();
+
  d = true;
  const rect = canvas.getBoundingClientRect();
  const touch = e.touches[0];
+
+ ctx.beginPath();
+ ctx.strokeStyle = "black";
+ctx.lineWidth = 2;
+
  ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
 });
 
@@ -797,6 +820,54 @@ function logout(){
 
  // regresar a login
  location.reload();
+
+
+}
+
+document.addEventListener("click", function(e){
+
+ if(!e.target.closest("#nombre") && !e.target.closest("#listaResultados")){
+  let lista = document.getElementById("listaResultados");
+
+  if(lista){
+   lista.innerHTML = "";
+  }
+ }
+
+});
+function filtrarNombres(){
+
+ let input = document.getElementById("nombre").value.toLowerCase();
+ let lista = document.getElementById("listaResultados");
+
+ lista.innerHTML = "";
+
+ if(!input){
+ lista.innerHTML = "";
+ return;
+}
+
+ let nombres = Object.keys(personal);
+
+ let filtrados = nombres.filter(nombre =>
+  nombre.toLowerCase().includes(input)
+ );
+
+ filtrados.forEach(nombre =>{
+
+  let div = document.createElement("div");
+  div.innerText = nombre;
+  div.className = "item-autocomplete";
+
+  div.onclick = function(){
+   document.getElementById("nombre").value = nombre;
+   lista.innerHTML = "";
+   autocompletar();
+  };
+
+  lista.appendChild(div);
+
+ });
 
 }
 </script>
