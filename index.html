@@ -1,250 +1,588 @@
 <!DOCTYPE html>
 <html lang="es">
+<head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ LIBRERÍAS BIEN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+*{ box-sizing:border-box; }
 
 body{
-  font-family: Arial;
-  background:#ffcc00;
-  margin:0;
+ margin:0;
+ font-family:Arial;
+ background:url('glo-dgf-zoom-wallpaper3-1920x1080.jpg') no-repeat center;
+ background-size:cover;
+ display:flex;
+ justify-content:center;
+ align-items:flex-start;
+ min-height:100vh;
+ padding:15px;
 }
-.card{
-  background:white;
-  padding:25px;
-  margin:auto;
-  margin-top:40px;
-  width:90%;
-  max-width:500px;
-  border-radius:15px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
-}
-h2{
-  text-align:center;
-  color:#d40511;
-}
-input,select{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-button{
-  width:100%;
-  padding:12px;
-  background:#d40511;
-  color:white;
-  border:none;
-  border-radius:8px;
-  margin-top:10px;
-  font-weight:bold;
-}
-canvas{
-  border:1px solid #ccc;
-}
-.hidden{display:none;}
-.msg{color:green;text-align:center;}
-</style>
 
+.card{
+ background:rgba(255,230,128,0.95);
+ padding:25px;
+ max-width:420px;
+ width:100%;
+ border-radius:15px;
+ border:2px solid #d40511;
+ box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.hidden{display:none;}
+h2{text-align:center;color:#d40511;}
+
+label{margin-top:6px;font-size:12px;font-weight:bold;}
+
+input,select{
+ width:100%;
+ padding:10px;
+ margin-top:4px;
+ border-radius:8px;
+ border:1px solid #bbb;
+}
+
+button{
+ width:100%;
+ padding:12px;
+ margin-top:10px;
+ background:#d40511;
+ color:white;
+ border:none;
+ border-radius:8px;
+ cursor:pointer;
+}
+
+.section{
+ background:#ffffff40;
+ margin-top:10px;
+ padding:10px;
+ border-radius:8px;
+}
+
+.folio{
+ text-align:center;
+ font-weight:bold;
+ background:#eee;
+ padding:8px;
+ border-radius:8px;
+ margin-bottom:10px;
+}
+
+canvas{
+ width:100%;
+ height:120px;
+ border:1px solid black;
+ background:white;
+}
+</style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div class="card" id="loginBox">
-  <h2>Login QA DHL</h2>
-  <input id="user" placeholder="Usuario">
-  <input id="pass" type="password" placeholder="Contraseña">
-  <button onclick="login()">Entrar</button>
-</div>
+<h2>REPORTE ALERTA DE CALIDAD</h2>
 
-<!-- FORM -->
-<div class="card hidden" id="formBox">
-<h2>Reporte Calidad</h2>
+<label>Nombre</label>
+<select id="nombre" onchange="autocompletar()">
+<option value="">Selecciona</option>
+<option>Angel Moreno</option>
+<option>Antonio Badillo</option>
+<option>Areli Rosas</option>
+<option>Ivan Coxanteje</option>
+<option>Gregorio Pérez</option>
+<option>Jesús Gonzalez</option>
+<option>Gabriela Alvarado</option>
+<option>Carlos Cruz</option>
+</select>
 
-<form id="form">
-
-<input type="date" id="fecha" required>
-
-<select id="elaborado">
-<option>Analista1</option>
-<option>Analista2</option>
+<label>Password</label>
+<input id="password" type="password" placeholder="Ingresa tu contraseña">
 
 </select>
 
+<label>Cuadrilla</label>
+<input id="cuadrilla" readonly>
+
+<label>Área</label>
+<input id="areaLogin" readonly>
+
+<label>Turno</label>
 <select id="turno">
 <option>Matutino</option>
 <option>Nocturno</option>
 </select>
 
-<input id="ubicacion" placeholder="Ubicación">
+<label>Fecha</label>
+<input id="fechaLogin" readonly>
 
-<select id="area">
-<option>Recibo</option>
-<option>Embarque</option>
+<button onclick="login()">Entrar</button>
+</div>
+
+<div class="card hidden" id="systemBox">
+<h2>
+REPORTE ALERTA DE CALIDAD<br>
+<span id="bienvenida" style="font-size:14px;color:#333;"></span>
+</h2>
+
+<div id="folioBox" class="folio">Folio: ---</div>
+
+<div class="section">
+<label>Tipo</label>
+<select id="tipo" onchange="cambiarTipo()">
+<option value="">Selecciona</option>
+<option>Producto</option>
+<option>Transporte</option>
+<option>Infraestructura</option>
 </select>
 
+<div id="productoSec" class="hidden">
+<label>Código</label>
+<input id="codigo">
+<label>Lote</label>
+<input id="lote">
+<label>Cantidad</label>
+<input id="cantidad" type="number">
+<label>Unidad</label>
+<select id="unidad">
+<option value="">Selecciona</option>
+<option>Item</option>
+<option>Caja</option>
+<option>Pallet</option>
+</select>
+</div>
+
+<div id="transporteSec" class="hidden">
+<label>Unidad envío</label>
+<input id="unidadEnvio">
+<label>Identificador</label>
+<input id="idTransporte">
+</div>
+
+<label>Hallazgo</label>
 <select id="hallazgo">
-<option>Error</option>
-<option>Daño</option>
+<option value="">Selecciona</option>
+<option>CAJAS ABIERTAS</option>
+<option>CAJAS DAÑADAS</option>
+<option>CAVERNA</option>
+<option>CODIGO ERRONEO</option>
+<option>COLAPSO</option>
+<option>CORTINA DAÑADA</option>
+<option>DERRAME DE PRODUCTO</option>
+<option>DESVIACIÓN</option>
+<option>DIMENSIÓN INADECUADA</option>
+<option>ENVOLTURAS (DULCES)</option>
+<option>ETIQUETA DAÑADA</option>
+<option>ETIQUETA DESPRENDIDA</option>
+<option>ETIQUETA SIN INFORMACIÓN</option>
+<option>FALTANTE</option>
+<option>GOTERA </option>
+<option>MAL EMPLAYADO</option>
+<option>MEZCLA DE CÓDIGOS</option>
+<option>MEZCLA DE LOTES</option>
+<option>MURO</option>
+<option>ORDEN Y LIMPIEZA</option>
+<option>ORIENTACIÓN INCORRECTA</option>
+<option>PALLET CON POLVO</option>
+<option>PALLET CON RESTO</option>
+<option>PALLET LADEADO</option>
+<option>PALLET SIN ETIQUETA</option>
+<option>PALLET SOBRE PASILLO</option>
+<option>PALLET VACÍO EN UBICACIÓN</option>
+<option>PIRAMIDE DE FRAGILIDAD</option>
+<option>PLAGA</option>
+<option>PRODUCTO "SUELTO"</option>
+<option>PRODUCTO MOJADO</option>
+<option>RACK DAÑADO</option>
+<option>REGLETA DAÑADA</option>
+<option>REGLETA NO LEGIBLE</option>
+<option>SECTORIZACIÓN INCORRECTA</option>
+<option>SOBRANTE</option>
+<option>SUSTRACCION</option>
+<option>TARIMA DAÑADA</option>
+
 </select>
 
-<input type="number" id="codigo" placeholder="Código">
+<label>Ubicación</label>
+<input id="ubicacion" placeholder="Ingresa la ubicación">
+</div>
 
-<label>Foto</label>
-<input type="file" id="foto">
+<div class="section">
+<label>Evidencia fotográfica</label>
 
+<input type="file" id="foto" accept="image/*" capture multiple>
+
+</div>
+
+<div class="section">
 <label>Firma</label>
-<canvas id="canvas" width="300" height="150"></canvas>
-<button type="button" onclick="limpiar()">Limpiar firma</button>
+<canvas id="firma"></canvas>
+<button onclick="limpiarFirma()">Limpiar Firma</button>
+</div>
 
-<button type="submit">Guardar Reporte</button>
+<button onclick="guardar()">Guardar</button>
+<button onclick="pdf()">Descargar PDF</button>
 
-</form>
-
-<p id="mensaje" class="msg"></p>
-
-<button id="btnPDF" onclick="descargarPDF()" class="hidden">
-Descargar PDF
-</button>
-
+<p id="msg"></p>
 </div>
 
 <script>
 
-// ✅ CONEXIÓN CORRECTA
+// SUPABASE
 const supabaseClient = supabase.createClient(
  "https://wpitemofrqzjcsetmmim.supabase.co",
  "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
 );
 
-// ✅ LOGIN
-function login(){
- let u=document.getElementById("user").value;
- let p=document.getElementById("pass").value;
+// FECHA
+function fechaFormato(){
+ const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+ let d=new Date();
+ return `${String(d.getDate()).padStart(2,'0')}-${m[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
+}
+fechaLogin.value=fechaFormato();
 
- if((u=="admin" && p=="1234") || (u=="analista1" && p=="1111")){
-   document.getElementById("loginBox").classList.add("hidden");
-   document.getElementById("formBox").classList.remove("hidden");
- }else{
-   alert("Usuario incorrecto");
- }
+// PERSONAL
+const personal = {
+
+ "Angel Moreno":           {cuadrilla:"A", area:"Embarque", pass:"1234"},
+ "Antonio Badillo":        {cuadrilla:"A", area:"Recibo", pass:"1234"},
+
+ "Areli Rosas":           {cuadrilla:"B", area:"Embarque", pass:"1234"},
+ "Ivan Coxanteje":        {cuadrilla:"B", area:"Recibo", pass:"1234"},
+
+ "Gregorio Pérez":        {cuadrilla:"C", area:"Recibo", pass:"1234"},
+ "Jesús Gonzalez":        {cuadrilla:"C", area:"Embarque", pass:"1234"},
+
+ "Gabriela Alvarado":     {cuadrilla:"D", area:"Recibo", pass:"1234"},
+ "Carlos Cruz":           {cuadrilla:"D", area:"Embarque", pass:"1234"}
+
+};
+
+
+function autocompletar(){
+ let p=personal[nombre.value];
+ cuadrilla.value=p?.cuadrilla || "";
+ areaLogin.value=p?.area || "";
 }
 
-// ✅ FIRMA
-let canvas=document.getElementById("canvas");
-let ctx=canvas.getContext("2d");
-let dibujando=false;
+let datosGenerales={},folioGlobal="";
 
-canvas.onmousedown=()=>dibujando=true;
-canvas.onmouseup=()=>dibujando=false;
+// FOLIO
+async function generarFolio(){
+ const { data } = await supabaseClient
+ .from("Reportes")
+ .select("folio")
+ .order("folio",{ascending:false})
+ .limit(1);
+
+ let ultimo=data?.[0]?.folio || "AC-2627-000";
+ let num=parseInt(ultimo.split("-")[2])+1;
+ return "AC-2627-"+String(num).padStart(3,'0');
+}
+
+// LOGIN
+async function login(){
+
+ if(!nombre.value){
+  alert("Selecciona nombre");
+  return;
+ }
+
+ if(!password.value){
+  alert("Ingresa la contraseña");
+  return;
+ }
+
+ let user = personal[nombre.value];
+
+ if(!user){
+  alert("Usuario inválido");
+  return;
+ }
+
+ if(password.value.trim() !== user.pass){
+  alert("Contraseña incorrecta");
+  return;
+ }
+
+ // ✅ si pasa todo
+ datosGenerales={
+  nombre:nombre.value,
+  cuadrilla:user.cuadrilla,
+  area:user.area,
+  turno:turno.value,
+  fecha:fechaLogin.value
+ };
+
+ cuadrilla.value = user.cuadrilla;
+ areaLogin.value = user.area;
+
+ folioGlobal=await generarFolio();
+ folioBox.innerText="Folio: "+folioGlobal;
+
+ bienvenida.innerText = "BIENVENIDO: " + datosGenerales.nombre.toUpperCase();
+
+ loginBox.classList.add("hidden");
+ systemBox.classList.remove("hidden");
+}
+
+// TIPO
+function cambiarTipo(){
+ productoSec.classList.add("hidden");
+ transporteSec.classList.add("hidden");
+
+ if(tipo.value==="Producto") productoSec.classList.remove("hidden");
+ if(tipo.value==="Transporte") transporteSec.classList.remove("hidden");
+}
+
+// FIRMA
+let canvas=document.getElementById("firma");
+let ctx=canvas.getContext("2d");
+
+canvas.width=300;height=120;
+
+let d=false;
+
+canvas.onmousedown=()=>d=true;
+canvas.onmouseup=()=>{d=false;ctx.beginPath();}
 canvas.onmousemove=e=>{
- if(!dibujando)return;
+ if(!d)return;
  ctx.lineTo(e.offsetX,e.offsetY);
  ctx.stroke();
 };
 
-function limpiar(){
+function limpiarFirma(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-// ✅ BASE64
-function toBase64(file){
- return new Promise(res=>{
-  let r=new FileReader();
-  r.onload=()=>res(r.result);
-  r.readAsDataURL(file);
- });
+// GUARDAR
+async function guardar(){
+
+ // ✅ VALIDACIÓN COMPLETA
+ if(
+  !folioGlobal ||
+  !datosGenerales ||
+  !datosGenerales.nombre ||
+  !datosGenerales.turno ||
+  !datosGenerales.cuadrilla ||
+  !datosGenerales.area ||
+  !tipo.value ||
+  !hallazgo.value ||
+  !ubicacion.value ||
+
+  // validaciones específicas por tipo
+  (tipo.value === "Producto" && (
+    !codigo.value ||
+    !lote.value ||
+    !cantidad.value ||
+    !unidad.value
+  )) ||
+
+  (tipo.value === "Transporte" && (
+    !unidadEnvio.value ||
+    !idTransporte.value
+  )) ||
+
+  // firma obligatoria
+  canvas.toDataURL() === "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAABYCAIAAACs7Y8XAAAAA3NCSVQICAjb4U/gAAACMElEQVR4nO3SwQ3CMBBF0ff/p1sJ2AkZISwLgSKKnz4WxZmfZbduAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPyW9bZo4H8H2k+X6AfdbDDIYRhGMZRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgFfwFjLaVaP5I8kwAAAABJRU5ErkJggg=="
+ ){
+  alert("Debes completar todos los campos y firmar antes de guardar");
+  return;
+ }
+
+ msg.innerText="✅ Guardado "+folioGlobal;
+
 }
 
-// ✅ VARIABLES
-let ultimoRegistro=null;
-let ultimaFoto=null;
-let ultimaFirma=null;
-
-// ✅ ENVÍO
-document.getElementById("form").addEventListener("submit", async e=>{
- e.preventDefault();
+// PDF COMPLETO ORIGINAL
+function pdf(){
 
  try{
 
- let fotoFile=foto.files[0];
- let fotoBase64="";
- if(fotoFile) fotoBase64=await toBase64(fotoFile);
-
- let firma=canvas.toDataURL();
-let data = {
-  fecha: fecha.value,
-  elaborado: elaborado.value,
-  turno: turno.value,
-  ubicacion: ubicacion.value || null,
-  area: area.value,
-  hallazgo: hallazgo.value,
-  codigo: codigo.value ? parseInt(codigo.value) : null
-};
-
-const { data: result, error } = await supabaseClient
-  .from("Reportes")
-  .insert([data])
-  .select();
-
-if (error) {
-  console.error("ERROR SUPABASE:", error);
-  alert("Error: " + error.message);
+ if(
+  !folioGlobal ||
+  !datosGenerales ||
+  !datosGenerales.nombre ||
+  !datosGenerales.turno ||
+  !datosGenerales.cuadrilla ||
+  !datosGenerales.area ||
+  !tipo.value ||
+  !hallazgo.value ||
+  !ubicacion.value
+ ){
+  alert("Debes llenar todos los datos antes de generar el PDF");
   return;
-}
-
- ultimoRegistro={...data, folio:result[0].id};
- ultimaFoto=fotoBase64;
- ultimaFirma=firma;
-
- mensaje.innerText="✅ Registro guardado correctamente";
- btnPDF.classList.remove("hidden");
-
- }catch(err){
-  console.log(err);
-  alert("Error general");
  }
 
-});
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF();
 
-// ✅ PDF
-function descargarPDF(){
- const {jsPDF}=window.jspdf;
- let doc=new jsPDF();
+ let totalPages = 2;
 
- doc.text("REPORTE DE CALIDAD DHL",20,20);
- doc.text("FOLIO: FOL-"+ultimoRegistro.folio,20,30);
+ function footer(page){
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+  doc.text("SISTEMA DE GESTION DE CALIDAD DHL FY2627",105,290,null,null,"center");
+  doc.text(folioGlobal + "  |  " + page + "/" + totalPages,200,290,null,null,"right");
+ }
 
- let y=40;
+ function header(){
+  doc.setFillColor(200,0,0);
+  doc.rect(0,0,210,22,"F");
 
- for(let k in ultimoRegistro){
-  if(k!="folio"){
-   doc.text(k+": "+ultimoRegistro[k],20,y);
-   y+=10;
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(18);
+  doc.setTextColor(255);
+  doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
+ }
+
+ const firmaY = 230;
+
+ function dibujarFirma(){
+
+  // ✅ TEXTO NEGRO + DINÁMICO
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(12);
+  doc.setTextColor(0);
+
+  doc.text("FIRMA: " + (datosGenerales.nombre || "-"),105,firmaY,null,null,"center");
+
+  // caja centrada
+  doc.rect(60,firmaY+5,90,40);
+
+  // imagen firma
+  try{
+   doc.addImage(canvas.toDataURL(),"PNG",62,firmaY+7,86,34);
+  }catch(e){
+   doc.setTextColor(0);
+   doc.text("Sin firma",105,firmaY+25,null,null,"center");
   }
+
  }
 
- if(ultimaFoto){
-  doc.addImage(ultimaFoto,"JPEG",20,y,60,60);
-  y+=70;
+ // ===== PAGINA 1 =====
+ header();
+
+ let y = 35;
+
+ function fila(label, valor){
+
+  doc.setDrawColor(200);
+  doc.line(10,y,200,y);
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(11);
+  doc.setTextColor(60);
+  doc.text(label,10,y+6);
+
+  doc.setFillColor(255,230,120);
+  doc.rect(95,y+1,105,11,"F");
+
+  doc.setFont("helvetica","normal");
+  doc.setTextColor(0);
+  doc.text((valor || "-").toString(),198,y+8,null,null,"right");
+
+  y += 12;
  }
 
- doc.text("Firma:",20,y);
- doc.addImage(ultimaFirma,"PNG",20,y+10,60,30);
+ fila("FOLIO",folioGlobal);
+ fila("Fecha",datosGenerales.fecha);
+ fila("Elaborado por",datosGenerales.nombre);
+ fila("Turno",datosGenerales.turno);
+ fila("Cuadrilla",datosGenerales.cuadrilla);
 
- doc.save("FOL-"+ultimoRegistro.folio+".pdf");
+ fila("Ubicación",ubicacion.value);
+ fila("Área",datosGenerales.area);
+ fila("Modo de falla",hallazgo.value);
+
+ fila("Código",(codigo && codigo.value));
+ fila("Lote",(lote && lote.value));
+ fila("Cantidad",(cantidad && cantidad.value));
+
+ // ✅ FIRMA PAGINA 1
+ dibujarFirma();
+
+ footer(1);
+
+ // ===== PAGINA 2 =====
+ doc.addPage();
+ header();
+
+ doc.setFont("helvetica","bold");
+ doc.setFontSize(14);
+ doc.setTextColor(0);
+ doc.text("EVIDENCIA FOTOGRÁFICA",10,30);
+
+ let x = 10;
+ let yImg = 40;
+
+ if(foto && foto.files && foto.files.length > 0){
+
+  let readers = [];
+  let imgs = [];
+
+  for(let i=0;i<foto.files.length;i++){
+   readers.push(
+    new Promise(function(resolve){
+     let r = new FileReader();
+     r.onload = function(e){
+      imgs.push(e.target.result);
+      resolve();
+     };
+     r.readAsDataURL(foto.files[i]);
+    })
+   );
+  }
+
+  Promise.all(readers).then(function(){
+
+   imgs.forEach(function(img){
+
+    doc.rect(x,yImg,90,70);
+    doc.addImage(img,"JPEG",x+2,yImg+2,86,66);
+
+    x += 100;
+
+    if(x > 110){
+     x = 10;
+     yImg += 80;
+    }
+
+   });
+
+   // ✅ FIRMA PAGINA 2 (MISMA POSICIÓN + NEGRO + TEXTO)
+   dibujarFirma();
+
+   footer(2);
+
+   doc.save(folioGlobal + ".pdf");
+
+  });
+
+ } else {
+
+  doc.setFontSize(11);
+  doc.text("Sin evidencia",10,60);
+
+  dibujarFirma();
+
+  footer(2);
+
+  doc.save(folioGlobal + ".pdf");
+ }
+
+ }catch(e){
+ console.error("ERROR PDF:", e);
+ alert("Error al generar PDF");
+ }
+
 }
 
+``
 </script>
-
 </body>
 </html>
-``
