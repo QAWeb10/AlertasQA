@@ -97,12 +97,11 @@ canvas{
 <option>Jesús Gonzalez</option>
 <option>Gabriela Alvarado</option>
 <option>Carlos Cruz</option>
+<option>Felix Montoya</option>
 </select>
 
 <label>Password</label>
 <input id="password" type="password" placeholder="Ingresa tu contraseña">
-
-</select>
 
 <label>Cuadrilla</label>
 <input id="cuadrilla" readonly>
@@ -225,6 +224,7 @@ REPORTE ALERTA DE CALIDAD<br>
 
 <button onclick="guardar()">Guardar</button>
 <button onclick="pdf()">Descargar PDF</button>
+<button id="adminBtn" class="hidden" onclick="accionAdmin()">Panel Admin</button>
 
 <p id="msg"></p>
 </div>
@@ -248,17 +248,24 @@ fechaLogin.value=fechaFormato();
 // PERSONAL
 const personal = {
 
- "Angel Moreno":           {cuadrilla:"A", area:"Embarque", pass:"1234"},
- "Antonio Badillo":        {cuadrilla:"A", area:"Recibo", pass:"1234"},
+ "Angel Moreno": {cuadrilla:"A", area:"Embarque", pass:"1234"},
+ "Antonio Badillo": {cuadrilla:"A", area:"Recibo", pass:"1234"},
 
- "Areli Rosas":           {cuadrilla:"B", area:"Embarque", pass:"1234"},
- "Ivan Coxanteje":        {cuadrilla:"B", area:"Recibo", pass:"1234"},
+ "Areli Rosas": {cuadrilla:"B", area:"Embarque", pass:"1234"},
+ "Ivan Coxanteje": {cuadrilla:"B", area:"Recibo", pass:"1234"},
 
- "Gregorio Pérez":        {cuadrilla:"C", area:"Recibo", pass:"1234"},
- "Jesús Gonzalez":        {cuadrilla:"C", area:"Embarque", pass:"1234"},
+ "Gregorio Pérez": {cuadrilla:"C", area:"Recibo", pass:"1234"},
+ "Jesús Gonzalez": {cuadrilla:"C", area:"Embarque", pass:"1234"},
 
- "Gabriela Alvarado":     {cuadrilla:"D", area:"Recibo", pass:"1234"},
- "Carlos Cruz":           {cuadrilla:"D", area:"Embarque", pass:"1234"}
+ "Gabriela Alvarado": {cuadrilla:"D", area:"Recibo", pass:"1234"},
+ "Carlos Cruz": {cuadrilla:"D", area:"Embarque", pass:"1234"},
+
+ "Felix Montoya": {
+  cuadrilla: "ADMIN",
+  area: "QA",
+  pass: "1710",
+  admin: true
+ }
 
 };
 
@@ -299,10 +306,13 @@ async function login(){
 
  let user = personal[nombre.value];
 
- if(!user){
-  alert("Usuario inválido");
-  return;
- }
+if(!user){
+ alert("Usuario inválido");
+ return;
+}
+
+let esAdmin = user.admin === true;
+
 
  if(password.value.trim() !== user.pass){
   alert("Contraseña incorrecta");
@@ -328,6 +338,9 @@ async function login(){
 
  loginBox.classList.add("hidden");
  systemBox.classList.remove("hidden");
+ if(esAdmin){
+ adminBtn.classList.remove("hidden");
+}
 }
 
 // TIPO
@@ -387,6 +400,11 @@ canvas.addEventListener("touchmove", e=>{
 function limpiarFirma(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
 }
+
+function accionAdmin(){
+ alert("Bienvenido al panel de administrador");
+}
+
 
 // GUARDAR
 async function guardar(){
