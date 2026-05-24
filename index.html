@@ -689,6 +689,8 @@ async function guardar(){
   !hallazgo.value ||
   !ubicacion.value ||
 
+   !listaHallazgosDatos.includes(hallazgo.value.toUpperCase())
+
   // validaciones específicas por tipo
   (tipo.value === "Producto" && (
     !codigo.value ||
@@ -731,7 +733,14 @@ function pdf(){
  ){
   alert("Debes llenar todos los datos antes de generar el PDF");
   return;
+  
  }
+ 
+if(!listaHallazgosDatos.includes(hallazgo.value.toUpperCase())){
+ alert("Debes seleccionar un hallazgo válido de la lista");
+ return;
+}
+
 
  const { jsPDF } = window.jspdf;
  const doc = new jsPDF();
@@ -958,7 +967,7 @@ function filtrarHallazgos(){
  lista.innerHTML = "";
 
  if(!input){
-  lista.innerHTML = "";
+  hallazgo.style.border = "1px solid #bbb";
   return;
  }
 
@@ -975,11 +984,20 @@ function filtrarHallazgos(){
   div.onclick = function(){
    document.getElementById("hallazgo").value = h;
    lista.innerHTML = "";
+   hallazgo.style.border = "2px solid green";
   };
 
   lista.appendChild(div);
 
  });
+
+ // VALIDACIÓN VISUAL
+ if(!listaHallazgosDatos.includes(input)){
+  hallazgo.style.border = "2px solid red";
+ } else {
+  hallazgo.style.border = "2px solid green";
+ }
+
 }
 
 function renovarSesion(){
