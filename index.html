@@ -303,7 +303,7 @@ REPORTE ALERTA DE CALIDAD<br>
 <div class="section">
 <label>Firma</label>
 
-<canvas id="firma" onclick="abrirFirma()" style="cursor:pointer;"></canvas>
+<canvas id="firma" style="cursor:pointer;"></canvas
 </div>
 
 <div class="botones-row">
@@ -527,13 +527,18 @@ function cambiarTipo(){
 // FIRMA
 let canvas=document.getElementById("firma");
 let ctx=canvas.getContext("2d");
+canvas.addEventListener("click", abrirFirma);
+canvas.addEventListener("touchstart", abrirFirma);
 
 // ===== FIRMA GRANDE (MODAL) =====
 let canvasGrande;
 let ctxGrande;
 
 
-function abrirFirma(){
+function abrirFirma(e){
+  if(e){
+ e.preventDefault();
+}
  document.getElementById("firmaModal").classList.remove("hidden");
 
  setTimeout(()=>{
