@@ -278,52 +278,15 @@ REPORTE ALERTA DE CALIDAD<br>
 
 <label>Hallazgo</label>
 
-<input list="listaHallazgos" id="hallazgo" placeholder="Escribe el hallazgo" onblur="validarHallazgo()">
+<div style="position:relative;">
+ <input id="hallazgo" placeholder="Escribe el hallazgo" oninput="filtrarHallazgos()">
+ <div id="listaHallazgosCustom" class="lista-autocomplete"></div>
+</div>
 
-<datalist id="listaHallazgos">
-<option value="CAJAS ABIERTAS">
-<option value="CAJAS DAÑADAS">
-<option value="CAVERNA">
-<option value="CODIGO ERRONEO">
-<option value="COLAPSO">
-<option value="CORTINA DAÑADA">
-<option value="DERRAME DE PRODUCTO">
-<option value="DESVIACIÓN">
-<option value="DIMENSIÓN INADECUADA">
-<option value="ENVOLTURAS (DULCES)">
-<option value="ETIQUETA DAÑADA">
-<option value="ETIQUETA DESPRENDIDA">
-<option value="ETIQUETA SIN INFORMACIÓN">
-<option value="FALTANTE">
-<option value="GOTERA">
-<option value="MAL EMPLAYADO">
-<option value="MEZCLA DE CÓDIGOS">
-<option value="MEZCLA DE LOTES">
-<option value="MURO">
-<option value="ORDEN Y LIMPIEZA">
-<option value="ORIENTACIÓN INCORRECTA">
-<option value="PALLET CON POLVO">
-<option value="PALLET CON RESTO">
-<option value="PALLET LADEADO">
-<option value="PALLET SIN ETIQUETA">
-<option value="PALLET SOBRE PASILLO">
-<option value="PALLET VACÍO EN UBICACIÓN">
-<option value="PIRAMIDE DE FRAGILIDAD">
-<option value="PLAGA">
-<option value='PRODUCTO "SUELTO"'>
-<option value="PRODUCTO MOJADO">
-<option value="RACK DAÑADO">
-<option value="REGLETA DAÑADA">
-<option value="REGLETA NO LEGIBLE">
-<option value="SECTORIZACIÓN INCORRECTA">
-<option value="SOBRANTE">
-<option value="SUSTRACCION">
-<option value="TARIMA DAÑADA">
-</datalist>
+
 
 <label>Ubicación</label>
 <input id="ubicacion" placeholder="Ingresa la ubicación">
-</div>
 
 <div class="section">
 <label>Evidencia fotográfica</label>
@@ -385,6 +348,8 @@ const supabaseClient = supabase.createClient(
  "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
 );
 
+const SESSION_TIME = 30 * 60 * 1000; // 30 minutos
+
 // FECHA
 function fechaFormato(){
  const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
@@ -397,6 +362,7 @@ function cerrarFirma(){
  document.getElementById("firmaModal").classList.add("hidden");
 
 }
+
 // PERSONAL
 const personal = {
 
@@ -421,6 +387,46 @@ const personal = {
 
 };
 
+const listaHallazgosDatos = [
+ "CAJAS ABIERTAS",
+ "CAJAS DAÑADAS",
+ "CAVERNA",
+ "CODIGO ERRONEO",
+ "COLAPSO",
+ "CORTINA DAÑADA",
+ "DERRAME DE PRODUCTO",
+ "DESVIACIÓN",
+ "DIMENSIÓN INADECUADA",
+ "ENVOLTURAS (DULCES)",
+ "ETIQUETA DAÑADA",
+ "ETIQUETA DESPRENDIDA",
+ "ETIQUETA SIN INFORMACIÓN",
+ "FALTANTE",
+ "GOTERA",
+ "MAL EMPLAYADO",
+ "MEZCLA DE CÓDIGOS",
+ "MEZCLA DE LOTES",
+ "MURO",
+ "ORDEN Y LIMPIEZA",
+ "ORIENTACIÓN INCORRECTA",
+ "PALLET CON POLVO",
+ "PALLET CON RESTO",
+ "PALLET LADEADO",
+ "PALLET SIN ETIQUETA",
+ "PALLET SOBRE PASILLO",
+ "PALLET VACÍO EN UBICACIÓN",
+ "PIRAMIDE DE FRAGILIDAD",
+ "PLAGA",
+ "PRODUCTO \"SUELTO\"",
+ "PRODUCTO MOJADO",
+ "RACK DAÑADO",
+ "REGLETA DAÑADA",
+ "REGLETA NO LEGIBLE",
+ "SECTORIZACIÓN INCORRECTA",
+ "SOBRANTE",
+ "SUSTRACCION",
+ "TARIMA DAÑADA"
+];
 
 function autocompletar(){
  let p=personal[nombre.value];
@@ -428,28 +434,6 @@ function autocompletar(){
  areaLogin.value=p?.area || "";
 }
 
-function validarHallazgo(){
-
- let valor = hallazgo.value.trim().toUpperCase();
- let opciones = document.getElementById("listaHallazgos").options;
-
- let valido = false;
-
- for(let i=0; i < opciones.length; i++){
-  if(opciones[i].value === valor){
-   valido = true;
-   break;
-  }
- }
-
- if(!valido){
-  alert("Selecciona un hallazgo válido de la lista");
-  hallazgo.value = "";
- } else {
-  // ✅ fuerza formato correcto
-  hallazgo.value = valor;
- }
-}
 
 let datosGenerales={},folioGlobal="";
 
@@ -515,12 +499,12 @@ datosGenerales={
  loginBox.classList.add("hidden");
  systemBox.classList.remove("hidden");
  // ✅ guardar sesión con expiración (30 min)
-let tiempoExp = new Date().getTime() + (30 * 60 * 1000);
-localStorage.setItem("sesionActiva", "true");
-localStorage.setItem("expiraEn", tiempoExp.toString());
-localStorage.setItem("usuarioNombre", nombreLimpio);
-localStorage.setItem("usuarioTurno", turno.value);
-localStorage.setItem("usuarioFecha", fechaLogin.value);
+let sessionData = {
+  datos: datosGenerales,
+  inicio: Date.now()
+};
+
+localStorage.setItem("sesionActiva", JSON.stringify(sessionData));
  if(esAdmin){
  adminBtn.classList.remove("hidden");
 }
@@ -624,58 +608,7 @@ function guardarFirma(){
 }
 // ===== DIBUJO FIRMA GRANDE =====
 
-let d2 = false;
 
-// PC (mouse)
-canvasGrande.addEventListener("mousedown", () => d2 = true);
-
-canvasGrande.addEventListener("mouseup", () => { 
- d2 = false; 
- ctxGrande.beginPath(); 
-});
-
-canvasGrande.addEventListener("mousemove", e=>{
- if(!d2) return;
-
- ctxGrande.lineTo(e.offsetX, e.offsetY);
- ctxGrande.stroke();
-});
-
-// MÓVIL (touch)
-canvasGrande.addEventListener("touchstart", e=>{
- e.preventDefault();
-
- d2 = true;
-
- const rect = canvasGrande.getBoundingClientRect();
- const touch = e.touches[0];
-
- ctxGrande.beginPath();
- ctxGrande.moveTo(
-  touch.clientX - rect.left,
-  touch.clientY - rect.top
- );
-});
-
-canvasGrande.addEventListener("touchend", ()=>{
- d2 = false;
- ctxGrande.beginPath();
-});
-
-canvasGrande.addEventListener("touchmove", e=>{
- if(!d2) return;
- e.preventDefault();
-
- const rect = canvasGrande.getBoundingClientRect();
- const touch = e.touches[0];
-
- ctxGrande.lineTo(
-  touch.clientX - rect.left,
-  touch.clientY - rect.top
- );
-
- ctxGrande.stroke();
-});
 ctx.strokeStyle = "black";
 ctx.lineWidth = 2;
 
@@ -963,84 +896,11 @@ function pdf(){
  }
 
 }
-window.onload = function(){
 
- let sesion = localStorage.getItem("sesionActiva");
- let expiraEn = localStorage.getItem("expiraEn");
 
- if(sesion === "true" && expiraEn){
-
-  let ahora = new Date().getTime();
-
-  if(ahora < parseInt(expiraEn)){
-
-   // mostrar sistema
-   document.getElementById("loginBox").classList.add("hidden");
-   document.getElementById("systemBox").classList.remove("hidden");
-
-   let nombreGuardado = localStorage.getItem("usuarioNombre");
-
-   if(nombreGuardado){
-
-    let user = personal[nombreGuardado];
-
-    let turnoGuardado = localStorage.getItem("usuarioTurno");
-    let fechaGuardada = localStorage.getItem("usuarioFecha");
-
-    datosGenerales = {
-     nombre: nombreGuardado,
-     cuadrilla: user.cuadrilla,
-     area: user.area,
-     turno: turnoGuardado,
-     fecha: fechaGuardada
-    };
-
-    // texto de bienvenida
-    document.getElementById("bienvenida").innerText =
-     "BIENVENIDO: " + nombreGuardado.toUpperCase();
-
-    // restaurar campos
-    document.getElementById("cuadrilla").value = user.cuadrilla;
-    document.getElementById("areaLogin").value = user.area;
-    document.getElementById("turno").value = turnoGuardado;
-    document.getElementById("fechaLogin").value = fechaGuardada;
-
-    // generar folio nuevo
-    (async function(){
-     let folio = await generarFolio();
-     folioGlobal = folio;
-     document.getElementById("folioBox").innerText = "Folio: " + folioGlobal;
-    })();
-
-    // admin
-    if(user && user.admin){
-     document.getElementById("adminBtn").classList.remove("hidden");
-    }
-
-   }
-
-  } else {
-
-   // sesión expirada
-   localStorage.removeItem("sesionActiva");
-   localStorage.removeItem("expiraEn");
-
-  }
-
-}
-};
 function logout(){
-
- // borrar sesión completa
- localStorage.removeItem("sesionActiva");
- localStorage.removeItem("expiraEn");
- localStorage.removeItem("usuarioNombre");
- localStorage.removeItem("usuarioTurno");
- localStorage.removeItem("usuarioFecha");
-
- // regresar a login
+ localStorage.clear();
  location.reload();
-
 
 }
 
@@ -1090,6 +950,97 @@ function filtrarNombres(){
  });
 
 }
+function filtrarHallazgos(){
+
+ let input = document.getElementById("hallazgo").value.toUpperCase();
+ let lista = document.getElementById("listaHallazgosCustom");
+
+ lista.innerHTML = "";
+
+ if(!input){
+  lista.innerHTML = "";
+  return;
+ }
+
+ let filtrados = listaHallazgosDatos.filter(function(h){
+  return h.includes(input);
+ });
+
+ filtrados.forEach(function(h){
+
+  let div = document.createElement("div");
+  div.innerText = h;
+  div.className = "item-autocomplete";
+
+  div.onclick = function(){
+   document.getElementById("hallazgo").value = h;
+   lista.innerHTML = "";
+  };
+
+  lista.appendChild(div);
+
+ });
+}
+
+function renovarSesion(){
+
+ let sesionGuardada = localStorage.getItem("sesionActiva");
+ if(!sesionGuardada) return;
+
+ let sesion = JSON.parse(sesionGuardada);
+ sesion.inicio = Date.now();
+
+ localStorage.setItem("sesionActiva", JSON.stringify(sesion));
+}
+
+document.addEventListener("click", renovarSesion);
+document.addEventListener("keydown", renovarSesion);
+document.addEventListener("touchstart", renovarSesion);
+
+function verificarSesion(){
+
+ const sesionGuardada = localStorage.getItem("sesionActiva");
+ if(!sesionGuardada) return;
+
+ let sesion = JSON.parse(sesionGuardada);
+
+ let ahora = Date.now();
+
+ if(ahora - sesion.inicio > SESSION_TIME){
+  localStorage.removeItem("sesionActiva");
+  return;
+ }
+
+ // recuperar datos
+ datosGenerales = sesion.datos;
+
+ // renovar sesión
+ sesion.inicio = Date.now();
+ localStorage.setItem("sesionActiva", JSON.stringify(sesion));
+
+ // restaurar pantalla
+ bienvenida.innerText = "BIENVENIDO: " + datosGenerales.nombre.toUpperCase();
+ cuadrilla.value = datosGenerales.cuadrilla;
+ areaLogin.value = datosGenerales.area;
+
+ loginBox.classList.add("hidden");
+ systemBox.classList.remove("hidden");
+
+ // cargar folio (solo una vez)
+ generarFolio().then(folio=>{
+  folioGlobal = folio;
+  folioBox.innerText = "Folio: " + folioGlobal;
+ });
+
+ // admin
+ let user = personal[datosGenerales.nombre];
+ if(user?.admin){
+  adminBtn.classList.remove("hidden");
+ }
+
+}
+
+window.addEventListener("load", verificarSesion);
 
 </script>
 </body>
