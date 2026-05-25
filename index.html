@@ -729,7 +729,80 @@ async function guardar(){
   return;
  }
 
- msg.innerText="✅ Guardado "+folioGlobal;
+
+ async function guardar(){
+
+ if(
+  !folioGlobal ||
+  !datosGenerales ||
+  !datosGenerales.nombre ||
+  !datosGenerales.turno ||
+  !datosGenerales.cuadrilla ||
+  !datosGenerales.area ||
+  !tipo.value ||
+  !hallazgo.value ||
+  !ubicacion.value ||
+
+  !listaHallazgosDatos.includes(hallazgo.value.toUpperCase()) ||
+
+  (tipo.value === "Producto" && (
+    !codigo.value ||
+    !lote.value ||
+    !cantidad.value ||
+    !unidad.value
+  )) ||
+
+  (tipo.value === "Transporte" && (
+    !unidadEnvio.value ||
+    !idTransporte.value
+  )) ||
+
+  canvasVacio(canvas)
+ ){
+  alert("Debes completar todos los campos y firmar antes de guardar");
+  return;
+ }
+
+ try {
+
+  const { error } = await supabaseClient
+   .from("Reportes")
+   .insert([{
+    folio: folioGlobal,
+    fecha: datosGenerales.fecha,
+    nombre: datosGenerales.nombre,
+    turno: datosGenerales.turno,
+    cuadrilla: datosGenerales.cuadrilla,
+    area: datosGenerales.area,
+    tipo: tipo.value,
+    hallazgo: hallazgo.value,
+    ubicacion: ubicacion.value,
+
+    codigo: codigo.value || null,
+    lote: lote.value || null,
+    cantidad: cantidad.value || null,
+    unidad: unidad.value || null,
+
+    unidad_envio: unidadEnvio.value || null,
+    id_transporte: idTransporte.value || null,
+
+    firma: canvas.toDataURL() // guarda firma como imagen base64
+   }]);
+
+  if(error){
+    console.error(error);
+    alert("Error al guardar en Supabase");
+    return;
+  }
+
+  msg.innerText = "✅ Guardado en Supabase: " + folioGlobal;
+
+ } catch(e){
+  console.error(e);
+  alert("Error inesperado");
+ }
+
+}
 
 }
 
