@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+  padding:20px;
+}
+
+h2{ text-align:center; }
+
+/* FILTROS */
+.filtros{
+  display:grid;
+  grid-template-columns: repeat(5,1fr);
+  gap:10px;
+  margin-bottom:20px;
+}
+
+input{
+  padding:10px;
+  border-radius:6px;
+  border:none;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  background:#22c55e;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+/* AUTOCOMPLETE */
+.box{
+  position:relative;
+}
+
+.lista{
+  position:absolute;
+  top:100%;
+  left:0;
+  width:100%;
+  background:white;
+  color:black;
+  border-radius:6px;
+  max-height:150px;
+  overflow-y:auto;
+  z-index:1000;
+}
+
+.item{
+  padding:8px;
+  cursor:pointer;
+}
+.item:hover{
+  background:#22c55e;
+  color:white;
+}
+
+/* KPIs */
+.kpis{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.kpi{
+  flex:1;
+  background:#1e293b;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  font-size:18px;
+}
+
+/* GRAFICAS */
+.graficas{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:20px;
+}
+
+canvas{
+  background:white;
+  border-radius:10px;
+  width:100% !important;
+  height:400px !important;
+}
+</style>
+</head>
+
+<body>
+
+<h2>DASHBOARD CALIDAD</h2>
+
+<div class="filtros">
+
+<div class="box">
+<input id="persona" placeholder="Persona" oninput="autoPersona()">
+<div id="listaPersona" class="lista"></div>
+</div>
+
+<input type="date" id="inicio">
+<input type="date" id="fin">
+
+<div class="box">
+<input id="hallazgo" placeholder="Hallazgo" oninput="autoHallazgo()">
+<div id="listaHallazgo" class="lista"></div>
+</div>
+
+<button onclick="aplicarFiltros()">Filtrar</button>
+
+</div>
+
+<div class="kpis">
+  <div class="kpi" id="total">Total: 0</div>
+  <div class="kpi" id="personas">Personas: 0</div>
+  <div class="kpi" id="top">Top: -</div>
+</div>
+
+<div class="graficas">
+  <canvas id="graf1"></canvas>
+  <canvas id="graf2"></canvas>
+</div>
+
+<script>
+
+const supabaseClient = supabase.createClient(
+ "https://wpitemofrqzjcsetmmim.supabase.co",
+ "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
+);
+
+let datos = [];
+let chart1, chart2;
+
+// ✅ CARGA INICIAL
+async function cargar(){
+
+ const { data, error } = await supabaseClient
+  .from("Reportes")
+  .select("*");
+
+ if(error){
+   console.error(error);
+   alert("Error cargando datos");
+   return;
+ }
+
+ datos = data;
+
+ aplicarFiltros();
+}
+
+// ✅ FILTROS
+function aplicarFiltros(){
+
+ let p = document.getElementById("persona").value.toLowerCase();
+ let h = document.getElementById("hallazgo").value.toUpperCase();
+ let fi = document.getElementById("inicio").value;
+ let ff = document.getElementById("fin").value;
+
+ let filtrados = datos.filter(r=>{
+
+  let ok = true;
+
+  if(p && !r.nombre.toLowerCase().includes(p)) ok=false;
+  if(h && r.hallazgo !== h) ok=false;
+
+  if(fi && ff){
+    let f = convertir(r.fecha);
+    if(f < fi || f > ff) ok=false;
+  }
+
+  return ok;
+ });
+
+ // KPIs
+ document.getElementById("total").innerText="Total: "+filtrados.length;
+
+ let pers = new Set(filtrados.map(r=>r.nombre));
+ document.getElementById("personas").innerText="Personas: "+pers.size;
+
+ let conteo={};
+ filtrados.forEach(r=>{
+  conteo[r.hallazgo]=(conteo[r.hallazgo]||0)+1;
+ });
+
+ let top=Object.entries(conteo).sort((a,b)=>b[1]-a[1])[0];
+ document.getElementById("top").innerText="Top: "+(top?top[0]:"-");
+
+ // GRAFICAS
+ if(chart1) chart1.destroy();
+ if(chart2) chart2.destroy();
+
+ chart1=new Chart(document.getElementById("graf1"),{
+  type:"bar",
+  data:{
+    labels:Object.keys(conteo),
+    datasets:[{
+      data:Object.values(conteo),
+      backgroundColor:"#22c55e"
+    }]
+  },
+  options:{responsive:false}
+ });
+
+ let per={};
+ filtrados.forEach(r=>{
+  per[r.nombre]=(per[r.nombre]||0)+1;
+ });
+
+ chart2=new Chart(document.getElementById("graf2"),{
+  type:"pie",
+  data:{
+    labels:Object.keys(per),
+    datasets:[{
+      data:Object.values(per),
+      backgroundColor:["#22c55e","#3b82f6","#f59e0b","#ef4444","#8b5cf6"]
+    }]
+  },
+  options:{responsive:false}
+ });
+}
+
+// ✅ AUTOCOMPLETE PERSONA
+function autoPersona(){
+
+ let input=document.getElementById("persona").value.toLowerCase();
+ let lista=document.getElementById("listaPersona");
+ lista.innerHTML="";
+
+ if(!input) return;
+
+ let nombres=[...new Set(datos.map(d=>d.nombre))];
+
+ nombres.filter(n=>n.toLowerCase().includes(input))
+ .forEach(n=>{
+
+  let div=document.createElement("div");
+  div.innerText=n;
+  div.className="item";
+
+  div.onclick=()=>{
+   persona.value=n;
+   lista.innerHTML="";
+   aplicarFiltros();
+  };
+
+  lista.appendChild(div);
+ });
+}
+
+// ✅ AUTOCOMPLETE HALLAZGO
+function autoHallazgo(){
+
+ let input=document.getElementById("hallazgo").value.toUpperCase();
+ let lista=document.getElementById("listaHallazgo");
+ lista.innerHTML="";
+
+ if(!input) return;
+
+ let hallazgos=[...new Set(datos.map(d=>d.hallazgo))];
+
+ hallazgos.filter(h=>h.includes(input))
+ .forEach(h=>{
+
+  let div=document.createElement("div");
+  div.innerText=h;
+  div.className="item";
+
+  div.onclick=()=>{
+   hallazgo.value=h;
+   lista.innerHTML="";
+   aplicarFiltros();
+  };
+
+  lista.appendChild(div);
+ });
+}
+
+// ✅ FECHA
+function convertir(fecha){
+ const meses={
+  ene:"01",feb:"02",mar:"03",abr:"04",
+  may:"05",jun:"06",jul:"07",ago:"08",
+  sep:"09",oct:"10",nov:"11",dic:"12"
+ };
+ let [d,m,a]=fecha.split("-");
+ return "20"+a+"-"+meses[m]+"-"+d;
+}
+
+// ✅ INICIO
+cargar();
+
+</script>
+
+</body>
+</html>
+``
