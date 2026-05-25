@@ -6,6 +6,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 *{ box-sizing:border-box; }
@@ -204,6 +205,20 @@ canvas{
  background:white;
  touch-action:none;
 }
+
+#adminBox{
+ position:fixed !important;
+ top:0 !important;
+ left:0 !important;
+ width:100% !important;
+ height:100% !important;
+ background:rgba(0,0,0,0.9) !important;
+ display:none;
+ justify-content:center;
+ align-items:flex-start;
+ z-index:99999 !important;
+}
+
 </style>
 </head>
 
@@ -309,12 +324,83 @@ REPORTE ALERTA DE CALIDAD<br>
 <div class="botones-row">
 <button class="btn-app btn-verde" onclick="guardar()">Guardar</button>
 <button class="btn-app btn-verde" onclick="pdf()">PDF</button>
+<button class="btn-app btn-admin" onclick="exportarExcel()">Descargar Excel</button>
 </div>
 <button id="adminBtn" class="hidden btn-app btn-admin" onclick="accionAdmin()">Panel Admin</button>
 
 <button class="btn-app btn-rojo" onclick="logout()">Cerrar sesión</button>
 
 <p id="msg"></p>
+</div>
+
+<div id="adminBox" style="
+
+ position:fixed;
+ top:0;
+ left:0;
+ width:100vw;
+ height:100vh;
+ background:rgba(0,0,0,0.8);
+ display:none;
+ z-index:9999;
+">
+
+<div class="card" style="margin:20px auto;">
+
+  <h2>Panel Admin - Reportes</h2>
+
+  <label>Fecha inicio</label>
+  <input type="date" id="fechaInicio">
+
+  <label>Fecha fin</label>
+  <input type="date" id="fechaFin">
+
+  <label>Filtrar por hallazgo</label>
+
+  <div style="position:relative;">
+    <input id="adminHallazgo" placeholder="Escribe hallazgo" oninput="filtrarHallazgosAdmin()">
+    <div id="listaHallazgosAdmin" class="lista-autocomplete"></div>
+  </div>
+
+  <button class="btn-app btn-verde" onclick="cargarAdmin()">Buscar</button>
+
+  <div style="overflow:auto;margin-top:10px;">
+    <table border="1" style="width:100%;font-size:12px;">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Fecha</th>
+          <th>Nombre</th>
+          <th>Turno</th>
+          <th>Tipo</th>
+          <th>Hallazgo</th>
+          <th>PDF</th>
+        </tr>
+      </thead>
+      <tbody id="adminTabla"></tbody>
+    </table>
+  </div>
+<button class="btn-app btn-admin" onclick="abrirDashboard()">Ver Dashboard</button>
+
+  <button class="btn-app btn-rojo" onclick="cerrarAdmin()">Volver</button>
+
+<!-- ===== DASHBOARD AQUÍ ===== -->
+<div id="dashboardBox" style="display:none; margin-top:20px;">
+
+  <h2 style="text-align:center;">Dashboard Calidad</h2>
+
+  <p id="kpiTotal"></p>
+  <p id="kpiTurno"></p>
+  <p id="kpiArea"></p>
+
+  <canvas id="graficaHallazgos"></canvas>
+  <canvas id="graficaTurno"></canvas>
+  <canvas id="graficaArea"></canvas>
+
+</div>
+
+</div>
+
 </div>
 
 <div id="firmaModal" class="hidden" style="
@@ -444,15 +530,24 @@ let datosGenerales={},folioGlobal="";
 
 // FOLIO
 async function generarFolio(){
- const { data } = await supabaseClient
- .from("Reportes")
- .select("folio")
- .order("folio",{ascending:false})
- .limit(1);
 
- let ultimo=data?.[0]?.folio || "AC-2627-000";
- let num=parseInt(ultimo.split("-")[2])+1;
- return "AC-2627-"+String(num).padStart(3,'0');
+ const { data } = await supabaseClient
+  .from("Reportes")
+  .select("folio");
+
+ // ✅ SI NO HAY REGISTROS → EMPEZAR EN 001
+ if(!data || data.length === 0){
+  return "AC-2627-001";
+ }
+
+ // ✅ obtener último número
+ let numeros = data.map(r => parseInt(r.folio.split("-")[2]));
+ let max = Math.max(...numeros);
+
+ let nuevo = max + 1;
+
+ return "AC-2627-" + String(nuevo).padStart(3,'0');
+
 }
 
 // LOGIN
@@ -683,7 +778,12 @@ function limpiarFirma(){
 }
 
 function accionAdmin(){
- alert("Bienvenido al panel de administrador");
+
+ let adminBox = document.getElementById("adminBox");
+
+ adminBox.style.display = "flex";
+
+ cargarAdmin();
 }
 
 function canvasVacio(c){
@@ -695,6 +795,11 @@ function canvasVacio(c){
 }
 // GUARDAR
 async function guardar(){
+
+  if(!formularioCompleto()){
+ alert("Debes completar todos los campos antes de guardar");
+ return;
+}
 
  if(
   !folioGlobal ||
@@ -721,13 +826,48 @@ async function guardar(){
     !idTransporte.value
   )) ||
 
+
+  
   canvasVacio(canvas)
+  
  ){
   alert("Debes completar todos los campos y firmar antes de guardar");
   return;
  }
 
  try {
+
+  // SUBIR IMÁGENES
+let urlsImagenes = [];
+
+if(foto.files.length > 0){
+
+ for(let i = 0; i < foto.files.length; i++){
+
+  let archivo = foto.files[i];
+
+  let nombreArchivo = `${folioGlobal}_${Date.now()}_${i}.jpg`;
+
+  let { error: errorUpload } = await supabaseClient
+ .storage
+ .from("evidencias")
+ .upload(nombreArchivo, archivo);
+
+
+  if(errorUpload){
+  console.error("Error subiendo imagen:", errorUpload);
+  continue;
+}
+
+  let { data: urlData } = supabaseClient
+   .storage
+   .from("evidencias")
+   .getPublicUrl(nombreArchivo);
+
+  urlsImagenes.push(urlData.publicUrl);
+ }
+
+}
 
   const { error } = await supabaseClient
    .from("Reportes")
@@ -750,7 +890,8 @@ async function guardar(){
     unidad_envio: unidadEnvio.value || null,
     id_transporte: idTransporte.value || null,
 
-    firma: canvas.toDataURL()
+   firma: canvas.toDataURL(),
+imagenes: urlsImagenes
    }]);
 
   if(error){
@@ -768,7 +909,36 @@ async function guardar(){
 
 }
 
+function formularioCompleto(){
 
+ return !(
+  !folioGlobal ||
+  !datosGenerales ||
+  !datosGenerales.nombre ||
+  !datosGenerales.turno ||
+  !datosGenerales.cuadrilla ||
+  !datosGenerales.area ||
+  !tipo.value ||
+  !hallazgo.value ||
+  !ubicacion.value ||
+
+  !listaHallazgosDatos.includes(hallazgo.value.toUpperCase()) ||
+
+  (tipo.value === "Producto" && (
+    !codigo.value ||
+    !lote.value ||
+    !cantidad.value ||
+    !unidad.value
+  )) ||
+
+  (tipo.value === "Transporte" && (
+    !unidadEnvio.value ||
+    !idTransporte.value
+  )) ||
+
+  canvasVacio(canvas)
+ );
+}
 function logout(){
  localStorage.clear();
  location.reload();
@@ -920,7 +1090,572 @@ function verificarSesion(){
 
 }
 
+function pdf(){
+
+ try{
+
+ if(!formularioCompleto()){
+ alert("Debes completar todos los campos antes de generar PDF");
+ return;
+}
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF();
+
+ let totalPages = 2;
+
+ function footer(page){
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+  doc.text("SISTEMA DE GESTION DE CALIDAD DHL FY2627",105,290,null,null,"center");
+  doc.text(folioGlobal + "  |  " + page + "/" + totalPages,200,290,null,null,"right");
+ }
+
+ function header(){
+  doc.setFillColor(213,5,17);
+  doc.rect(0,0,210,22,"F");
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(18);
+  doc.setTextColor(255);
+  doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
+ }
+
+ const firmaY = 230;
+
+ function dibujarFirma(){
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(12);
+  doc.setTextColor(0);
+
+  doc.text("FIRMA: " + (datosGenerales.nombre || "-"),105,firmaY,null,null,"center");
+
+  doc.rect(60,firmaY+5,90,40);
+
+  try{
+   doc.addImage(canvas.toDataURL(),"PNG",62,firmaY+7,86,34);
+  }catch(e){
+   doc.text("Sin firma",105,firmaY+25,null,null,"center");
+  }
+
+ }
+
+ // ===== PAGINA 1 =====
+ header();
+
+ let y = 35;
+
+ function fila(label, valor){
+
+  doc.setDrawColor(200);
+  doc.line(10,y,200,y);
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(11);
+  doc.setTextColor(60);
+  doc.text(label,10,y+6);
+
+  doc.setFillColor(255,230,120);
+  doc.rect(95,y+1,105,11,"F");
+
+  doc.setFont("helvetica","normal");
+  doc.setTextColor(0);
+  doc.text((valor || "-").toString(),198,y+8,null,null,"right");
+
+  y += 12;
+ }
+
+ fila("FOLIO",folioGlobal);
+ fila("Fecha",datosGenerales.fecha);
+ fila("Elaborado por",datosGenerales.nombre);
+ fila("Turno",datosGenerales.turno);
+ fila("Cuadrilla",datosGenerales.cuadrilla);
+
+ fila("Ubicación",ubicacion.value);
+ fila("Área",datosGenerales.area);
+ fila("Modo de falla",hallazgo.value);
+
+ fila("Código",codigo.value);
+ fila("Lote",lote.value);
+ fila("Cantidad",cantidad.value);
+
+ dibujarFirma();
+ footer(1);
+
+ // ===== PAGINA 2 =====
+ doc.addPage();
+ header();
+
+ doc.setFont("helvetica","bold");
+ doc.setFontSize(14);
+ doc.setTextColor(0);
+ doc.text("EVIDENCIA FOTOGRÁFICA",10,30);
+
+ let x = 10;
+ let yImg = 40;
+
+ if(foto.files.length > 0){
+
+  let readers = [];
+  let imgs = [];
+
+  for(let i=0;i<foto.files.length;i++){
+   readers.push(
+    new Promise(resolve=>{
+     let r = new FileReader();
+     r.onload = e=>{
+      imgs.push(e.target.result);
+      resolve();
+     };
+     r.readAsDataURL(foto.files[i]);
+    })
+   );
+  }
+
+  Promise.all(readers).then(()=>{
+
+   imgs.forEach(img=>{
+
+    doc.rect(x,yImg,90,70);
+    doc.addImage(img,"JPEG",x+2,yImg+2,86,66);
+
+    x += 100;
+
+    if(x > 110){
+     x = 10;
+     yImg += 80;
+    }
+
+   });
+
+   dibujarFirma();
+   footer(2);
+
+   doc.save(folioGlobal + ".pdf");
+
+  });
+
+ } else {
+
+  doc.setFontSize(11);
+  doc.text("Sin evidencia",10,60);
+
+  dibujarFirma();
+  footer(2);
+
+  doc.save(folioGlobal + ".pdf");
+ }
+
+ }catch(e){
+  console.error("ERROR PDF:", e);
+  alert("Error al generar PDF");
+ }
+
+}
+
 window.addEventListener("load", verificarSesion);
+
+async function exportarExcel(){
+
+ if(!formularioCompleto()){
+  alert("Completa el formulario antes de exportar");
+  return;
+ }
+
+ const fechaHoy = fechaFormato();
+
+ const { data, error } = await supabaseClient
+  .from("Reportes")
+  .select("*")
+  .eq("fecha", fechaHoy)
+  .order("id", { ascending: false });
+
+ if(error){
+  alert("Error al obtener datos");
+  console.error(error);
+  return;
+ }
+
+ if(!data || data.length === 0){
+  alert("No hay reportes del día");
+  return;
+ }
+
+ let csv = "REPORTE ALERTA DE CALIDAD\n\n";
+csv += "Folio,Fecha,Nombre,Turno,Cuadrilla,Area,Tipo,Hallazgo,Ubicacion,Codigo,Lote,Cantidad,Unidad\n";
+
+ data.forEach(r => {
+  csv += `${r.folio},${r.fecha},${r.nombre},${r.turno},${r.cuadrilla},${r.area},${r.tipo},${r.hallazgo},${r.ubicacion},${r.codigo || "N/A"},${r.lote || "N/A"},${r.cantidad || "N/A"},${r.unidad || "N/A"}\n`;
+ });
+
+ let blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+ let url = URL.createObjectURL(blob);
+
+ let a = document.createElement("a");
+ a.href = url;
+ a.download = "Reportes_" + fechaHoy + ".csv";
+ a.click();
+
+}
+
+function cerrarAdmin(){
+
+ let adminBox = document.getElementById("adminBox");
+
+ adminBox.style.display = "none";
+}
+
+async function cargarAdmin(){
+
+ let hallazgo = document.getElementById("adminHallazgo").value.toUpperCase();
+ let fechaInicio = document.getElementById("fechaInicio").value;
+ let fechaFin = document.getElementById("fechaFin").value;
+
+ const { data, error } = await supabaseClient
+  .from("Reportes")
+  .select("*")
+  .order("id", { ascending: false });
+
+ if(error){
+  alert("Error cargando datos");
+  console.error(error);
+  return;
+ }
+
+ let tabla = document.getElementById("adminTabla");
+ tabla.innerHTML = "";
+
+ data.forEach(r => {
+
+  let pasa = true;
+
+  // filtro hallazgo
+  if(hallazgo && r.hallazgo !== hallazgo){
+    pasa = false;
+  }
+
+  // filtro fechas
+  if(fechaInicio && fechaFin){
+
+ let fechaReporte = convertirFecha(r.fecha);
+
+ if(fechaReporte < fechaInicio || fechaReporte > fechaFin){
+   pasa = false;
+ }
+
+}
+
+  if(!pasa) return;
+
+  let fila = document.createElement("tr");
+
+ fila.innerHTML = `
+  <td>${r.folio}</td>
+  <td>${r.fecha}</td>
+  <td>${r.nombre}</td>
+  <td>${r.turno}</td>
+  <td>${r.tipo}</td>
+  <td>${r.hallazgo}</td>
+  <td>
+    <button onclick='generarPDFdesdeAdmin(${JSON.stringify(r)})'>
+      PDF
+    </button>
+  </td>
+
+  `;
+
+  tabla.appendChild(fila);
+
+ });
+
+}
+
+function convertirFecha(fechaTexto){
+
+ const meses = {
+  ene:"01", feb:"02", mar:"03", abr:"04", may:"05", jun:"06",
+  jul:"07", ago:"08", sep:"09", oct:"10", nov:"11", dic:"12"
+ };
+
+ let partes = fechaTexto.split("-");
+ let dia = partes[0];
+ let mesTexto = partes[1];
+ let anio = "20" + partes[2];
+ let mes = meses[mesTexto];
+
+ return `${anio}-${mes}-${dia}`;
+}
+
+
+function filtrarHallazgosAdmin(){
+
+ let input = document.getElementById("adminHallazgo").value.toUpperCase();
+ let lista = document.getElementById("listaHallazgosAdmin");
+
+ lista.innerHTML = "";
+
+ if(!input){
+  return;
+ }
+
+ let filtrados = listaHallazgosDatos.filter(function(h){
+  return h.includes(input);
+ });
+
+ filtrados.forEach(function(h){
+
+  let div = document.createElement("div");
+  div.innerText = h;
+  div.className = "item-autocomplete";
+
+  div.onclick = function(){
+    document.getElementById("adminHallazgo").value = h;
+    lista.innerHTML = "";
+  };
+
+  lista.appendChild(div);
+
+ });
+
+}
+
+
+document.addEventListener("click", function(e){
+
+ if(!e.target.closest("#adminHallazgo") && !e.target.closest("#listaHallazgosAdmin")){
+  
+  let lista = document.getElementById("listaHallazgosAdmin");
+  
+  if(lista){
+    lista.innerHTML = "";
+  }
+
+ }
+
+});
+
+async function generarPDFdesdeAdmin(r){
+
+ try{
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let totalPages = 2;
+
+  function footer(page){
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text("SISTEMA DE GESTION DE CALIDAD DHL FY2627",105,290,null,null,"center");
+    doc.text(r.folio + "  |  " + page + "/" + totalPages,200,290,null,null,"right");
+  }
+
+  function header(){
+    doc.setFillColor(213,5,17);
+    doc.rect(0,0,210,22,"F");
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(18);
+    doc.setTextColor(255);
+    doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
+  }
+
+  const firmaY = 230;
+
+  function dibujarFirma(){
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+
+    doc.text("FIRMA: " + (r.nombre || "-"),105,firmaY,null,null,"center");
+
+    doc.rect(60,firmaY+5,90,40);
+
+    if(r.firma){
+      doc.addImage(r.firma,"PNG",62,firmaY+7,86,34);
+    }
+
+  }
+
+  // PAGINA 1
+  header();
+
+  let y = 35;
+
+  function fila(label, valor){
+
+    doc.setDrawColor(200);
+    doc.line(10,y,200,y);
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    doc.setTextColor(60);
+    doc.text(label,10,y+6);
+
+    doc.setFillColor(255,230,120);
+    doc.rect(95,y+1,105,11,"F");
+
+    doc.setFont("helvetica","normal");
+    doc.setTextColor(0);
+    doc.text((valor || "-").toString(),198,y+8,null,null,"right");
+
+    y += 12;
+  }
+
+  fila("FOLIO", r.folio);
+  fila("Fecha", r.fecha);
+  fila("Elaborado por", r.nombre);
+  fila("Turno", r.turno);
+  fila("Cuadrilla", r.cuadrilla);
+  fila("Ubicación", r.ubicacion);
+  fila("Área", r.area);
+  fila("Modo de falla", r.hallazgo);
+  fila("Código", r.codigo);
+  fila("Lote", r.lote);
+  fila("Cantidad", r.cantidad);
+
+  dibujarFirma();
+  footer(1);
+
+  // PAGINA 2
+  doc.addPage();
+  header();
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(14);
+  doc.text("EVIDENCIA FOTOGRÁFICA",10,30);
+
+  let x = 10;
+  let yImg = 40;
+
+  if(r.imagenes && r.imagenes.length > 0){
+
+    for(let i = 0; i < r.imagenes.length; i++){
+
+      let img = await fetch(r.imagenes[i]).then(res => res.blob());
+      let reader = new FileReader();
+
+      await new Promise(resolve=>{
+        reader.onload = function(){
+          doc.addImage(reader.result,"JPEG",x+2,yImg+2,86,66);
+          resolve();
+        };
+        reader.readAsDataURL(img);
+      });
+
+      doc.rect(x,yImg,90,70);
+
+      x += 100;
+
+      if(x > 110){
+        x = 10;
+        yImg += 80;
+      }
+
+    }
+
+  } else {
+    doc.text("Sin evidencia",10,60);
+  }
+
+  dibujarFirma();
+  footer(2);
+
+  doc.save(r.folio + ".pdf");
+
+ }catch(e){
+  console.error(e);
+  alert("Error generando PDF");
+ }
+
+}
+
+
+
+
+function cerrarDashboard(){
+ document.getElementById("dashboardBox").style.display = "none";
+}
+
+async function cargarDashboard(){
+
+ const { data, error } = await supabaseClient
+  .from("Reportes")
+  .select("*");
+
+ if(error){
+  alert("Error cargando dashboard");
+  return;
+ }
+
+ // ✅ KPI TOTAL
+ document.getElementById("kpiTotal").innerText = "Total reportes: " + data.length;
+
+ // ✅ TURNOS
+ let turnos = {};
+ data.forEach(r=>{
+  turnos[r.turno] = (turnos[r.turno] || 0) + 1;
+ });
+
+ document.getElementById("kpiTurno").innerText =
+  "Matutino: " + (turnos["Matutino"] || 0) +
+  " | Nocturno: " + (turnos["Nocturno"] || 0);
+
+ // ✅ AREAS
+ let areas = {};
+ data.forEach(r=>{
+  areas[r.area] = (areas[r.area] || 0) + 1;
+ });
+
+ document.getElementById("kpiArea").innerText =
+  Object.entries(areas).map(a=>a[0]+": "+a[1]).join(" | ");
+
+ // ✅ HALLAZGOS
+ let hallazgos = {};
+ data.forEach(r=>{
+  hallazgos[r.hallazgo] = (hallazgos[r.hallazgo] || 0) + 1;
+ });
+
+ new Chart(document.getElementById("graficaHallazgos"),{
+  type:"bar",
+  data:{
+   labels:Object.keys(hallazgos),
+   datasets:[{
+    label:"Hallazgos",
+    data:Object.values(hallazgos)
+   }]
+  }
+ });
+
+ new Chart(document.getElementById("graficaTurno"),{
+  type:"pie",
+  data:{
+   labels:Object.keys(turnos),
+   datasets:[{
+    data:Object.values(turnos)
+   }]
+  }
+ });
+
+ new Chart(document.getElementById("graficaArea"),{
+  type:"doughnut",
+  data:{
+   labels:Object.keys(areas),
+   datasets:[{
+    data:Object.values(areas)
+   }]
+  }
+ });
+
+}
+
+
+function abrirDashboard(){
+  window.open("dashboard.html", "_blank");
+}
+
 
 </script>
 </body>
