@@ -303,7 +303,7 @@ REPORTE ALERTA DE CALIDAD<br>
 <div class="section">
 <label>Firma</label>
 
-<canvas id="firma" style="cursor:pointer;"></canvas
+<canvas id="firma" style="cursor:pointer;"></canvas>
 </div>
 
 <div class="botones-row">
@@ -611,6 +611,9 @@ function limpiarFirmaGrande(){
 }
 
 function guardarFirma(){
+
+ ajustarCanvas(); // ✅ FUERZA tamaño correcto
+
  ctx.clearRect(0,0,canvas.width,canvas.height);
  ctx.drawImage(canvasGrande,0,0,canvas.width,canvas.height);
 
@@ -628,7 +631,7 @@ function ajustarCanvas(){
 }
 
 // esperar a que cargue bien
-setTimeout(ajustarCanvas, 200);
+window.addEventListener("load", ajustarCanvas);
 
 let d = false;
 
@@ -683,7 +686,13 @@ function accionAdmin(){
  alert("Bienvenido al panel de administrador");
 }
 
-
+function canvasVacio(c){
+  const context = c.getContext("2d");
+  const pixelBuffer = new Uint32Array(
+    context.getImageData(0, 0, c.width, c.height).data.buffer
+  );
+  return !pixelBuffer.some(color => color !== 0);
+}
 // GUARDAR
 async function guardar(){
 
@@ -699,10 +708,9 @@ async function guardar(){
   !hallazgo.value ||
   !ubicacion.value ||
 
-   !listaHallazgosDatos.includes(hallazgo.value.toUpperCase())
+   !listaHallazgosDatos.includes(hallazgo.value.toUpperCase()) ||
 
-  // validaciones específicas por tipo
-  (tipo.value === "Producto" && (
+(tipo.value === "Producto" && (
     !codigo.value ||
     !lote.value ||
     !cantidad.value ||
@@ -715,7 +723,7 @@ async function guardar(){
   )) ||
 
   // firma obligatoria
-  canvas.toDataURL() === "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAABYCAIAAACs7Y8XAAAAA3NCSVQICAjb4U/gAAACMElEQVR4nO3SwQ3CMBBF0ff/p1sJ2AkZISwLgSKKnz4WxZmfZbduAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPyW9bZo4H8H2k+X6AfdbDDIYRhGMZRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGMYRhGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgFfwFjLaVaP5I8kwAAAABJRU5ErkJggg=="
+ canvasVacio(canvas)
  ){
   alert("Debes completar todos los campos y firmar antes de guardar");
   return;
