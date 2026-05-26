@@ -831,7 +831,7 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
         <div class="field">
           <label>Unidad <span class="req">*</span></label>
           <select id="unidad">
-            <option value="">Selecciona</option>
+            <option value="">Selecciona la unidad de medida</option>
             <option>Item</option>
             <option>Caja</option>
             <option>Pallet</option>
@@ -842,11 +842,11 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
       <div id="transporteSec" class="hidden">
         <div class="divider">Datos de transporte</div>
         <div class="field">
-          <label>Unidad de envío <span class="req">*</span></label>
-          <input id="unidadEnvio" placeholder="Unidad de envío">
+          <label>Unidad de envío / STO <span class="req">*</span></label>
+          <input id="unidadEnvio" placeholder="Unidad de envío / STO">
         </div>
         <div class="field">
-          <label>Identificador <span class="req">*</span></label>
+          <label>Identificador (Eco) <span class="req">*</span></label>
           <input id="idTransporte" placeholder="">
         </div>
       </div>
@@ -871,7 +871,7 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
 
       <div class="field">
         <label>Ubicación <span class="req">*</span></label>
-        <input id="ubicacion" placeholder="Ingresa la Ubicación">
+        <input id="ubicacion" placeholder="Ingresa la Ubicación en sistema">
       </div>
 
     </div>
@@ -1282,19 +1282,6 @@ document.addEventListener("click", function(e){
  }
 });
 
-/* ============================================
-   ARCHIVOS
-   ============================================ */
-function actualizarConteoFotos(){
- const c = document.getElementById("foto").files.length;
- const e = document.getElementById("fotoCount");
- if(c > 0){
-  e.classList.remove("hidden");
-  e.innerText = c + (c === 1 ? " archivo seleccionado" : " archivos seleccionados");
- } else {
-  e.classList.add("hidden");
- }
-}
 
 // ARREGLO DONDE SE GUARDAN TODAS LAS FOTOS
 let fotosSeleccionadas = [];
@@ -1451,12 +1438,10 @@ async function guardar(){
  try{
   // Subir imágenes
   let urlsImagenes = [];
-  const foto = document.getElementById("foto");
-
-  if(foto.files.length > 0){
-   for(let i=0; i<foto.files.length; i++){
-    const archivo = foto.files[i];
-    const nombreArchivo = `${folioGlobal}_${Date.now()}_${i}.jpg`;
+  if(fotosSeleccionadas.length > 0){
+   for(let i=0; i<fotosSeleccionadas.length; i++){
+    const archivo = fotosSeleccionadas[i];
+    const nombreArchivo = `${folioGlobal}_${Date.now()}_${i}_${archivo.name}`;
     const { error: errorUpload } = await supabaseClient
       .storage.from("evidencias").upload(nombreArchivo, archivo);
     if(errorUpload){
@@ -1635,15 +1620,13 @@ function pdf(){
   doc.text("EVIDENCIA FOTOGRÁFICA", 10, 32);
 
   let x = 10, yImg = 40;
-  const foto = document.getElementById("foto");
-
-  if(foto.files.length > 0){
+  if(fotosSeleccionadas.length > 0){
    const readers = [], imgs = [];
-   for(let i=0; i<foto.files.length; i++){
+   for(let i=0; i<fotosSeleccionadas.length; i++){
     readers.push(new Promise(resolve => {
      const r = new FileReader();
      r.onload = e => { imgs.push(e.target.result); resolve(); };
-     r.readAsDataURL(foto.files[i]);
+     r.readAsDataURL(fotosSeleccionadas[i]);
     }));
    }
    Promise.all(readers).then(() => {
