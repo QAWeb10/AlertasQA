@@ -1,915 +1,1362 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#CF002E">
+<title>QA · Reporte Alerta de Calidad</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-*{ box-sizing:border-box; }
+/* ============================================
+   DESIGN TOKENS — Identidad Calidad
+   ============================================ */
+:root{
+  --brand:        #CF002E;
+  --brand-dark:   #A00023;
+  --brand-deep:   #6E0018;
+  --accent:       #FDD000;
+  --accent-dark:  #E6BC00;
+  --ink:          #1A1A1A;
+  --ink-soft:     #4A4A4A;
+  --ink-muted:    #8A8A8A;
+  --line:         #E5E5E5;
+  --line-soft:    #F2F2F2;
+  --bg:           #FAFAFA;
+  --surface:      #FFFFFF;
+  --ok:           #1B8A3A;
+  --warn:         #B57700;
+  --danger:       #CF002E;
+
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 16px;
+
+  --shadow-1: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-2: 0 4px 10px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --shadow-3: 0 12px 28px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html,body{ margin:0; padding:0; }
 
 body{
- margin:0;
- font-family:Arial;
-
- background:url("glo-dgf-zoom-wallpaper3-1920x1080.jpg") no-repeat center center;
-background-size:cover;
-background-attachment:fixed;
- background-size:cover;
- background-attachment:fixed;
-
- display:flex;
- justify-content:center;
- align-items:flex-start;
- min-height:100vh;
- padding:15px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--fs-md);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at -10% -20%, rgba(253,208,0,.18), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, rgba(207,0,46,.08), transparent 60%),
+    linear-gradient(180deg, #FFFFFF 0%, #FFF7D6 100%);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ============================================
+   TOP BAR
+   ============================================ */
+.appbar{
+  position:sticky; top:0; z-index:50;
+  background: linear-gradient(90deg, var(--brand-deep), var(--brand));
+  color:#fff;
+  padding: 14px 16px;
+  display:flex; align-items:center; gap:12px;
+  box-shadow: var(--shadow-2);
+}
+.appbar .logo{
+  width:36px; height:36px; border-radius:8px;
+  background: var(--accent);
+  color: var(--brand-deep);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:14px;
+  letter-spacing:.5px;
+  flex-shrink:0;
+}
+.appbar .titles{ line-height:1.15; min-width:0; }
+.appbar .titles .t1{ font-size:11px; opacity:.85; letter-spacing:1.2px; text-transform:uppercase; }
+.appbar .titles .t2{ font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.appbar .spacer{ flex:1; }
+.appbar .badge{
+  font-size: 11px;
+  background: rgba(255,255,255,.15);
+  padding: 4px 8px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.25);
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.page{
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 14px calc(24px + var(--safe-bottom));
+}
+@media (min-width: 720px){
+  .page{ max-width: 560px; padding: 24px; }
+}
 
 .card{
- background:rgba(255,230,128,0.95);
- padding:25px;
- max-width:420px;
- width:100%;
- border-radius:15px;
- border:2px solid #d40511;
- box-shadow:0 10px 25px rgba(0,0,0,0.4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.card-head{
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #FFFCEC, #FFFFFF);
+  border-bottom: 1px solid var(--line);
+  display:flex; align-items:center; gap:10px;
+}
+.card-head .dot{
+  width:8px; height:8px; border-radius:50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 4px rgba(207,0,46,.12);
+}
+.card-head h3{
+  margin:0; font-size: var(--fs-md); font-weight:700;
+  letter-spacing:.2px; color: var(--ink);
+  text-transform:uppercase;
+}
+.card-body{ padding: 16px; }
+
+.hidden{ display:none !important; }
+
+/* ============================================
+   FORM
+   ============================================ */
+.field{ margin-bottom: 12px; position:relative; }
+.field label{
+  display:block;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.field .req{ color: var(--brand); margin-left: 2px; }
+
+input, select, textarea{
+  width:100%;
+  padding: 13px 14px;
+  font-size: 16px; /* evita zoom iOS */
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+select{
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%234A4A4A' d='M6 8L0 0h12z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
+input:focus, select:focus, textarea:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(207,0,46,.12);
+}
+input[readonly]{
+  background: var(--line-soft);
+  color: var(--ink-soft);
+}
+input.valid{ border-color: var(--ok); box-shadow: 0 0 0 3px rgba(27,138,58,.12); }
+input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.10); }
+
+/* ROW para grids de 2 columnas */
+.row-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* AUTOCOMPLETE */
+.combo{ position: relative; }
+.dropdown{
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-3);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 200;
+}
+.dropdown-item{
+  padding: 12px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--line-soft);
+}
+.dropdown-item:last-child{ border-bottom: none; }
+.dropdown-item:hover, .dropdown-item.active{
+  background: var(--accent);
+  color: var(--brand-deep);
+  font-weight: 600;
 }
 
-.hidden{display:none;}
-.lista-autocomplete{
- background:white;
- border:1px solid #ccc;
- border-radius:8px;
- max-height:150px;
- overflow-y:auto;
- position:absolute;
- width:100%;
- z-index:100;
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  width:100%;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: .3px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: transform .08s, box-shadow .15s, background .15s, opacity .15s;
+  box-shadow: var(--shadow-1);
+  text-decoration: none;
+}
+.btn:active{ transform: translateY(1px); }
+.btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+.btn-primary{
+  background: linear-gradient(180deg, var(--brand), var(--brand-dark));
+  color: #fff;
+}
+.btn-primary:hover{ box-shadow: var(--shadow-2); }
+
+.btn-accent{
+  background: linear-gradient(180deg, #FFE14B, var(--accent));
+  color: var(--brand-deep);
+  border: 1px solid var(--accent-dark);
 }
 
-.item-autocomplete{
- padding:12px;
- font-size:14px;
- cursor:pointer;
+.btn-ghost{
+  background: var(--surface);
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+}
+.btn-ghost:hover{ border-color: var(--ink-muted); }
+
+.btn-dark{
+  background: var(--ink);
+  color: #fff;
 }
 
-.item-autocomplete:hover{
- background:#ffcc00;
+.btn-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.btn-row-3{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-icon{
+  width: 18px; height: 18px;
+  display:inline-block;
 }
 
-.btn-gris{
- background:#6c757d;
- color:white;
+/* ============================================
+   FOLIO PILL + WELCOME
+   ============================================ */
+.folio-pill{
+  display:flex; align-items:center; justify-content:space-between;
+  background: linear-gradient(90deg, var(--brand-deep), var(--brand));
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-2);
+}
+.folio-pill .lbl{
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  opacity: .85;
+}
+.folio-pill .val{
+  font-size: 18px;
+  font-weight: 800;
+  font-family: "SF Mono", Menlo, monospace;
+  margin-top: 2px;
+}
+.folio-pill .accent-tag{
+  background: var(--accent);
+  color: var(--brand-deep);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
 }
 
-.btn-gris:hover{
- background:#5a6268;
- transform:scale(1.03);
+.welcome-bar{
+  background: #FFFCEC;
+  border-left: 4px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+.welcome-bar b{ color: var(--ink); }
+
+/* ============================================
+   SIGNATURE CANVAS
+   ============================================ */
+.sign-zone{
+  border: 2px dashed var(--line);
+  background: repeating-linear-gradient(
+    45deg, var(--surface), var(--surface) 10px, #FAFAFA 10px, #FAFAFA 20px
+  );
+  border-radius: var(--radius);
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.sign-zone:hover{ border-color: var(--brand); }
+.sign-zone canvas{
+  width: 100%;
+  height: 140px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  display: block;
+  touch-action: none;
+}
+.sign-hint{
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-top: 6px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
 }
 
-.botones-row{
- display:flex;
- gap:10px;
- margin-top:15px;
+/* MODAL FIRMA */
+.modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(15,15,15,.7);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal.show{ display: flex; }
+.modal-card{
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+  box-shadow: var(--shadow-3);
+}
+.modal-head{
+  padding: 14px 18px;
+  background: linear-gradient(90deg, var(--brand-deep), var(--brand));
+  color: #fff;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.modal-head h3{ margin:0; font-size: 15px; font-weight: 700; letter-spacing:.4px; }
+.modal-body{ padding: 16px; }
+.modal-body canvas{
+  width: 100%;
+  height: 220px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  touch-action: none;
+  display: block;
 }
 
-.btn-app{
- margin-top:10px;
- width:100%;
- padding:12px;
- border:none;
- border-radius:20px;
- font-weight:bold;
- font-size:14px;
- cursor:pointer;
- transition:0.2s;
- box-shadow:0 4px 10px rgba(0,0,0,0.2);
+/* ============================================
+   FILE UPLOAD
+   ============================================ */
+.file-zone{
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  text-align: center;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.file-zone:hover{ border-color: var(--brand); background: #FFFCEC; }
+.file-zone input[type=file]{ display:none; }
+.file-zone .ico{
+  font-size: 28px; line-height:1;
+  color: var(--brand);
+  margin-bottom: 6px;
+}
+.file-zone .label{
+  font-size: 13px; font-weight: 700; color: var(--ink);
+}
+.file-zone .hint{
+  font-size: 11px; color: var(--ink-muted); margin-top: 2px;
+}
+.file-zone .count{
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent);
+  color: var(--brand-deep);
+  padding: 3px 10px;
+  border-radius: 999px;
 }
 
-.login-btn{
- margin-top:15px;
+/* ============================================
+   MESSAGES
+   ============================================ */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + var(--safe-bottom));
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-3);
+  z-index: 9999;
+  opacity: 0;
+  transition: transform .25s, opacity .25s;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show{ transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.ok{ background: var(--ok); }
+.toast.err{ background: var(--brand); }
+
+/* ============================================
+   ADMIN OVERLAY
+   ============================================ */
+.admin-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(15,15,15,.6);
+  backdrop-filter: blur(3px);
+  z-index: 9500;
+  display: none;
+  overflow-y: auto;
+  padding: 16px;
+}
+.admin-overlay.show{ display: block; }
+.admin-shell{
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
 }
 
-.login-btn{
- margin-top:15px;
+.tbl-wrap{
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-top: 12px;
+  background: var(--surface);
+}
+.tbl{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 640px;
+}
+.tbl thead th{
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  font-weight: 700;
+}
+.tbl tbody td{
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink);
+}
+.tbl tbody tr:hover{ background: #FFFCEC; }
+.tbl .folio-cell{
+  font-family: "SF Mono", Menlo, monospace;
+  font-weight: 700;
+  color: var(--brand);
+}
+.tbl .btn-mini{
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tbl .btn-mini:hover{ background: var(--brand-dark); }
+
+.empty{
+  padding: 30px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
 }
 
-.btn-app{
- margin-top:10px;
- width:100%;
- padding:12px;
-
- border:none;
- border-radius:20px;
- font-weight:bold;
- font-size:14px;
- cursor:pointer;
- transition:0.2s;
- box-shadow:0 4px 10px rgba(0,0,0,0.2);
+/* ============================================
+   CARD HEAD — Estilo "step" con badge
+   ============================================ */
+.card-head-step{
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display:flex; align-items:center; gap:12px;
+}
+.step-badge{
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  display:flex; align-items:center; justify-content:center;
+  font-family: "SF Mono", Menlo, "Courier New", monospace;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: .5px;
+  flex-shrink: 0;
+}
+.card-head-step h3{
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.2px;
+  text-transform: none;
+  color: var(--ink);
+}
+.step-hint{
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-weight: 500;
 }
 
-.botones-row{
- display:flex;
- gap:10px;
- margin-top:15px;
+/* ============================================
+   SELECTOR DE CLASIFICACIÓN — TARJETAS
+   ============================================ */
+.tipo-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
 }
 
-/* SOLO fila */
-.botones-row .btn-app{
- flex:1;
- margin-top:0;
+.tipo-card{
+  position: relative;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 22px 8px 18px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .15s, background .15s, transform .08s, box-shadow .15s;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-height: 130px;
+}
+.tipo-card:hover{
+  border-color: var(--ink-muted);
+  background: #FAFAFA;
+}
+.tipo-card:active{ transform: translateY(1px); }
+
+.tipo-card .ico{
+  width: 38px;
+  height: 38px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tipo-card .ico svg{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.tipo-card .nombre{
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -.1px;
 }
 
-.btn-verde{
- background:#2e7d32;
- color:white;
+.tipo-card.active{
+  border-color: var(--brand);
+  border-width: 2px;
+  background: #FFFCEC;
+  box-shadow: 0 0 0 3px rgba(207,0,46,.08);
+}
+.tipo-card.active .ico{ color: var(--brand); }
+.tipo-card.active .nombre{ color: var(--brand-dark); }
+
+.tipo-card .check{
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.tipo-card.active .check{ display: flex; }
+
+@media (max-width: 380px){
+  .tipo-card{
+    padding: 16px 6px 14px;
+    min-height: 110px;
+  }
+  .tipo-card .ico{ width: 32px; height: 32px; }
+  .tipo-card .nombre{ font-size: 13px; }
 }
 
-.btn-verde:hover{
- background:#256628;
- transform:scale(1.03);
+/* DIVIDER */
+.divider{
+  display:flex; align-items:center; gap:10px;
+  margin: 14px 0 10px;
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
-
-.btn-rojo{
- background:#d40511;
- color:white;
-}
-
-.btn-rojo:hover{
- background:#a6030c;
- transform:scale(1.03);
-}
-
-.btn-admin{
- background:#6f42c1;
- color:white;
-}
-
-.btn-admin:hover{
- background:#5935a3;
- transform:scale(1.03);
-}
-
-.btn-app:active{
- transform:scale(0.97);
-}
-
-h2{text-align:center;color:#d40511;}
-
-label{margin-top:6px;font-size:12px;font-weight:bold;}
-
-input,select{
- width:100%;
- padding:12px;
- font-size:16px; /* evita zoom automático */
- border-radius:8px;
- border:1px solid #bbb;
-}
-
-
-button:not(.btn-app){
- width:100%;
- padding:12px;
- font-size:16px;
- background:#d40511;
- color:white;
- border:none;
- border-radius:8px;
- cursor:pointer;
-}
-
-.section{
- background:#ffffff40;
- margin-top:10px;
- padding:10px;
- border-radius:8px;
-}
-
-.folio{
- text-align:center;
- font-weight:bold;
- background:#eee;
- padding:8px;
- border-radius:8px;
- margin-bottom:10px;
-}
-
-canvas{
- width:100%;
- height:150px;
- border:1px solid black;
- background:white;
- touch-action:none;
-}
-
-#adminBox{
- position:fixed !important;
- top:0 !important;
- left:0 !important;
- width:100% !important;
- height:100% !important;
- background:rgba(0,0,0,0.9) !important;
- display:none;
- justify-content:center;
- align-items:flex-start;
- z-index:99999 !important;
+.divider:before, .divider:after{
+  content:""; flex:1; height:1px; background: var(--line);
 }
 
 </style>
 </head>
-
 <body>
 
-<div class="card" id="loginBox">
-<h2>REPORTE ALERTA DE CALIDAD</h2>
-
-<label>Nombre</label>
-
-<div style="position:relative;">
- <input id="nombre" placeholder="Escribe el nombre" oninput="filtrarNombres()">
- <div id="listaResultados" class="lista-autocomplete"></div>
+<!-- ============================================
+     TOP APP BAR
+     ============================================ -->
+<div class="appbar">
+  <div class="logo">QA</div>
+  <div class="titles">
+    <div class="t1">Sistema de Gestión de Calidad</div>
+    <div class="t2">Reporte Alerta de Calidad</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="badge">FY2627</div>
 </div>
 
+<div class="page">
 
-<label>Password</label>
-<input id="password" type="password" placeholder="Ingresa tu contraseña">
+<!-- ============================================
+     LOGIN
+     ============================================ -->
+<div id="loginBox">
 
-<label>Cuadrilla</label>
-<input id="cuadrilla" readonly>
+  <div class="card">
+    <div class="card-head">
+      <div class="dot"></div>
+      <h3>Acceso al Sistema</h3>
+    </div>
+    <div class="card-body">
 
-<label>Área</label>
-<input id="areaLogin" readonly>
+      <div class="field combo">
+        <label>Nombre <span class="req">*</span></label>
+        <input id="nombre" placeholder="Escribe tu nombre" autocomplete="off" oninput="filtrarNombres()">
+        <div id="listaResultados" class="dropdown" style="display:none;"></div>
+      </div>
 
-<label>Turno</label>
-<select id="turno">
-<option>Matutino</option>
-<option>Nocturno</option>
-</select>
+      <div class="field">
+        <label>Contraseña <span class="req">*</span></label>
+        <input id="password" type="password" placeholder="••••••" autocomplete="current-password">
+      </div>
 
-<label>Fecha</label>
-<input id="fechaLogin" readonly>
+      <div class="row-2">
+        <div class="field">
+          <label>Cuadrilla</label>
+          <input id="cuadrilla" readonly placeholder="—">
+        </div>
+        <div class="field">
+          <label>Área</label>
+          <input id="areaLogin" readonly placeholder="—">
+        </div>
+      </div>
 
-<button class="btn-app btn-verde login-btn" onclick="login()">Entrar</button>
-</div>
+      <div class="row-2">
+        <div class="field">
+          <label>Turno <span class="req">*</span></label>
+          <select id="turno">
+            <option>1RO</option>
+            <option>2DO</option>
+            <option>3RO</option>
+            <option>Mixto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input id="fechaLogin" readonly>
+        </div>
+      </div>
 
-<div class="card hidden" id="systemBox">
-<h2>
-REPORTE ALERTA DE CALIDAD<br>
-<span id="bienvenida" style="font-size:14px;color:#333;"></span>
-</h2>
+      <button class="btn btn-primary" onclick="login()">
+        Iniciar sesión
+      </button>
 
-<div id="folioBox" class="folio">Folio: ---</div>
-
-<div class="section">
-<label>Tipo</label>
-<select id="tipo" onchange="cambiarTipo()">
-<option value="">Selecciona</option>
-<option>Producto</option>
-<option>Transporte</option>
-<option>Infraestructura</option>
-</select>
-
-<div id="productoSec" class="hidden">
-<label>Código</label>
-<input id="codigo">
-<label>Lote</label>
-<input id="lote">
-<label>Cantidad</label>
-<input id="cantidad" type="number">
-<label>Unidad</label>
-<select id="unidad">
-<option value="">Selecciona</option>
-<option>Item</option>
-<option>Caja</option>
-<option>Pallet</option>
-</select>
-</div>
-
-<div id="transporteSec" class="hidden">
-<label>Unidad envío</label>
-<input id="unidadEnvio">
-<label>Identificador</label>
-<input id="idTransporte">
-</div>
-
-<label>Hallazgo</label>
-
-<div style="position:relative;">
- <input id="hallazgo" placeholder="Escribe el hallazgo" oninput="filtrarHallazgos()">
- <div id="listaHallazgosCustom" class="lista-autocomplete"></div>
-</div>
-
-
-
-<label>Ubicación</label>
-<input id="ubicacion" placeholder="Ingresa la ubicación">
-
-<div class="section">
-<label>Evidencia fotográfica</label>
-
-<input type="file" id="foto" accept="image/*" multiple>
-
-</div>
-
-<div class="section">
-<label>Firma</label>
-
-<canvas id="firma" style="cursor:pointer;"></canvas>
-</div>
-
-<div class="botones-row">
-<button class="btn-app btn-verde" onclick="guardar()">Guardar</button>
-<button class="btn-app btn-verde" onclick="pdf()">PDF</button>
-<button class="btn-app btn-admin" onclick="exportarExcel()">Descargar Excel</button>
-</div>
-<button id="adminBtn" class="hidden btn-app btn-admin" onclick="accionAdmin()">Panel Admin</button>
-
-<button class="btn-app btn-rojo" onclick="logout()">Cerrar sesión</button>
-
-<p id="msg"></p>
-</div>
-
-<div id="adminBox" style="
-
- position:fixed;
- top:0;
- left:0;
- width:100vw;
- height:100vh;
- background:rgba(0,0,0,0.8);
- display:none;
- z-index:9999;
-">
-
-<div class="card" style="margin:20px auto;">
-
-  <h2>Panel Admin - Reportes</h2>
-
-  <label>Fecha inicio</label>
-  <input type="date" id="fechaInicio">
-
-  <label>Fecha fin</label>
-  <input type="date" id="fechaFin">
-
-  <label>Filtrar por hallazgo</label>
-
-  <div style="position:relative;">
-    <input id="adminHallazgo" placeholder="Escribe hallazgo" oninput="filtrarHallazgosAdmin()">
-    <div id="listaHallazgosAdmin" class="lista-autocomplete"></div>
+    </div>
   </div>
 
-  <button class="btn-app btn-verde" onclick="cargarAdmin()">Buscar</button>
-
-  <div style="overflow:auto;margin-top:10px;">
-    <table border="1" style="width:100%;font-size:12px;">
-      <thead>
-        <tr>
-          <th>Folio</th>
-          <th>Fecha</th>
-          <th>Nombre</th>
-          <th>Turno</th>
-          <th>Tipo</th>
-          <th>Hallazgo</th>
-          <th>PDF</th>
-        </tr>
-      </thead>
-      <tbody id="adminTabla"></tbody>
-    </table>
-  </div>
-<button class="btn-app btn-admin" onclick="abrirDashboard()">Ver Dashboard</button>
-
-  <button class="btn-app btn-rojo" onclick="cerrarAdmin()">Volver</button>
-
-<!-- ===== DASHBOARD AQUÍ ===== -->
-<div id="dashboardBox" style="display:none; margin-top:20px;">
-
-  <h2 style="text-align:center;">Dashboard Calidad</h2>
-
-  <p id="kpiTotal"></p>
-  <p id="kpiTurno"></p>
-  <p id="kpiArea"></p>
-
-  <canvas id="graficaHallazgos"></canvas>
-  <canvas id="graficaTurno"></canvas>
-  <canvas id="graficaArea"></canvas>
-
 </div>
 
-</div>
+<!-- ============================================
+     SISTEMA — CAPTURA
+     ============================================ -->
+<div id="systemBox" class="hidden">
 
-</div>
-
-<div id="firmaModal" class="hidden" style="
- position:fixed;
- top:0;
- left:0;
- width:100%;
- height:100%;
- background:rgba(0,0,0,0.8);
- justify-content:center;
- align-items:center;
- z-index:999;
-">
-
- <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:400px;">
-  
-  <h3 style="text-align:center;">Firma</h3>
-
-  <canvas id="firmaGrande" style="width:100%;height:200px;border:1px solid black;"></canvas>
-
-  <div style="display:flex;gap:10px;margin-top:10px;">
-   <button class="btn-app btn-verde" onclick="guardarFirma()">Aceptar</button>
-   <button class="btn-app btn-gris" onclick="limpiarFirmaGrande()">Limpiar</button>
-   <button class="btn-app btn-rojo" onclick="cerrarFirma()">Salir</button>
-</div>
+  <div class="welcome-bar">
+    Bienvenido, <b id="bienvenida">—</b>
   </div>
 
- </div>
+  <div class="folio-pill">
+    <div>
+      <div class="lbl">Folio</div>
+      <div class="val" id="folioBox">AC-2627----</div>
+    </div>
+    <div class="accent-tag">Activo</div>
+  </div>
+
+  <!-- TIPO + CONDICIONALES -->
+  <div class="card">
+    <div class="card-head card-head-step">
+      <div class="step-badge">01</div>
+      <h3>Tipo</h3>
+      <div class="step-hint" id="stepHint01">Elige una</div>
+    </div>
+    <div class="card-body">
+
+      <div class="tipo-grid">
+
+        <div class="tipo-card" data-tipo="Producto" onclick="seleccionarTipo('Producto')">
+          <div class="check">✓</div>
+          <div class="ico">
+            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M24 6 L40 14 L40 34 L24 42 L8 34 L8 14 Z"/>
+              <path d="M8 14 L24 22 L40 14"/>
+              <path d="M24 22 L24 42"/>
+              <path d="M16 10 L32 18" opacity=".55"/>
+            </svg>
+          </div>
+          <div class="nombre">Producto</div>
+        </div>
+
+        <div class="tipo-card" data-tipo="Transporte" onclick="seleccionarTipo('Transporte')">
+          <div class="check">✓</div>
+          <div class="ico">
+            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="14" width="22" height="18" rx="1.5"/>
+              <path d="M26 20 L36 20 L42 26 L42 32 L26 32 Z"/>
+              <circle cx="13" cy="36" r="3.2"/>
+              <circle cx="34" cy="36" r="3.2"/>
+              <path d="M30 26 L38 26" opacity=".55"/>
+            </svg>
+          </div>
+          <div class="nombre">Transporte</div>
+        </div>
+
+        <div class="tipo-card" data-tipo="Infraestructura" onclick="seleccionarTipo('Infraestructura')">
+          <div class="check">✓</div>
+          <div class="ico">
+            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 42 L10 18 L24 8 L38 18 L38 42 Z"/>
+              <path d="M24 8 L24 42"/>
+              <path d="M16 28 L16 42" opacity=".55"/>
+              <path d="M32 28 L32 42" opacity=".55"/>
+            </svg>
+          </div>
+          <div class="nombre">Infraestructura</div>
+        </div>
+
+      </div>
+
+      <input type="hidden" id="tipo" value="">
+
+      <div id="productoSec" class="hidden">
+        <div class="divider">Datos del producto</div>
+        <div class="field">
+          <label>Código <span class="req">*</span></label>
+          <input id="codigo" placeholder="Código del producto">
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Lote <span class="req">*</span></label>
+            <input id="lote" placeholder="Lote">
+          </div>
+          <div class="field">
+            <label>Cantidad <span class="req">*</span></label>
+            <input id="cantidad" type="number" placeholder="0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Unidad <span class="req">*</span></label>
+          <select id="unidad">
+            <option value="">Selecciona</option>
+            <option>Item</option>
+            <option>Caja</option>
+            <option>Pallet</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="transporteSec" class="hidden">
+        <div class="divider">Datos de transporte</div>
+        <div class="field">
+          <label>Unidad de envío <span class="req">*</span></label>
+          <input id="unidadEnvio" placeholder="Unidad de envío">
+        </div>
+        <div class="field">
+          <label>Identificador <span class="req">*</span></label>
+          <input id="idTransporte" placeholder="">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HALLAZGO + UBICACIÓN -->
+  <div class="card">
+    <div class="card-head card-head-step">
+      <div class="step-badge">02</div>
+      <h3>Hallazgo</h3>
+      <div class="step-hint">Modo </div>
+    </div>
+    <div class="card-body">
+
+      <div class="field combo">
+        <label>Modo  <span class="req">*</span></label>
+        <input id="hallazgo" placeholder="Escribe el hallazgo" autocomplete="off" oninput="filtrarHallazgos()">
+        <div id="listaHallazgosCustom" class="dropdown" style="display:none;"></div>
+      </div>
+
+      <div class="field">
+        <label>Ubicación <span class="req">*</span></label>
+        <input id="ubicacion" placeholder="Ingresa la Ubicación">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EVIDENCIA -->
+  <div class="card">
+    <div class="card-head card-head-step">
+      <div class="step-badge">03</div>
+      <h3>Evidencia</h3>
+      <div class="step-hint">Fotografías</div>
+    </div>
+    <div class="card-body">
+
+      <label class="file-zone" for="foto">
+        <div class="ico">📷</div>
+        <div class="label">Toca para capturar / subir fotos</div>
+        <div class="hint">Puedes seleccionar múltiples imágenes</div>
+        <div class="count hidden" id="fotoCount">0 archivos</div>
+        <input type="file" id="foto" accept="image/*" multiple onchange="actualizarConteoFotos()">
+      </label>
+
+    </div>
+  </div>
+
+  <!-- FIRMA -->
+  <div class="card">
+    <div class="card-head card-head-step">
+      <div class="step-badge">04</div>
+      <h3>Firma</h3>
+      <div class="step-hint"></div>
+    </div>
+    <div class="card-body">
+
+      <div class="sign-zone" onclick="abrirFirma()">
+        <canvas id="firma"></canvas>
+        <div class="sign-hint">Toca aquí para firmar</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ACCIONES -->
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="guardar()">Guardar </button>
+    <button class="btn btn-accent" onclick="pdf()">Generar PDF</button>
+  </div>
+
+  <button class="btn btn-ghost" style="margin-top:10px;" onclick="exportarExcel()">
+    Descargar Excel
+  </button>
+
+  <button id="adminBtn" class="btn btn-dark hidden" style="margin-top:10px;" onclick="accionAdmin()">
+    🔐 Panel Administrador
+  </button>
+
+  <button class="btn btn-ghost" style="margin-top:10px;" onclick="logout()">
+    Cerrar sesión
+  </button>
+
 </div>
+
+</div><!-- /.page -->
+
+<!-- ============================================
+     MODAL FIRMA
+     ============================================ -->
+<div id="firmaModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Firma</h3>
+      <span style="font-size:11px;opacity:.85;">Usa dedo o stylus</span>
+    </div>
+    <div class="modal-body">
+      <canvas id="firmaGrande"></canvas>
+      <div class="btn-row-3" style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="guardarFirma()">Aceptar</button>
+        <button class="btn btn-ghost" onclick="limpiarFirmaGrande()">Limpiar</button>
+        <button class="btn btn-dark" onclick="cerrarFirma()">Salir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     ADMIN PANEL OVERLAY
+     ============================================ -->
+<div id="adminBox" class="admin-overlay">
+  <div class="admin-shell">
+
+    <div class="modal-head">
+      <h3>Panel administrador · Reportes</h3>
+      <span class="badge" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 10px;border-radius:999px;font-size:11px;">ADMIN</span>
+    </div>
+
+    <div style="padding:16px;">
+
+      <div class="row-2">
+        <div class="field">
+          <label>Fecha inicio</label>
+          <input type="date" id="fechaInicio">
+        </div>
+        <div class="field">
+          <label>Fecha fin</label>
+          <input type="date" id="fechaFin">
+        </div>
+      </div>
+
+      <div class="field combo">
+        <label>Filtrar por hallazgo</label>
+        <input id="adminHallazgo" placeholder="Escribe hallazgo" autocomplete="off" oninput="filtrarHallazgosAdmin()">
+        <div id="listaHallazgosAdmin" class="dropdown" style="display:none;"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="cargarAdmin()">Buscar</button>
+        <button class="btn btn-accent" onclick="abrirDashboard()"> Ver Dashboard</button>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Fecha</th>
+              <th>Nombre</th>
+              <th>Turno</th>
+              <th>Tipo</th>
+              <th>Hallazgo</th>
+              <th>PDF</th>
+            </tr>
+          </thead>
+          <tbody id="adminTabla">
+            <tr><td colspan="7" class="empty">Sin resultados</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn btn-ghost" style="margin-top:14px;" onclick="cerrarAdmin()">Volver</button>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
 <script>
-
-// SUPABASE
+/* ============================================
+   SUPABASE
+   ============================================ */
 const supabaseClient = supabase.createClient(
  "https://wpitemofrqzjcsetmmim.supabase.co",
  "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
 );
 
-const SESSION_TIME = 30 * 60 * 1000; // 30 minutos
+const SESSION_TIME = 30 * 60 * 1000; // 30 min
 
-// FECHA
+/* ============================================
+   UTIL — TOAST
+   ============================================ */
+function toast(msg, type){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + (type || "");
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(()=>{ t.className = "toast"; }, 2800);
+}
+
+/* ============================================
+   FECHA
+   ============================================ */
 function fechaFormato(){
- const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
- let d=new Date();
- return `${String(d.getDate()).padStart(2,'0')}-${m[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
+  const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  let d=new Date();
+  return `${String(d.getDate()).padStart(2,'0')}-${m[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
 }
-fechaLogin.value=fechaFormato();
+document.getElementById("fechaLogin").value = fechaFormato();
 
-function cerrarFirma(){
- document.getElementById("firmaModal").classList.add("hidden");
-
-}
-
-// PERSONAL
+/* ============================================
+   PERSONAL Y CATÁLOGOS
+   ============================================ */
 const personal = {
-
- "Angel Moreno": {cuadrilla:"A", area:"Embarque", pass:"1234"},
- "Antonio Badillo": {cuadrilla:"A", area:"Recibo", pass:"1234"},
-
- "Areli Rosas": {cuadrilla:"B", area:"Embarque", pass:"1234"},
- "Ivan Coxanteje": {cuadrilla:"B", area:"Recibo", pass:"1234"},
-
- "Gregorio Pérez": {cuadrilla:"C", area:"Recibo", pass:"1234"},
- "Jesús Gonzalez": {cuadrilla:"C", area:"Embarque", pass:"1234"},
-
- "Gabriela Alvarado": {cuadrilla:"D", area:"Recibo", pass:"1234"},
- "Carlos Cruz": {cuadrilla:"D", area:"Embarque", pass:"1234"},
-
- "Felix Montoya": {
-  cuadrilla: "ADMIN",
-  area: "QA",
-  pass: "1710",
-  admin: true
- }
-
+ "Angel Moreno":     {cuadrilla:"A", area:"Embarque", pass:"1234"},
+ "Antonio Badillo":  {cuadrilla:"A", area:"Recibo",   pass:"1234"},
+ "Areli Rosas":      {cuadrilla:"B", area:"Embarque", pass:"1234"},
+ "Ivan Coxanteje":   {cuadrilla:"B", area:"Recibo",   pass:"1234"},
+ "Gregorio Pérez":   {cuadrilla:"C", area:"Recibo",   pass:"1234"},
+ "Jesús Gonzalez":   {cuadrilla:"C", area:"Embarque", pass:"1234"},
+ "Gabriela Alvarado":{cuadrilla:"D", area:"Recibo",   pass:"1234"},
+ "Carlos Cruz":      {cuadrilla:"D", area:"Embarque", pass:"1234"},
+ "Felix Montoya":    {cuadrilla:"ADMIN", area:"QA", pass:"1710", admin:true}
 };
 
 const listaHallazgosDatos = [
- "CAJAS ABIERTAS",
- "CAJAS DAÑADAS",
- "CAVERNA",
- "CODIGO ERRONEO",
- "COLAPSO",
- "CORTINA DAÑADA",
- "DERRAME DE PRODUCTO",
- "DESVIACIÓN",
- "DIMENSIÓN INADECUADA",
- "ENVOLTURAS (DULCES)",
- "ETIQUETA DAÑADA",
- "ETIQUETA DESPRENDIDA",
- "ETIQUETA SIN INFORMACIÓN",
- "FALTANTE",
- "GOTERA",
- "MAL EMPLAYADO",
- "MEZCLA DE CÓDIGOS",
- "MEZCLA DE LOTES",
- "MURO",
- "ORDEN Y LIMPIEZA",
- "ORIENTACIÓN INCORRECTA",
- "PALLET CON POLVO",
- "PALLET CON RESTO",
- "PALLET LADEADO",
- "PALLET SIN ETIQUETA",
- "PALLET SOBRE PASILLO",
- "PALLET VACÍO EN UBICACIÓN",
- "PIRAMIDE DE FRAGILIDAD",
- "PLAGA",
- "PRODUCTO \"SUELTO\"",
- "PRODUCTO MOJADO",
- "RACK DAÑADO",
- "REGLETA DAÑADA",
- "REGLETA NO LEGIBLE",
- "SECTORIZACIÓN INCORRECTA",
- "SOBRANTE",
- "SUSTRACCION",
- "TARIMA DAÑADA"
+  "CAJAS ABIERTAS","CAJAS DAÑADAS","CAVERNA","CODIGO ERRONEO","COLAPSO",
+ "CORTINA DAÑADA","DERRAME DE PRODUCTO","DESVIACIÓN","DIMENSIÓN INADECUADA",
+ "ENVOLTURAS (DULCES)","ETIQUETA DAÑADA","ETIQUETA DESPRENDIDA","ETIQUETA SIN INFORMACIÓN",
+ "FALTANTE","GOTERA","MAL EMPLAYADO","MEZCLA DE CÓDIGOS","MEZCLA DE LOTES","MURO",
+ "ORDEN Y LIMPIEZA","ORIENTACIÓN INCORRECTA","PALLET CON POLVO","PALLET CON RESTO","PALLET LADEADO",
+ "PALLET SIN ETIQUETA","PALLET SOBRE PASILLO","PALLET VACÍO EN UBICACIÓN","PIRAMIDE DE FRAGILIDAD",
+ "PLAGA","PRODUCTO \"SUELTO\"","PRODUCTO MOJADO","RACK DAÑADO","REGLETA DAÑADA","REGLETA NO LEGIBLE",
+ "SECTORIZACIÓN INCORRECTA","SOBRANTE","SUSTRACCION","TARIMA DAÑADA"
 ];
 
 function autocompletar(){
- let p=personal[nombre.value];
- cuadrilla.value=p?.cuadrilla || "";
- areaLogin.value=p?.area || "";
+ let p = personal[document.getElementById("nombre").value];
+ document.getElementById("cuadrilla").value = p?.cuadrilla || "";
+ document.getElementById("areaLogin").value = p?.area || "";
 }
 
+let datosGenerales = {}, folioGlobal = "";
 
-let datosGenerales={},folioGlobal="";
-
-// FOLIO
+/* ============================================
+   FOLIO
+   ============================================ */
 async function generarFolio(){
-
- const { data } = await supabaseClient
-  .from("Reportes")
-  .select("folio");
-
- // ✅ SI NO HAY REGISTROS → EMPEZAR EN 001
- if(!data || data.length === 0){
-  return "AC-2627-001";
- }
-
- // ✅ obtener último número
+ const { data } = await supabaseClient.from("Reportes").select("folio");
+ if(!data || data.length === 0) return "AC-2627-001";
  let numeros = data.map(r => parseInt(r.folio.split("-")[2]));
  let max = Math.max(...numeros);
-
- let nuevo = max + 1;
-
- return "AC-2627-" + String(nuevo).padStart(3,'0');
-
+ return "AC-2627-" + String(max+1).padStart(3,'0');
 }
 
-// LOGIN
+/* ============================================
+   LOGIN
+   ============================================ */
 async function login(){
+ const nombre   = document.getElementById("nombre");
+ const password = document.getElementById("password");
 
- if(!nombre.value){
-  alert("Selecciona nombre");
-  return;
- }
+ if(!nombre.value){ toast("Selecciona tu nombre","err"); return; }
+ if(!password.value){ toast("Ingresa la contraseña","err"); return; }
 
- if(!password.value){
-  alert("Ingresa la contraseña");
-  return;
- }
+ let nombreLimpio = nombre.value.trim();
+ let user = personal[nombreLimpio];
+ if(!user){ toast("Usuario inválido","err"); return; }
 
-let nombreLimpio = nombre.value.trim();
-let user = personal[nombreLimpio];
+ if(password.value.trim() !== user.pass){ toast("Contraseña incorrecta","err"); return; }
 
-if(!user){
- alert("Usuario inválido");
- return;
-}
+ let esAdmin = user.admin === true;
 
-let esAdmin = user.admin === true;
-
-
- if(password.value.trim() !== user.pass){
-  alert("Contraseña incorrecta");
-  return;
- }
-
- // ✅ si pasa todo
-datosGenerales={
-  nombre:nombreLimpio,
-  cuadrilla:user.cuadrilla,
-  area:user.area,
-  turno:turno.value,
-  fecha:fechaLogin.value
+ datosGenerales = {
+  nombre: nombreLimpio,
+  cuadrilla: user.cuadrilla,
+  area: user.area,
+  turno: document.getElementById("turno").value,
+  fecha: document.getElementById("fechaLogin").value
  };
 
- cuadrilla.value = user.cuadrilla;
- areaLogin.value = user.area;
+ document.getElementById("cuadrilla").value = user.cuadrilla;
+ document.getElementById("areaLogin").value = user.area;
 
- folioGlobal=await generarFolio();
- folioBox.innerText="Folio: "+folioGlobal;
+ folioGlobal = await generarFolio();
+ document.getElementById("folioBox").innerText = folioGlobal;
 
- bienvenida.innerText = "BIENVENIDO: " + datosGenerales.nombre.toUpperCase();
+ document.getElementById("bienvenida").innerText = datosGenerales.nombre.toUpperCase();
 
- loginBox.classList.add("hidden");
- systemBox.classList.remove("hidden");
- // ✅ guardar sesión con expiración (30 min)
-let sessionData = {
-  datos: datosGenerales,
-  inicio: Date.now()
-};
+ document.getElementById("loginBox").classList.add("hidden");
+ document.getElementById("systemBox").classList.remove("hidden");
 
-localStorage.setItem("sesionActiva", JSON.stringify(sessionData));
- if(esAdmin){
- adminBtn.classList.remove("hidden");
-}
+ localStorage.setItem("sesionActiva", JSON.stringify({datos:datosGenerales, inicio:Date.now()}));
+
+ if(esAdmin) document.getElementById("adminBtn").classList.remove("hidden");
+
+ toast("Sesión iniciada","ok");
 }
 
-// TIPO
+/* ============================================
+   TIPO — Selector de tarjetas
+   ============================================ */
+function seleccionarTipo(tipo){
+ document.getElementById("tipo").value = tipo;
+
+ // Marcar visualmente la tarjeta seleccionada
+ document.querySelectorAll(".tipo-card").forEach(c => {
+  if(c.getAttribute("data-tipo") === tipo) c.classList.add("active");
+  else c.classList.remove("active");
+ });
+
+ // Actualizar hint del header del paso 01
+ const hint = document.getElementById("stepHint01");
+ if(hint) hint.textContent = tipo;
+
+ // Mostrar / ocultar secciones condicionales
+ document.getElementById("productoSec").classList.add("hidden");
+ document.getElementById("transporteSec").classList.add("hidden");
+ if(tipo === "Producto") document.getElementById("productoSec").classList.remove("hidden");
+ if(tipo === "Transporte") document.getElementById("transporteSec").classList.remove("hidden");
+}
+
+/* Compatibilidad por si algo aún llama cambiarTipo() */
 function cambiarTipo(){
- productoSec.classList.add("hidden");
- transporteSec.classList.add("hidden");
-
- if(tipo.value==="Producto") productoSec.classList.remove("hidden");
- if(tipo.value==="Transporte") transporteSec.classList.remove("hidden");
+ const tipo = document.getElementById("tipo").value;
+ if(tipo) seleccionarTipo(tipo);
 }
 
-// FIRMA
-let canvas=document.getElementById("firma");
-let ctx=canvas.getContext("2d");
-canvas.addEventListener("click", abrirFirma);
-canvas.addEventListener("touchstart", abrirFirma);
+/* ============================================
+   AUTOCOMPLETE — NOMBRE
+   ============================================ */
+function filtrarNombres(){
+ const input = document.getElementById("nombre").value.toLowerCase();
+ const lista = document.getElementById("listaResultados");
+ lista.innerHTML = "";
+ if(!input){ lista.style.display="none"; return; }
 
-// ===== FIRMA GRANDE (MODAL) =====
-let canvasGrande;
-let ctxGrande;
+ const nombres = Object.keys(personal).filter(n => n.toLowerCase().includes(input));
+ if(nombres.length === 0){ lista.style.display="none"; return; }
 
+ nombres.forEach(n => {
+  let div = document.createElement("div");
+  div.innerText = n;
+  div.className = "dropdown-item";
+  div.onclick = () => {
+   document.getElementById("nombre").value = n;
+   lista.innerHTML = "";
+   lista.style.display = "none";
+   autocompletar();
+  };
+  lista.appendChild(div);
+ });
+ lista.style.display = "block";
+}
+
+/* ============================================
+   AUTOCOMPLETE — HALLAZGO
+   ============================================ */
+function filtrarHallazgos(){
+ const inputEl = document.getElementById("hallazgo");
+ const input   = inputEl.value.toUpperCase();
+ const lista   = document.getElementById("listaHallazgosCustom");
+ lista.innerHTML = "";
+
+ if(!input){
+  inputEl.classList.remove("valid","invalid");
+  lista.style.display = "none";
+  return;
+ }
+
+ const filtrados = listaHallazgosDatos.filter(h => h.includes(input));
+ filtrados.forEach(h => {
+  let div = document.createElement("div");
+  div.innerText = h;
+  div.className = "dropdown-item";
+  div.onclick = () => {
+   inputEl.value = h;
+   lista.innerHTML = "";
+   lista.style.display = "none";
+   inputEl.classList.remove("invalid");
+   inputEl.classList.add("valid");
+  };
+  lista.appendChild(div);
+ });
+ lista.style.display = filtrados.length ? "block" : "none";
+
+ if(!listaHallazgosDatos.includes(input)){
+  inputEl.classList.remove("valid");
+  inputEl.classList.add("invalid");
+ } else {
+  inputEl.classList.remove("invalid");
+  inputEl.classList.add("valid");
+ }
+}
+
+/* Cerrar dropdowns al clic fuera */
+document.addEventListener("click", function(e){
+ if(!e.target.closest("#nombre") && !e.target.closest("#listaResultados")){
+  document.getElementById("listaResultados").style.display = "none";
+ }
+ if(!e.target.closest("#hallazgo") && !e.target.closest("#listaHallazgosCustom")){
+  document.getElementById("listaHallazgosCustom").style.display = "none";
+ }
+ if(!e.target.closest("#adminHallazgo") && !e.target.closest("#listaHallazgosAdmin")){
+  const l = document.getElementById("listaHallazgosAdmin");
+  if(l) l.style.display = "none";
+ }
+});
+
+/* ============================================
+   ARCHIVOS
+   ============================================ */
+function actualizarConteoFotos(){
+ const c = document.getElementById("foto").files.length;
+ const e = document.getElementById("fotoCount");
+ if(c > 0){
+  e.classList.remove("hidden");
+  e.innerText = c + (c === 1 ? " archivo seleccionado" : " archivos seleccionados");
+ } else {
+  e.classList.add("hidden");
+ }
+}
+
+/* ============================================
+   FIRMA — Canvas pequeño + modal grande
+   ============================================ */
+const canvas = document.getElementById("firma");
+const ctx    = canvas.getContext("2d");
+
+function ajustarCanvas(){
+ canvas.width  = canvas.offsetWidth;
+ canvas.height = 140;
+ ctx.strokeStyle = "#1A1A1A";
+ ctx.lineWidth   = 2;
+ ctx.lineCap     = "round";
+}
+window.addEventListener("load", ajustarCanvas);
+window.addEventListener("resize", ajustarCanvas);
+
+let canvasGrande, ctxGrande;
 
 function abrirFirma(e){
-  if(e){
- e.preventDefault();
-}
- document.getElementById("firmaModal").classList.remove("hidden");
+ if(e) e.preventDefault();
+ document.getElementById("firmaModal").classList.add("show");
 
  setTimeout(()=>{
-
   canvasGrande = document.getElementById("firmaGrande");
-  ctxGrande = canvasGrande.getContext("2d");
+  ctxGrande    = canvasGrande.getContext("2d");
 
-  canvasGrande.width = canvasGrande.offsetWidth;
-  canvasGrande.height = 200;
+  canvasGrande.width  = canvasGrande.offsetWidth;
+  canvasGrande.height = 220;
 
-  ctxGrande.strokeStyle = "black";
-  ctxGrande.lineWidth = 2;
+  ctxGrande.strokeStyle = "#1A1A1A";
+  ctxGrande.lineWidth   = 2.5;
+  ctxGrande.lineCap     = "round";
 
-  let d2 = false;
+  let dr = false;
 
-  // mouse
-  canvasGrande.onmousedown = () => d2 = true;
-
-  canvasGrande.onmouseup = () => {
-   d2 = false;
+  canvasGrande.onmousedown = e => {
+   dr = true;
    ctxGrande.beginPath();
+   ctxGrande.moveTo(e.offsetX, e.offsetY);
   };
-
-  canvasGrande.onmousemove = e=>{
-   if(!d2) return;
+  canvasGrande.onmouseup   = () => { dr = false; ctxGrande.beginPath(); };
+  canvasGrande.onmouseleave = () => { dr = false; ctxGrande.beginPath(); };
+  canvasGrande.onmousemove = e => {
+   if(!dr) return;
    ctxGrande.lineTo(e.offsetX, e.offsetY);
    ctxGrande.stroke();
   };
 
-  // touch
-  canvasGrande.ontouchstart = e=>{
+  canvasGrande.ontouchstart = e => {
    e.preventDefault();
-   d2 = true;
-
+   dr = true;
    const rect = canvasGrande.getBoundingClientRect();
-   const touch = e.touches[0];
-
+   const t = e.touches[0];
    ctxGrande.beginPath();
-   ctxGrande.moveTo(
-    touch.clientX - rect.left,
-    touch.clientY - rect.top
-   );
+   ctxGrande.moveTo(t.clientX - rect.left, t.clientY - rect.top);
   };
-
-  canvasGrande.ontouchend = ()=>{
-   d2 = false;
-   ctxGrande.beginPath();
-  };
-
-  canvasGrande.ontouchmove = e=>{
-   if(!d2) return;
+  canvasGrande.ontouchend = () => { dr = false; ctxGrande.beginPath(); };
+  canvasGrande.ontouchmove = e => {
+   if(!dr) return;
    e.preventDefault();
-
    const rect = canvasGrande.getBoundingClientRect();
-   const touch = e.touches[0];
-
-   ctxGrande.lineTo(
-    touch.clientX - rect.left,
-    touch.clientY - rect.top
-   );
-
+   const t = e.touches[0];
+   ctxGrande.lineTo(t.clientX - rect.left, t.clientY - rect.top);
    ctxGrande.stroke();
   };
-
- },100);
+ }, 80);
 }
-
 function limpiarFirmaGrande(){
  ctxGrande.clearRect(0,0,canvasGrande.width,canvasGrande.height);
 }
-
+function cerrarFirma(){
+ document.getElementById("firmaModal").classList.remove("show");
+}
 function guardarFirma(){
-
- ajustarCanvas(); // ✅ FUERZA tamaño correcto
-
+ ajustarCanvas();
  ctx.clearRect(0,0,canvas.width,canvas.height);
- ctx.drawImage(canvasGrande,0,0,canvas.width,canvas.height);
-
- document.getElementById("firmaModal").classList.add("hidden");
-}
-// ===== DIBUJO FIRMA GRANDE =====
-
-
-ctx.strokeStyle = "black";
-ctx.lineWidth = 2;
-
-function ajustarCanvas(){
- canvas.width = canvas.offsetWidth;
- canvas.height = 150;
-}
-
-// esperar a que cargue bien
-window.addEventListener("load", ajustarCanvas);
-
-let d = false;
-
-// MOUSE (PC)
-canvas.addEventListener("mousedown", ()=> d = true);
-canvas.addEventListener("mouseup", ()=> { d = false; ctx.beginPath(); });
-canvas.addEventListener("mousemove", e=>{
- if(!d) return;
- ctx.lineTo(e.offsetX, e.offsetY);
- ctx.stroke();
-});
-
-// TOUCH (CELULAR)
-canvas.addEventListener("touchstart", e=>{
- e.preventDefault();
-
- d = true;
- const rect = canvas.getBoundingClientRect();
- const touch = e.touches[0];
-
- ctx.beginPath();
- ctx.strokeStyle = "black";
-ctx.lineWidth = 2;
-
- ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-});
-
-canvas.addEventListener("touchend", ()=>{
- d = false;
- ctx.beginPath();
-});
-
-canvas.addEventListener("touchmove", e=>{
- if(!d) return;
- e.preventDefault();
-
- const rect = canvas.getBoundingClientRect();
- const touch = e.touches[0];
-
- ctx.lineTo(
-  touch.clientX - rect.left,
-  touch.clientY - rect.top
- );
- ctx.stroke();
-});
-
-function limpiarFirma(){
- ctx.clearRect(0,0,canvas.width,canvas.height);
-}
-
-function accionAdmin(){
-
- let adminBox = document.getElementById("adminBox");
-
- adminBox.style.display = "flex";
-
- cargarAdmin();
+ ctx.drawImage(canvasGrande, 0, 0, canvas.width, canvas.height);
+ cerrarFirma();
 }
 
 function canvasVacio(c){
-  const context = c.getContext("2d");
-  const pixelBuffer = new Uint32Array(
-    context.getImageData(0, 0, c.width, c.height).data.buffer
-  );
-  return !pixelBuffer.some(color => color !== 0);
-}
-// GUARDAR
-async function guardar(){
-
-  if(!formularioCompleto()){
- alert("Debes completar todos los campos antes de guardar");
- return;
+ const context = c.getContext("2d");
+ const buf = new Uint32Array(context.getImageData(0,0,c.width,c.height).data.buffer);
+ return !buf.some(color => color !== 0);
 }
 
- if(
-  !folioGlobal ||
-  !datosGenerales ||
-  !datosGenerales.nombre ||
-  !datosGenerales.turno ||
-  !datosGenerales.cuadrilla ||
-  !datosGenerales.area ||
-  !tipo.value ||
-  !hallazgo.value ||
-  !ubicacion.value ||
-
-  !listaHallazgosDatos.includes(hallazgo.value.toUpperCase()) ||
-
-  (tipo.value === "Producto" && (
-    !codigo.value ||
-    !lote.value ||
-    !cantidad.value ||
-    !unidad.value
-  )) ||
-
-  (tipo.value === "Transporte" && (
-    !unidadEnvio.value ||
-    !idTransporte.value
-  )) ||
-
-
-  
-  canvasVacio(canvas)
-  
- ){
-  alert("Debes completar todos los campos y firmar antes de guardar");
-  return;
- }
-
- try {
-
-  // SUBIR IMÁGENES
-let urlsImagenes = [];
-
-if(foto.files.length > 0){
-
- for(let i = 0; i < foto.files.length; i++){
-
-  let archivo = foto.files[i];
-
-  let nombreArchivo = `${folioGlobal}_${Date.now()}_${i}.jpg`;
-
-  let { error: errorUpload } = await supabaseClient
- .storage
- .from("evidencias")
- .upload(nombreArchivo, archivo);
-
-
-  if(errorUpload){
-  console.error("Error subiendo imagen:", errorUpload);
-  continue;
-}
-
-  let { data: urlData } = supabaseClient
-   .storage
-   .from("evidencias")
-   .getPublicUrl(nombreArchivo);
-
-  urlsImagenes.push(urlData.publicUrl);
- }
-
-}
-
-  const { error } = await supabaseClient
-   .from("Reportes")
-   .insert([{
-    folio: folioGlobal,
-    fecha: datosGenerales.fecha,
-    nombre: datosGenerales.nombre,
-    turno: datosGenerales.turno,
-    cuadrilla: datosGenerales.cuadrilla,
-    area: datosGenerales.area,
-    tipo: tipo.value,
-    hallazgo: hallazgo.value,
-    ubicacion: ubicacion.value,
-
-    codigo: codigo.value || null,
-    lote: lote.value || null,
-    cantidad: cantidad.value || null,
-    unidad: unidad.value || null,
-
-    unidad_envio: unidadEnvio.value || null,
-    id_transporte: idTransporte.value || null,
-
-   firma: canvas.toDataURL(),
-imagenes: urlsImagenes
-   }]);
-
-  if(error){
-    console.error(error);
-    alert("Error al guardar en Supabase");
-    return;
-  }
-
-  msg.innerText = "✅ Guardado en Supabase: " + folioGlobal;
-
- } catch(e){
-  console.error(e);
-  alert("Error inesperado");
- }
-
-}
-
+/* ============================================
+   VALIDACIÓN + GUARDADO
+   ============================================ */
 function formularioCompleto(){
+ const tipo      = document.getElementById("tipo").value;
+ const hallazgo  = document.getElementById("hallazgo").value;
+ const ubicacion = document.getElementById("ubicacion").value;
 
  return !(
   !folioGlobal ||
@@ -918,745 +1365,458 @@ function formularioCompleto(){
   !datosGenerales.turno ||
   !datosGenerales.cuadrilla ||
   !datosGenerales.area ||
-  !tipo.value ||
-  !hallazgo.value ||
-  !ubicacion.value ||
-
-  !listaHallazgosDatos.includes(hallazgo.value.toUpperCase()) ||
-
-  (tipo.value === "Producto" && (
-    !codigo.value ||
-    !lote.value ||
-    !cantidad.value ||
-    !unidad.value
+  !tipo ||
+  !hallazgo ||
+  !ubicacion ||
+  !listaHallazgosDatos.includes(hallazgo.toUpperCase()) ||
+  (tipo === "Producto" && (
+    !document.getElementById("codigo").value ||
+    !document.getElementById("lote").value ||
+    !document.getElementById("cantidad").value ||
+    !document.getElementById("unidad").value
   )) ||
-
-  (tipo.value === "Transporte" && (
-    !unidadEnvio.value ||
-    !idTransporte.value
+  (tipo === "Transporte" && (
+    !document.getElementById("unidadEnvio").value ||
+    !document.getElementById("idTransporte").value
   )) ||
-
   canvasVacio(canvas)
  );
 }
-function logout(){
- localStorage.clear();
- location.reload();
 
-}
-
-document.addEventListener("click", function(e){
-
- if(!e.target.closest("#nombre") && !e.target.closest("#listaResultados")){
-  let lista = document.getElementById("listaResultados");
-
-  if(lista){
-   lista.innerHTML = "";
-  }
- }
-
-});
-function filtrarNombres(){
-
- let input = document.getElementById("nombre").value.toLowerCase();
- let lista = document.getElementById("listaResultados");
-
- lista.innerHTML = "";
-
- if(!input){
- lista.innerHTML = "";
- return;
-}
-
- let nombres = Object.keys(personal);
-
- let filtrados = nombres.filter(nombre =>
-  nombre.toLowerCase().includes(input)
- );
-
- filtrados.forEach(nombre =>{
-
-  let div = document.createElement("div");
-  div.innerText = nombre;
-  div.className = "item-autocomplete";
-
-  div.onclick = function(){
-   document.getElementById("nombre").value = nombre;
-   lista.innerHTML = "";
-   autocompletar();
-  };
-
-  lista.appendChild(div);
-
- });
-
-}
-function filtrarHallazgos(){
-
- let input = document.getElementById("hallazgo").value.toUpperCase();
- let lista = document.getElementById("listaHallazgosCustom");
-
- lista.innerHTML = "";
-
- if(!input){
-  hallazgo.style.border = "1px solid #bbb";
+async function guardar(){
+ if(!formularioCompleto()){
+  toast("Completa todos los campos y firma","err");
   return;
  }
 
- let filtrados = listaHallazgosDatos.filter(function(h){
-  return h.includes(input);
- });
+ try{
+  // Subir imágenes
+  let urlsImagenes = [];
+  const foto = document.getElementById("foto");
 
- filtrados.forEach(function(h){
+  if(foto.files.length > 0){
+   for(let i=0; i<foto.files.length; i++){
+    const archivo = foto.files[i];
+    const nombreArchivo = `${folioGlobal}_${Date.now()}_${i}.jpg`;
+    const { error: errorUpload } = await supabaseClient
+      .storage.from("evidencias").upload(nombreArchivo, archivo);
+    if(errorUpload){ console.error(errorUpload); continue; }
+    const { data: urlData } = supabaseClient
+      .storage.from("evidencias").getPublicUrl(nombreArchivo);
+    urlsImagenes.push(urlData.publicUrl);
+   }
+  }
 
-  let div = document.createElement("div");
-  div.innerText = h;
-  div.className = "item-autocomplete";
+  const { error } = await supabaseClient.from("Reportes").insert([{
+   folio:        folioGlobal,
+   fecha:        datosGenerales.fecha,
+   nombre:       datosGenerales.nombre,
+   turno:        datosGenerales.turno,
+   cuadrilla:    datosGenerales.cuadrilla,
+   area:         datosGenerales.area,
+   tipo:         document.getElementById("tipo").value,
+   hallazgo:     document.getElementById("hallazgo").value,
+   ubicacion:    document.getElementById("ubicacion").value,
+   codigo:       document.getElementById("codigo").value || null,
+   lote:         document.getElementById("lote").value   || null,
+   cantidad:     document.getElementById("cantidad").value || null,
+   unidad:       document.getElementById("unidad").value || null,
+   unidad_envio: document.getElementById("unidadEnvio").value || null,
+   id_transporte:document.getElementById("idTransporte").value || null,
+   firma:        canvas.toDataURL(),
+   imagenes:     urlsImagenes
+  }]);
 
-  div.onclick = function(){
-   document.getElementById("hallazgo").value = h;
-   lista.innerHTML = "";
-   hallazgo.style.border = "2px solid green";
-  };
+  if(error){
+   console.error(error);
+   toast("Error al guardar","err");
+   return;
+  }
 
-  lista.appendChild(div);
-
- });
-
- // VALIDACIÓN VISUAL
- if(!listaHallazgosDatos.includes(input)){
-  hallazgo.style.border = "2px solid red";
- } else {
-  hallazgo.style.border = "2px solid green";
+  toast("Guardado: " + folioGlobal, "ok");
+ } catch(e){
+  console.error(e);
+  toast("Error inesperado","err");
  }
+}
 
+/* ============================================
+   LOGOUT + SESIÓN
+   ============================================ */
+function logout(){
+ localStorage.clear();
+ location.reload();
 }
 
 function renovarSesion(){
-
- let sesionGuardada = localStorage.getItem("sesionActiva");
- if(!sesionGuardada) return;
-
- let sesion = JSON.parse(sesionGuardada);
+ const s = localStorage.getItem("sesionActiva");
+ if(!s) return;
+ const sesion = JSON.parse(s);
  sesion.inicio = Date.now();
-
  localStorage.setItem("sesionActiva", JSON.stringify(sesion));
 }
-
 document.addEventListener("click", renovarSesion);
 document.addEventListener("keydown", renovarSesion);
 document.addEventListener("touchstart", renovarSesion);
 
 function verificarSesion(){
-
- const sesionGuardada = localStorage.getItem("sesionActiva");
- if(!sesionGuardada) return;
-
- let sesion = JSON.parse(sesionGuardada);
-
- let ahora = Date.now();
-
- if(ahora - sesion.inicio > SESSION_TIME){
-  localStorage.removeItem("sesionActiva");
-  return;
+ const s = localStorage.getItem("sesionActiva");
+ if(!s) return;
+ const sesion = JSON.parse(s);
+ if(Date.now() - sesion.inicio > SESSION_TIME){
+  localStorage.removeItem("sesionActiva"); return;
  }
-
- // recuperar datos
  datosGenerales = sesion.datos;
-
- // renovar sesión
  sesion.inicio = Date.now();
  localStorage.setItem("sesionActiva", JSON.stringify(sesion));
 
- // restaurar pantalla
- bienvenida.innerText = "BIENVENIDO: " + datosGenerales.nombre.toUpperCase();
- cuadrilla.value = datosGenerales.cuadrilla;
- areaLogin.value = datosGenerales.area;
+ document.getElementById("bienvenida").innerText = datosGenerales.nombre.toUpperCase();
+ document.getElementById("cuadrilla").value = datosGenerales.cuadrilla;
+ document.getElementById("areaLogin").value = datosGenerales.area;
+ document.getElementById("loginBox").classList.add("hidden");
+ document.getElementById("systemBox").classList.remove("hidden");
 
- loginBox.classList.add("hidden");
- systemBox.classList.remove("hidden");
-
- // cargar folio (solo una vez)
- generarFolio().then(folio=>{
+ generarFolio().then(folio => {
   folioGlobal = folio;
-  folioBox.innerText = "Folio: " + folioGlobal;
+  document.getElementById("folioBox").innerText = folioGlobal;
  });
 
- // admin
- let user = personal[datosGenerales.nombre];
- if(user?.admin){
-  adminBtn.classList.remove("hidden");
- }
-
+ const user = personal[datosGenerales.nombre];
+ if(user?.admin) document.getElementById("adminBtn").classList.remove("hidden");
 }
-
-function pdf(){
-
- try{
-
- if(!formularioCompleto()){
- alert("Debes completar todos los campos antes de generar PDF");
- return;
-}
-
- const { jsPDF } = window.jspdf;
- const doc = new jsPDF();
-
- let totalPages = 2;
-
- function footer(page){
-  doc.setFontSize(10);
-  doc.setTextColor(120);
-  doc.text("SISTEMA DE GESTION DE CALIDAD DHL FY2627",105,290,null,null,"center");
-  doc.text(folioGlobal + "  |  " + page + "/" + totalPages,200,290,null,null,"right");
- }
-
- function header(){
-  doc.setFillColor(213,5,17);
-  doc.rect(0,0,210,22,"F");
-
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(18);
-  doc.setTextColor(255);
-  doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
- }
-
- const firmaY = 230;
-
- function dibujarFirma(){
-
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(12);
-  doc.setTextColor(0);
-
-  doc.text("FIRMA: " + (datosGenerales.nombre || "-"),105,firmaY,null,null,"center");
-
-  doc.rect(60,firmaY+5,90,40);
-
-  try{
-   doc.addImage(canvas.toDataURL(),"PNG",62,firmaY+7,86,34);
-  }catch(e){
-   doc.text("Sin firma",105,firmaY+25,null,null,"center");
-  }
-
- }
-
- // ===== PAGINA 1 =====
- header();
-
- let y = 35;
-
- function fila(label, valor){
-
-  doc.setDrawColor(200);
-  doc.line(10,y,200,y);
-
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(11);
-  doc.setTextColor(60);
-  doc.text(label,10,y+6);
-
-  doc.setFillColor(255,230,120);
-  doc.rect(95,y+1,105,11,"F");
-
-  doc.setFont("helvetica","normal");
-  doc.setTextColor(0);
-  doc.text((valor || "-").toString(),198,y+8,null,null,"right");
-
-  y += 12;
- }
-
- fila("FOLIO",folioGlobal);
- fila("Fecha",datosGenerales.fecha);
- fila("Elaborado por",datosGenerales.nombre);
- fila("Turno",datosGenerales.turno);
- fila("Cuadrilla",datosGenerales.cuadrilla);
-
- fila("Ubicación",ubicacion.value);
- fila("Área",datosGenerales.area);
- fila("Modo de falla",hallazgo.value);
-
- fila("Código",codigo.value);
- fila("Lote",lote.value);
- fila("Cantidad",cantidad.value);
-
- dibujarFirma();
- footer(1);
-
- // ===== PAGINA 2 =====
- doc.addPage();
- header();
-
- doc.setFont("helvetica","bold");
- doc.setFontSize(14);
- doc.setTextColor(0);
- doc.text("EVIDENCIA FOTOGRÁFICA",10,30);
-
- let x = 10;
- let yImg = 40;
-
- if(foto.files.length > 0){
-
-  let readers = [];
-  let imgs = [];
-
-  for(let i=0;i<foto.files.length;i++){
-   readers.push(
-    new Promise(resolve=>{
-     let r = new FileReader();
-     r.onload = e=>{
-      imgs.push(e.target.result);
-      resolve();
-     };
-     r.readAsDataURL(foto.files[i]);
-    })
-   );
-  }
-
-  Promise.all(readers).then(()=>{
-
-   imgs.forEach(img=>{
-
-    doc.rect(x,yImg,90,70);
-    doc.addImage(img,"JPEG",x+2,yImg+2,86,66);
-
-    x += 100;
-
-    if(x > 110){
-     x = 10;
-     yImg += 80;
-    }
-
-   });
-
-   dibujarFirma();
-   footer(2);
-
-   doc.save(folioGlobal + ".pdf");
-
-  });
-
- } else {
-
-  doc.setFontSize(11);
-  doc.text("Sin evidencia",10,60);
-
-  dibujarFirma();
-  footer(2);
-
-  doc.save(folioGlobal + ".pdf");
- }
-
- }catch(e){
-  console.error("ERROR PDF:", e);
-  alert("Error al generar PDF");
- }
-
-}
-
 window.addEventListener("load", verificarSesion);
 
-async function exportarExcel(){
-
- if(!formularioCompleto()){
-  alert("Completa el formulario antes de exportar");
-  return;
- }
-
- const fechaHoy = fechaFormato();
-
- const { data, error } = await supabaseClient
-  .from("Reportes")
-  .select("*")
-  .eq("fecha", fechaHoy)
-  .order("id", { ascending: false });
-
- if(error){
-  alert("Error al obtener datos");
-  console.error(error);
-  return;
- }
-
- if(!data || data.length === 0){
-  alert("No hay reportes del día");
-  return;
- }
-
- let csv = "REPORTE ALERTA DE CALIDAD\n\n";
-csv += "Folio,Fecha,Nombre,Turno,Cuadrilla,Area,Tipo,Hallazgo,Ubicacion,Codigo,Lote,Cantidad,Unidad\n";
-
- data.forEach(r => {
-  csv += `${r.folio},${r.fecha},${r.nombre},${r.turno},${r.cuadrilla},${r.area},${r.tipo},${r.hallazgo},${r.ubicacion},${r.codigo || "N/A"},${r.lote || "N/A"},${r.cantidad || "N/A"},${r.unidad || "N/A"}\n`;
- });
-
- let blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
- let url = URL.createObjectURL(blob);
-
- let a = document.createElement("a");
- a.href = url;
- a.download = "Reportes_" + fechaHoy + ".csv";
- a.click();
-
-}
-
-function cerrarAdmin(){
-
- let adminBox = document.getElementById("adminBox");
-
- adminBox.style.display = "none";
-}
-
-async function cargarAdmin(){
-
- let hallazgo = document.getElementById("adminHallazgo").value.toUpperCase();
- let fechaInicio = document.getElementById("fechaInicio").value;
- let fechaFin = document.getElementById("fechaFin").value;
-
- const { data, error } = await supabaseClient
-  .from("Reportes")
-  .select("*")
-  .order("id", { ascending: false });
-
- if(error){
-  alert("Error cargando datos");
-  console.error(error);
-  return;
- }
-
- let tabla = document.getElementById("adminTabla");
- tabla.innerHTML = "";
-
- data.forEach(r => {
-
-  let pasa = true;
-
-  // filtro hallazgo
-  if(hallazgo && r.hallazgo !== hallazgo){
-    pasa = false;
-  }
-
-  // filtro fechas
-  if(fechaInicio && fechaFin){
-
- let fechaReporte = convertirFecha(r.fecha);
-
- if(fechaReporte < fechaInicio || fechaReporte > fechaFin){
-   pasa = false;
- }
-
-}
-
-  if(!pasa) return;
-
-  let fila = document.createElement("tr");
-
- fila.innerHTML = `
-  <td>${r.folio}</td>
-  <td>${r.fecha}</td>
-  <td>${r.nombre}</td>
-  <td>${r.turno}</td>
-  <td>${r.tipo}</td>
-  <td>${r.hallazgo}</td>
-  <td>
-    <button onclick='generarPDFdesdeAdmin(${JSON.stringify(r)})'>
-      PDF
-    </button>
-  </td>
-
-  `;
-
-  tabla.appendChild(fila);
-
- });
-
-}
-
-function convertirFecha(fechaTexto){
-
- const meses = {
-  ene:"01", feb:"02", mar:"03", abr:"04", may:"05", jun:"06",
-  jul:"07", ago:"08", sep:"09", oct:"10", nov:"11", dic:"12"
- };
-
- let partes = fechaTexto.split("-");
- let dia = partes[0];
- let mesTexto = partes[1];
- let anio = "20" + partes[2];
- let mes = meses[mesTexto];
-
- return `${anio}-${mes}-${dia}`;
-}
-
-
-function filtrarHallazgosAdmin(){
-
- let input = document.getElementById("adminHallazgo").value.toUpperCase();
- let lista = document.getElementById("listaHallazgosAdmin");
-
- lista.innerHTML = "";
-
- if(!input){
-  return;
- }
-
- let filtrados = listaHallazgosDatos.filter(function(h){
-  return h.includes(input);
- });
-
- filtrados.forEach(function(h){
-
-  let div = document.createElement("div");
-  div.innerText = h;
-  div.className = "item-autocomplete";
-
-  div.onclick = function(){
-    document.getElementById("adminHallazgo").value = h;
-    lista.innerHTML = "";
-  };
-
-  lista.appendChild(div);
-
- });
-
-}
-
-
-document.addEventListener("click", function(e){
-
- if(!e.target.closest("#adminHallazgo") && !e.target.closest("#listaHallazgosAdmin")){
-  
-  let lista = document.getElementById("listaHallazgosAdmin");
-  
-  if(lista){
-    lista.innerHTML = "";
-  }
-
- }
-
-});
-
-async function generarPDFdesdeAdmin(r){
-
+/* ============================================
+   PDF (cliente)
+   ============================================ */
+function pdf(){
  try{
+  if(!formularioCompleto()){
+   toast("Completa los campos antes de generar PDF","err");
+   return;
+  }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-
-  let totalPages = 2;
+  const totalPages = 2;
 
   function footer(page){
-    doc.setFontSize(10);
-    doc.setTextColor(120);
-    doc.text("SISTEMA DE GESTION DE CALIDAD DHL FY2627",105,290,null,null,"center");
-    doc.text(r.folio + "  |  " + page + "/" + totalPages,200,290,null,null,"right");
+   doc.setFontSize(10);
+   doc.setTextColor(120);
+   doc.text("SISTEMA DE GESTIÓN DE CALIDAD · FY2627", 105, 290, null, null, "center");
+   doc.text(folioGlobal + "  |  " + page + "/" + totalPages, 200, 290, null, null, "right");
   }
-
   function header(){
-    doc.setFillColor(213,5,17);
-    doc.rect(0,0,210,22,"F");
-
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(18);
-    doc.setTextColor(255);
-    doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
+   doc.setFillColor(207, 0, 46); // brand
+   doc.rect(0, 0, 210, 22, "F");
+   doc.setFillColor(253, 208, 0); // accent stripe
+   doc.rect(0, 22, 210, 2, "F");
+   doc.setFont("helvetica","bold");
+   doc.setFontSize(16);
+   doc.setTextColor(255);
+   doc.text("REPORTE ALERTA DE CALIDAD", 105, 14, null, null, "center");
   }
 
   const firmaY = 230;
-
   function dibujarFirma(){
-
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-
-    doc.text("FIRMA: " + (r.nombre || "-"),105,firmaY,null,null,"center");
-
-    doc.rect(60,firmaY+5,90,40);
-
-    if(r.firma){
-      doc.addImage(r.firma,"PNG",62,firmaY+7,86,34);
-    }
-
+   doc.setFont("helvetica","bold");
+   doc.setFontSize(11);
+   doc.setTextColor(0);
+   doc.text("FIRMA: " + (datosGenerales.nombre || "-"), 105, firmaY, null, null, "center");
+   doc.setDrawColor(180);
+   doc.rect(60, firmaY+5, 90, 40);
+   try{ doc.addImage(canvas.toDataURL(), "PNG", 62, firmaY+7, 86, 34); }
+   catch(e){ doc.text("Sin firma", 105, firmaY+25, null, null, "center"); }
   }
 
-  // PAGINA 1
+  // PAGE 1
   header();
-
-  let y = 35;
-
+  let y = 32;
   function fila(label, valor){
-
-    doc.setDrawColor(200);
-    doc.line(10,y,200,y);
-
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(11);
-    doc.setTextColor(60);
-    doc.text(label,10,y+6);
-
-    doc.setFillColor(255,230,120);
-    doc.rect(95,y+1,105,11,"F");
-
-    doc.setFont("helvetica","normal");
-    doc.setTextColor(0);
-    doc.text((valor || "-").toString(),198,y+8,null,null,"right");
-
-    y += 12;
+   doc.setDrawColor(220);
+   doc.line(10, y, 200, y);
+   doc.setFont("helvetica","bold");
+   doc.setFontSize(10);
+   doc.setTextColor(80);
+   doc.text(label.toUpperCase(), 12, y+7);
+   doc.setFillColor(253, 208, 0, 0.15);
+   doc.setFillColor(255, 248, 200);
+   doc.rect(95, y+1, 105, 11, "F");
+   doc.setFont("helvetica","normal");
+   doc.setTextColor(0);
+   doc.text((valor || "-").toString(), 198, y+8, null, null, "right");
+   y += 12;
   }
 
-  fila("FOLIO", r.folio);
-  fila("Fecha", r.fecha);
-  fila("Elaborado por", r.nombre);
-  fila("Turno", r.turno);
-  fila("Cuadrilla", r.cuadrilla);
-  fila("Ubicación", r.ubicacion);
-  fila("Área", r.area);
-  fila("Modo de falla", r.hallazgo);
-  fila("Código", r.codigo);
-  fila("Lote", r.lote);
-  fila("Cantidad", r.cantidad);
+  fila("Folio", folioGlobal);
+  fila("Fecha", datosGenerales.fecha);
+  fila("Elaborado por", datosGenerales.nombre);
+  fila("Turno", datosGenerales.turno);
+  fila("Cuadrilla", datosGenerales.cuadrilla);
+  fila("Ubicación", document.getElementById("ubicacion").value);
+  fila("Área", datosGenerales.area);
+  fila("Modo ", document.getElementById("hallazgo").value);
+  fila("Código", document.getElementById("codigo").value);
+  fila("Lote", document.getElementById("lote").value);
+  fila("Cantidad", document.getElementById("cantidad").value);
 
   dibujarFirma();
   footer(1);
 
-  // PAGINA 2
+  // PAGE 2
   doc.addPage();
   header();
-
   doc.setFont("helvetica","bold");
-  doc.setFontSize(14);
-  doc.text("EVIDENCIA FOTOGRÁFICA",10,30);
+  doc.setFontSize(13);
+  doc.setTextColor(0);
+  doc.text("EVIDENCIA FOTOGRÁFICA", 10, 32);
 
-  let x = 10;
-  let yImg = 40;
+  let x = 10, yImg = 40;
+  const foto = document.getElementById("foto");
 
-  if(r.imagenes && r.imagenes.length > 0){
-
-    for(let i = 0; i < r.imagenes.length; i++){
-
-      let img = await fetch(r.imagenes[i]).then(res => res.blob());
-      let reader = new FileReader();
-
-      await new Promise(resolve=>{
-        reader.onload = function(){
-          doc.addImage(reader.result,"JPEG",x+2,yImg+2,86,66);
-          resolve();
-        };
-        reader.readAsDataURL(img);
-      });
-
-      doc.rect(x,yImg,90,70);
-
-      x += 100;
-
-      if(x > 110){
-        x = 10;
-        yImg += 80;
-      }
-
-    }
-
+  if(foto.files.length > 0){
+   const readers = [], imgs = [];
+   for(let i=0; i<foto.files.length; i++){
+    readers.push(new Promise(resolve => {
+     const r = new FileReader();
+     r.onload = e => { imgs.push(e.target.result); resolve(); };
+     r.readAsDataURL(foto.files[i]);
+    }));
+   }
+   Promise.all(readers).then(() => {
+    imgs.forEach(img => {
+     doc.setDrawColor(180);
+     doc.rect(x, yImg, 90, 70);
+     doc.addImage(img, "JPEG", x+2, yImg+2, 86, 66);
+     x += 100;
+     if(x > 110){ x = 10; yImg += 80; }
+    });
+    dibujarFirma();
+    footer(2);
+    doc.save(folioGlobal + ".pdf");
+   });
   } else {
-    doc.text("Sin evidencia",10,60);
+   doc.setFontSize(11);
+   doc.text("Sin evidencia", 10, 60);
+   dibujarFirma();
+   footer(2);
+   doc.save(folioGlobal + ".pdf");
   }
-
-  dibujarFirma();
-  footer(2);
-
-  doc.save(r.folio + ".pdf");
-
- }catch(e){
-  console.error(e);
-  alert("Error generando PDF");
+ } catch(e){
+  console.error("ERROR PDF:", e);
+  toast("Error al generar PDF","err");
  }
-
 }
 
-
-
-
-function cerrarDashboard(){
- document.getElementById("dashboardBox").style.display = "none";
-}
-
-async function cargarDashboard(){
-
- const { data, error } = await supabaseClient
-  .from("Reportes")
-  .select("*");
-
- if(error){
-  alert("Error cargando dashboard");
+/* ============================================
+   EXCEL DEL DÍA
+   ============================================ */
+async function exportarExcel(){
+ if(!formularioCompleto()){
+  toast("Completa el formulario antes de exportar","err");
   return;
  }
+ const fechaHoy = fechaFormato();
+ const { data, error } = await supabaseClient
+  .from("Reportes").select("*").eq("fecha", fechaHoy).order("id",{ascending:false});
+ if(error){ toast("Error obteniendo datos","err"); return; }
+ if(!data || !data.length){ toast("No hay reportes del día","err"); return; }
 
- // ✅ KPI TOTAL
- document.getElementById("kpiTotal").innerText = "Total reportes: " + data.length;
-
- // ✅ TURNOS
- let turnos = {};
- data.forEach(r=>{
-  turnos[r.turno] = (turnos[r.turno] || 0) + 1;
+ let csv = "REPORTE ALERTA DE CALIDAD\n\n";
+ csv += "Folio,Fecha,Nombre,Turno,Cuadrilla,Area,Tipo,Hallazgo,Ubicacion,Codigo,Lote,Cantidad,Unidad\n";
+ data.forEach(r => {
+  csv += `${r.folio},${r.fecha},${r.nombre},${r.turno},${r.cuadrilla},${r.area},${r.tipo},${r.hallazgo},${r.ubicacion},${r.codigo||"N/A"},${r.lote||"N/A"},${r.cantidad||"N/A"},${r.unidad||"N/A"}\n`;
  });
-
- document.getElementById("kpiTurno").innerText =
-  "Matutino: " + (turnos["Matutino"] || 0) +
-  " | Nocturno: " + (turnos["Nocturno"] || 0);
-
- // ✅ AREAS
- let areas = {};
- data.forEach(r=>{
-  areas[r.area] = (areas[r.area] || 0) + 1;
- });
-
- document.getElementById("kpiArea").innerText =
-  Object.entries(areas).map(a=>a[0]+": "+a[1]).join(" | ");
-
- // ✅ HALLAZGOS
- let hallazgos = {};
- data.forEach(r=>{
-  hallazgos[r.hallazgo] = (hallazgos[r.hallazgo] || 0) + 1;
- });
-
- new Chart(document.getElementById("graficaHallazgos"),{
-  type:"bar",
-  data:{
-   labels:Object.keys(hallazgos),
-   datasets:[{
-    label:"Hallazgos",
-    data:Object.values(hallazgos)
-   }]
-  }
- });
-
- new Chart(document.getElementById("graficaTurno"),{
-  type:"pie",
-  data:{
-   labels:Object.keys(turnos),
-   datasets:[{
-    data:Object.values(turnos)
-   }]
-  }
- });
-
- new Chart(document.getElementById("graficaArea"),{
-  type:"doughnut",
-  data:{
-   labels:Object.keys(areas),
-   datasets:[{
-    data:Object.values(areas)
-   }]
-  }
- });
-
+ const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
+ const a = document.createElement("a");
+ a.href = URL.createObjectURL(blob);
+ a.download = "Reportes_" + fechaHoy + ".csv";
+ a.click();
+ toast("Archivo descargado","ok");
 }
 
+/* ============================================
+   PANEL ADMIN
+   ============================================ */
+function accionAdmin(){
+ document.getElementById("adminBox").classList.add("show");
+ cargarAdmin();
+}
+function cerrarAdmin(){
+ document.getElementById("adminBox").classList.remove("show");
+}
 
+async function cargarAdmin(){
+ const hallazgo    = document.getElementById("adminHallazgo").value.toUpperCase();
+ const fechaInicio = document.getElementById("fechaInicio").value;
+ const fechaFin    = document.getElementById("fechaFin").value;
+
+ const { data, error } = await supabaseClient.from("Reportes").select("*").order("id",{ascending:false});
+ if(error){ toast("Error cargando","err"); return; }
+
+ const tabla = document.getElementById("adminTabla");
+ tabla.innerHTML = "";
+ let count = 0;
+
+ data.forEach(r => {
+  let pasa = true;
+  if(hallazgo && r.hallazgo !== hallazgo) pasa = false;
+  if(fechaInicio && fechaFin){
+   const fr = convertirFecha(r.fecha);
+   if(fr < fechaInicio || fr > fechaFin) pasa = false;
+  }
+  if(!pasa) return;
+
+  count++;
+  const fila = document.createElement("tr");
+  fila.innerHTML = `
+   <td class="folio-cell">${r.folio}</td>
+   <td>${r.fecha}</td>
+   <td>${r.nombre}</td>
+   <td>${r.turno}</td>
+   <td>${r.tipo}</td>
+   <td>${r.hallazgo}</td>
+   <td><button class="btn-mini" onclick='generarPDFdesdeAdmin(${JSON.stringify(r)})'>PDF</button></td>
+  `;
+  tabla.appendChild(fila);
+ });
+
+ if(count === 0){
+  tabla.innerHTML = '<tr><td colspan="7" class="empty">Sin resultados</td></tr>';
+ }
+}
+
+function convertirFecha(fechaTexto){
+ const meses = {ene:"01",feb:"02",mar:"03",abr:"04",may:"05",jun:"06",jul:"07",ago:"08",sep:"09",oct:"10",nov:"11",dic:"12"};
+ const [d,m,a] = fechaTexto.split("-");
+ return `20${a}-${meses[m]}-${d}`;
+}
+
+function filtrarHallazgosAdmin(){
+ const input = document.getElementById("adminHallazgo").value.toUpperCase();
+ const lista = document.getElementById("listaHallazgosAdmin");
+ lista.innerHTML = "";
+ if(!input){ lista.style.display="none"; return; }
+
+ const filtrados = listaHallazgosDatos.filter(h => h.includes(input));
+ filtrados.forEach(h => {
+  const div = document.createElement("div");
+  div.innerText = h;
+  div.className = "dropdown-item";
+  div.onclick = () => {
+   document.getElementById("adminHallazgo").value = h;
+   lista.innerHTML = "";
+   lista.style.display = "none";
+  };
+  lista.appendChild(div);
+ });
+ lista.style.display = filtrados.length ? "block" : "none";
+}
+
+async function generarPDFdesdeAdmin(r){
+ try{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const totalPages = 2;
+
+  function footer(page){
+   doc.setFontSize(10);
+   doc.setTextColor(120);
+   doc.text("SISTEMA DE GESTIÓN DE CALIDAD · FY2627",105,290,null,null,"center");
+   doc.text(r.folio+"  |  "+page+"/"+totalPages,200,290,null,null,"right");
+  }
+  function header(){
+   doc.setFillColor(207,0,46);
+   doc.rect(0,0,210,22,"F");
+   doc.setFillColor(253,208,0);
+   doc.rect(0,22,210,2,"F");
+   doc.setFont("helvetica","bold");
+   doc.setFontSize(16);
+   doc.setTextColor(255);
+   doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
+  }
+
+  const firmaY = 230;
+  function dibujarFirma(){
+   doc.setFont("helvetica","bold");
+   doc.setFontSize(11);
+   doc.setTextColor(0);
+   doc.text("FIRMA: " + (r.nombre || "-"), 105, firmaY, null, null, "center");
+   doc.setDrawColor(180);
+   doc.rect(60, firmaY+5, 90, 40);
+   if(r.firma){ doc.addImage(r.firma,"PNG",62,firmaY+7,86,34); }
+  }
+
+  header();
+  let y = 32;
+  function fila(label, valor){
+   doc.setDrawColor(220); doc.line(10,y,200,y);
+   doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(80);
+   doc.text(label.toUpperCase(),12,y+7);
+   doc.setFillColor(255,248,200); doc.rect(95,y+1,105,11,"F");
+   doc.setFont("helvetica","normal"); doc.setTextColor(0);
+   doc.text((valor||"-").toString(),198,y+8,null,null,"right");
+   y += 12;
+  }
+
+  fila("Folio",r.folio);
+  fila("Fecha",r.fecha);
+  fila("Elaborado por",r.nombre);
+  fila("Turno",r.turno);
+  fila("Cuadrilla",r.cuadrilla);
+  fila("Ubicación",r.ubicacion);
+  fila("Área",r.area);
+  fila("Modo ",r.hallazgo);
+  fila("Código",r.codigo);
+  fila("Lote",r.lote);
+  fila("Cantidad",r.cantidad);
+
+  dibujarFirma();
+  footer(1);
+
+  doc.addPage();
+  header();
+  doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(0);
+  doc.text("EVIDENCIA FOTOGRÁFICA",10,32);
+
+  let x=10, yImg=40;
+  if(r.imagenes && r.imagenes.length > 0){
+   for(let i=0; i<r.imagenes.length; i++){
+    const img = await fetch(r.imagenes[i]).then(res=>res.blob());
+    const reader = new FileReader();
+    await new Promise(resolve => {
+     reader.onload = function(){
+      doc.setDrawColor(180);
+      doc.rect(x,yImg,90,70);
+      doc.addImage(reader.result,"JPEG",x+2,yImg+2,86,66);
+      resolve();
+     };
+     reader.readAsDataURL(img);
+    });
+    x += 100;
+    if(x > 110){ x = 10; yImg += 80; }
+   }
+  } else {
+   doc.text("Sin evidencia",10,60);
+  }
+  dibujarFirma();
+  footer(2);
+  doc.save(r.folio + ".pdf");
+ } catch(e){
+  console.error(e);
+  toast("Error generando PDF","err");
+ }
+}
+
+/* ============================================
+   DASHBOARD — Abre en nueva pestaña
+   El dashboard es independiente: usa la misma llave
+   pública de Supabase y carga datos por sí solo.
+   ============================================ */
 function abrirDashboard(){
-  window.open("dashboard.html", "_blank");
+ window.open("dashboard.html", "_blank");
 }
-
-
 </script>
+
 </body>
 </html>
