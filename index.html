@@ -1300,6 +1300,10 @@ function actualizarConteoFotosGaleria(e){
 
 // Mostrar contador en pantalla
 function actualizarVistaFotos(){
+  if(fotosSeleccionadas.length > 5){
+  toast("Máximo 5 fotos","err");
+  fotosSeleccionadas = fotosSeleccionadas.slice(0,5);
+}
   const e = document.getElementById("fotoCount");
 
   if(fotosSeleccionadas.length > 0){
@@ -1317,14 +1321,23 @@ const canvas = document.getElementById("firma");
 const ctx    = canvas.getContext("2d");
 
 function ajustarCanvas(){
- canvas.width  = canvas.offsetWidth;
- canvas.height = 140;
- ctx.strokeStyle = "#1A1A1A";
- ctx.lineWidth   = 2;
- ctx.lineCap     = "round";
+
+  const ratio = window.devicePixelRatio || 1;
+
+  canvas.width  = canvas.offsetWidth * ratio;
+  canvas.height = 140 * ratio;
+
+  canvas.style.width = canvas.offsetWidth + "px";
+  canvas.style.height = "140px";
+
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+  ctx.strokeStyle = "#1A1A1A";
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = "round";
 }
+
 window.addEventListener("load", ajustarCanvas);
-window.addEventListener("resize", ajustarCanvas);
 
 let canvasGrande, ctxGrande;
 
@@ -1336,8 +1349,15 @@ function abrirFirma(e){
   canvasGrande = document.getElementById("firmaGrande");
   ctxGrande    = canvasGrande.getContext("2d");
 
-  canvasGrande.width  = canvasGrande.offsetWidth;
-  canvasGrande.height = 220;
+  const ratio = window.devicePixelRatio || 1;
+
+canvasGrande.width  = canvasGrande.offsetWidth * ratio;
+canvasGrande.height = 220 * ratio;
+
+canvasGrande.style.width = canvasGrande.offsetWidth + "px";
+canvasGrande.style.height = "220px";
+
+ctxGrande.setTransform(ratio, 0, 0, ratio, 0, 0);
 
   ctxGrande.strokeStyle = "#1A1A1A";
   ctxGrande.lineWidth   = 2.5;
@@ -1384,16 +1404,70 @@ function cerrarFirma(){
  document.getElementById("firmaModal").classList.remove("show");
 }
 function guardarFirma(){
- ajustarCanvas();
- ctx.clearRect(0,0,canvas.width,canvas.height);
- ctx.drawImage(canvasGrande, 0, 0, canvas.width, canvas.height);
- cerrarFirma();
+
+  // Validar que sí dibujaron algo
+  if(canvasGrande.getContext("2d")
+     .getImageData(0,0,canvasGrande.width,canvasGrande.height)
+     .data.every(v => v === 0)){
+    
+    toast("Firma vacía","err");
+    return;
+  }
+
+  // Copiar firma sin re-ajustar (IMPORTANTISIMO)
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(canvasGrande, 0, 0, canvas.width, canvas.height);
+
+  cerrarFirma();
+
+  toast("Firma guardada","ok");
 }
 
 function canvasVacio(c){
- const context = c.getContext("2d");
- const buf = new Uint32Array(context.getImageData(0,0,c.width,c.height).data.buffer);
- return !buf.some(color => color !== 0);
+  const context = c.getContext("2d");
+  const pixels = context.getImageData(0, 0, c.width, c.height).data;
+
+  // Solo revisa transparencia (MEJOR para celular)
+  for (let i = 0; i < pixels.length; i += 4) {
+    if (pixels[i + 3] > 10) return false;
+  }
+
+  return true;
+}
+
+async function comprimirImagen(file){
+
+  return new Promise((resolve) => {
+
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      img.src = e.target.result;
+    };
+
+    img.onload = () => {
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const maxWidth = 800;
+      const scale = maxWidth / img.width;
+
+      canvas.width = maxWidth;
+      canvas.height = img.height * scale;
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(
+        blob => resolve(blob),
+        "image/jpeg",
+        0.6
+      );
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
 /* ============================================
@@ -1440,10 +1514,15 @@ async function guardar(){
   let urlsImagenes = [];
   if(fotosSeleccionadas.length > 0){
    for(let i=0; i<fotosSeleccionadas.length; i++){
-    const archivo = fotosSeleccionadas[i];
-    const nombreArchivo = `${folioGlobal}_${Date.now()}_${i}_${archivo.name}`;
-    const { error: errorUpload } = await supabaseClient
-      .storage.from("evidencias").upload(nombreArchivo, archivo);
+    const archivoOriginal = fotosSeleccionadas[i];
+
+// 🔥 COMPRESIÓN AQUÍ
+const archivo = await comprimirImagen(archivoOriginal);
+
+const nombreArchivo = `${folioGlobal}_${Date.now()}_${i}.jpg`;
+
+const { error: errorUpload } = await supabaseClient
+  .storage.from("evidencias").upload(nombreArchivo, archivo);
     if(errorUpload){
   console.error("Error subida:", errorUpload);
   toast("Error subiendo imagen: " + errorUpload.message, "err");
@@ -1471,7 +1550,7 @@ async function guardar(){
    unidad:       document.getElementById("unidad").value || null,
    unidad_envio: document.getElementById("unidadEnvio").value || null,
    id_transporte:document.getElementById("idTransporte").value || null,
-   firma:        canvas.toDataURL(),
+   firma:        canvas.toDataURL("image/jpeg", 0.7),
    imagenes:     urlsImagenes
   }]);
 
