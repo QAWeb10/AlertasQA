@@ -1561,10 +1561,48 @@ const { error: errorUpload } = await supabaseClient
   }
 
   toast("Guardado: " + folioGlobal, "ok");
+
+  await resetFormulario();
+  window.scrollTo({ top: 0, behavior: "smooth" });
  } catch(e){
   console.error(e);
   toast("Error inesperado","err");
  }
+}
+
+async function resetFormulario(){
+
+  // Limpiar inputs
+  document.querySelectorAll("input, textarea").forEach(e => {
+    if(e.type !== "date" && e.id !== "fechaLogin"){
+      e.value = "";
+    }
+  });
+
+  document.querySelectorAll("select").forEach(e => {
+    e.selectedIndex = 0;
+  });
+
+  // Tipo
+  document.getElementById("tipo").value = "";
+  document.querySelectorAll(".tipo-card").forEach(c => c.classList.remove("active"));
+  document.getElementById("productoSec").classList.add("hidden");
+  document.getElementById("transporteSec").classList.add("hidden");
+
+  // Hallazgo estilos
+  document.getElementById("hallazgo").classList.remove("valid","invalid");
+
+  // Firma
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Fotos
+  fotosSeleccionadas = [];
+  document.getElementById("fotoCount").classList.add("hidden");
+
+  // Nuevo folio
+  folioGlobal = await generarFolio();
+  document.getElementById("folioBox").innerText = folioGlobal;
+
 }
 
 /* ============================================
