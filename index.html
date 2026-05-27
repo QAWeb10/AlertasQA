@@ -1437,6 +1437,9 @@ let canvasGrande, ctxGrande;
 
 let firmaDibujada = false;
 
+let dr = false;
+let firmaGuardada = false;
+
 function abrirFirma(e){
  if(e) e.preventDefault();
  document.getElementById("firmaModal").classList.add("show");
@@ -1459,40 +1462,63 @@ ctxGrande.setTransform(ratio, 0, 0, ratio, 0, 0);
   ctxGrande.lineWidth   = 2.5;
   ctxGrande.lineCap     = "round";
 
-  let dr = false;
+ // EVENTOS DE MOUSE
+canvasGrande.addEventListener("mousedown", function(e){
+  dr = true;
+  ctxGrande.beginPath();
+  ctxGrande.moveTo(e.offsetX, e.offsetY);
+});
 
-  canvasGrande.onmousedown = e => {
-   dr = true;
-   ctxGrande.beginPath();
-   ctxGrande.moveTo(e.offsetX, e.offsetY);
-  };
-  canvasGrande.onmouseup   = () => { dr = false; ctxGrande.beginPath(); };
-  canvasGrande.onmouseleave = () => { dr = false; ctxGrande.beginPath(); };
-  canvasGrande.onmousemove = e => {
-   if(!dr) return;
-   firmaDibujada = true;
-   ctxGrande.lineTo(e.offsetX, e.offsetY);
-   ctxGrande.stroke();
-};
+canvasGrande.addEventListener("mousemove", function(e){
+  if(!dr) return;
+  ctxGrande.lineTo(e.offsetX, e.offsetY);
+  ctxGrande.stroke();
+  firmaDibujada = true;
+});
 
-  canvasGrande.ontouchstart = e => {
-   e.preventDefault();
-   dr = true;
-   const rect = canvasGrande.getBoundingClientRect();
-   const t = e.touches[0];
-   ctxGrande.beginPath();
-   ctxGrande.moveTo(t.clientX - rect.left, t.clientY - rect.top);
-  };
-  canvasGrande.ontouchend = () => { dr = false; ctxGrande.beginPath(); };
-  canvasGrande.ontouchmove = e => {
-   if(!dr) return;
-   firmaDibujada = true;
-   e.preventDefault();
-   const rect = canvasGrande.getBoundingClientRect();
-   const t = e.touches[0];
-   ctxGrande.lineTo(t.clientX - rect.left, t.clientY - rect.top);
-   ctxGrande.stroke();
-  };
+canvasGrande.addEventListener("mouseup", function(){
+  dr = false;
+  ctxGrande.beginPath();
+});
+
+canvasGrande.addEventListener("mouseleave", function(){
+  dr = false;
+  ctxGrande.beginPath();
+});
+
+// EVENTOS TOUCH CORREGIDOS PARA ANDROID
+canvasGrande.addEventListener("touchstart", function(e){
+  e.preventDefault();
+
+  const rect = canvasGrande.getBoundingClientRect();
+  const t = e.touches[0];
+
+  ctxGrande.beginPath();
+  ctxGrande.moveTo(t.clientX - rect.left, t.clientY - rect.top);
+
+  dr = true;
+
+}, { passive:false });
+
+canvasGrande.addEventListener("touchmove", function(e){
+  if(!dr) return;
+
+  e.preventDefault();
+
+  const rect = canvasGrande.getBoundingClientRect();
+  const t = e.touches[0];
+
+  ctxGrande.lineTo(t.clientX - rect.left, t.clientY - rect.top);
+  ctxGrande.stroke();
+
+  firmaDibujada = true;
+
+}, { passive:false });
+
+canvasGrande.addEventListener("touchend", function(){
+  dr = false;
+  ctxGrande.beginPath();
+});
  }, 80);
 }
 function limpiarFirmaGrande(){
@@ -1511,9 +1537,10 @@ function guardarFirma(){
     return;
   }
 
-  // Copiar firma sin re-ajustar (IMPORTANTISIMO)
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(canvasGrande, 0, 0, canvas.width, canvas.height);
+
+  firmaGuardada = true;
 
   cerrarFirma();
 
@@ -1599,7 +1626,7 @@ function formularioCompleto(){
     !document.getElementById("unidadEnvio").value ||
     !document.getElementById("idTransporte").value
   )) ||
-  canvasVacio(canvas)
+  !firmaGuardada
  );
 }
 
