@@ -112,9 +112,10 @@ body{
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2);
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 14px;
 }
+
 .card-head{
   padding: 14px 16px;
   background: linear-gradient(180deg, #FFFCEC, #FFFFFF);
@@ -849,6 +850,18 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
           <label>Identificador (Eco) <span class="req">*</span></label>
           <input id="idTransporte" placeholder="">
         </div>
+        <div class="field combo">
+  <label>LINEA TRANSPORTISTA <span class="req">*</span></label>
+
+  <input 
+    id="lineaTransportista" 
+    placeholder="Selecciona línea"
+    autocomplete="off"
+    oninput="filtrarLineasTransportistas()"
+  >
+
+  <div id="listaLineasTransportistas" class="dropdown" style="display:none;"></div>
+</div>
       </div>
 
     </div>
@@ -1125,6 +1138,123 @@ const listaHallazgosDatos = [
  
 ];
 
+const listaLineasTransportistas = [
+"ABARROTERA DE VALLES",
+"ABARROTES MONTERREY SA DE CV",
+"ABARROTES ORIENTE DEL SUR DE PUEBLA",
+"ASTRAL DEL PACIFICO SA DE CV",
+"AUTO TRANSPORTES DEL REAL SA DE CV",
+"AUTOFLETES CHIHUAHUA SA DE CV",
+"AUTOLINEAS DE CULIACAN SA DE CV",
+"AUTOLINEAS NUEVOMEX SA DE CV",
+"AUTOTRANSPORTES GANSITO TRUCKS",
+"AUTOTRANSPORTES JAMAR SA DE CV",
+"AUTOTRANSPORTES LEO SA DE CV",
+"AUTOTRANSPORTES NEW PICK SA DE CV",
+"AUTOTRANSPORTES PILOT",
+"BEST FREIGHT MATCH SAPI DE CV",
+"BODEGA AURRERA EXPRESS",
+"CADENA COMERCIAL OXXO SA DE CV",
+"CASA LEY SAPI DE CV",
+"CENTRAL DE VIVERES DEL SURESTE",
+"CLUB",
+"COMERCIALIZADORA SALMA",
+"COMPAÑIA MAYORISTA DE ABARROTES",
+"CORPORACION INTERAMERICANA",
+"CORPORACION SANCHEZ",
+"DAPSA MAYORISTA Y CIA",
+"DELTUM LOGISTIC SA DE CV",
+"DESARROLLO COMERCIAL ABARROTERO",
+"DHL METROPOLITAN LOGISTICS SC",
+"DISTRIBUCIONES DANA SA DE CV",
+"DISTRIBUIDORA DIMEX",
+"DISTRIBUIDORA ROCHA TULA PACHUCA SA",
+"DUMMY REFACTURACION",
+"ESPECIALES",
+"EVSA",
+"EXPORTACIONES",
+"FARMACIA GUADALAJARA SA DE CV",
+"FIURI",
+"FLETES Y LOGISTICA DE TLAXCALA SA",
+"FLETES Y AUTOTRANSPORTES SANCHEZ SA",
+"GEODIS MEXICO SA DE CV",
+"GLAM DISTRIBUCIONES",
+"GRANEL",
+"GRUPO DE OPTIMIZACION LOGISTICA",
+"GRUPO LOGISTICO PROGRESO",
+"GRUPO ZORRO ABARROTERO",
+"H H TRANSPORTES SA DE CV",
+"IMPULSORA SAHUAYO SA DE CV",
+"JOAQUIN MARTINEZ HERNANDEZ",
+"JOSE EUTIMIO VAZQUEZ JUAREZ",
+"JOSE JUAREZ GONZALEZ",
+"L D CABALES SA DE CV",
+"LANDSTAR METRO",
+"LOGINN TECNOLOGIAS DE MEXICO",
+"LOGISTICA JAIC SA DE CV",
+"MAEDA LOGISTICS SA DE CV",
+"MAS BODEGA Y LOGISTICA SA DE CV",
+"MAWA LOGISTICS",
+"MELLID RAMOS MARTINEZ",
+"METRO INTERMODAL SA DE CV",
+"MINI ABASTOS SA DE CV",
+"MOVIMIENTOS TERRESTRES DE CARGA",
+"NADRO",
+"NAVIERA MEXIMARES SA DE CV",
+"NEW TRANSPORT APPLICATIONS SA DE CV",
+"NIETO COMERCIAL",
+"NUEVA WAL MART DE MEXICO",
+"OPERADORA FUTURAMA",
+"PALETIZADO",
+"PANAMA LADMAR VFR",
+"PHARMA PLUS",
+"PKS PACKENGERS SA DE CV",
+"PLANTA VALLEJO",
+"PRICE COSTCO",
+"PRODUCTOS DE CONSUMO Z SA DE CV",
+"PROPIMEX",
+"PROVEEDORA DE ABARROTES RIVERA",
+"PROVEEDORA DE PANADERO SA DE CV",
+"RETORNO LOGISTICO",
+"RUNNERS TRANSPORTES SA DE CV",
+"SAMBC",
+"SAMS CLUB",
+"SERVICIO COMERCIAL GARIS SA DE CV",
+"SERVICIOS COMPLEMENTARIOS",
+"STAPLE STOCK",
+"SUPERAMA CEDIS CHALCO",
+"TDR TRANSPORTES SA DE CV",
+"TIBA MEXICO SA DE CV",
+"TIENDA ABARROTERA AMIGA SA DE CV",
+"TIENDAS CHEDRAUI SA DE CV",
+"TIENDAS SORIANA",
+"TIENDAS TRES B SA DE CV",
+"TODOS TRANSPORTISTAS SA DE CV",
+"TORRES TRANSPORTES TERRESTRES",
+"TRANSMODAL",
+"TRANSPORTADORA SAN JUAN SA DE CV",
+"TRANSPORTES CALVILLO TRACASA",
+"TRANSPORTES CASTORES",
+"TRANSPORTES GRUM SA DE CV",
+"TRANSPORTES HRG E HIJOS SA DE CV",
+"TRANSPORTES JOROVALU SA DE CV",
+"TRANSPORTES LOCALES ESPECIALIZADOS",
+"TRANSPORTES MONROY SCHIAVON SA",
+"TRANSPORTES MONTERREY SA DE CV",
+"TRANSPORTES NARCEA SA DE CV",
+"TRANSPORTES Y ENLACES",
+"TRATE DE OCCIDENTE SA DE CV",
+"TRAXION TECHNOLOGIES SA DE CV",
+"TS TRUCKING",
+"V MODAL MEXICANA SC",
+"VENEZUELA LADMAR VFR",
+"VERONICA HERNANDEZ HUERTA",
+"WAL MART SUPERCENTER",
+"WM",
+"XDOCK",
+"OTRO"
+];
+
 function autocompletar(){
  let p = personal[document.getElementById("nombre").value];
  document.getElementById("cuadrilla").value = p?.cuadrilla || "";
@@ -1262,6 +1392,7 @@ function filtrarHallazgos(){
  const inputEl = document.getElementById("hallazgo");
  const input   = inputEl.value.toUpperCase();
  const lista   = document.getElementById("listaHallazgosCustom");
+
  lista.innerHTML = "";
 
  if(!input){
@@ -1271,19 +1402,23 @@ function filtrarHallazgos(){
  }
 
  const filtrados = listaHallazgosDatos.filter(h => h.includes(input));
+
  filtrados.forEach(h => {
   let div = document.createElement("div");
   div.innerText = h;
   div.className = "dropdown-item";
+
   div.onclick = () => {
-   inputEl.value = h;
-   lista.innerHTML = "";
-   lista.style.display = "none";
-   inputEl.classList.remove("invalid");
-   inputEl.classList.add("valid");
+    inputEl.value = h;
+    lista.innerHTML = "";
+    lista.style.display = "none";
+    inputEl.classList.remove("invalid");
+    inputEl.classList.add("valid");
   };
+
   lista.appendChild(div);
  });
+
  lista.style.display = filtrados.length ? "block" : "none";
 
  if(!listaHallazgosDatos.includes(input)){
@@ -1303,12 +1438,53 @@ document.addEventListener("click", function(e){
  if(!e.target.closest("#hallazgo") && !e.target.closest("#listaHallazgosCustom")){
   document.getElementById("listaHallazgosCustom").style.display = "none";
  }
- if(!e.target.closest("#adminHallazgo") && !e.target.closest("#listaHallazgosAdmin")){
+if(!e.target.closest("#adminHallazgo") && !e.target.closest("#listaHallazgosAdmin")){
   const l = document.getElementById("listaHallazgosAdmin");
   if(l) l.style.display = "none";
- }
+}
+
+if(!e.target.closest("#lineaTransportista") && !e.target.closest("#listaLineasTransportistas")){
+  const l2 = document.getElementById("listaLineasTransportistas");
+  if(l2) l2.style.display = "none";
+}
 });
 
+
+function filtrarLineasTransportistas(){
+
+  const inputEl = document.getElementById("lineaTransportista");
+  const lista   = document.getElementById("listaLineasTransportistas");
+
+  const valor = inputEl.value.toUpperCase().trim();
+
+  lista.innerHTML = "";
+
+  if(!valor){
+    lista.style.display = "none";
+    return;
+  }
+
+  const filtrados = listaLineasTransportistas.filter(t => 
+    t.toUpperCase().includes(valor)
+  );
+
+  filtrados.forEach(t => {
+
+    let div = document.createElement("div");
+    div.innerText = t;
+    div.className = "dropdown-item";
+
+    div.onclick = () => {
+      inputEl.value = t;
+      lista.innerHTML = "";
+      lista.style.display = "none";
+    };
+
+    lista.appendChild(div);
+  });
+
+  lista.style.display = filtrados.length ? "block" : "none";
+}
 
 // ARREGLO DONDE SE GUARDAN TODAS LAS FOTOS
 let fotosSeleccionadas = [];
@@ -1696,9 +1872,10 @@ function formularioCompleto(){
     !document.getElementById("unidad").value
   )) ||
   (tipo === "Transporte" && (
-    !document.getElementById("unidadEnvio").value ||
-    !document.getElementById("idTransporte").value
-  )) ||
+  !document.getElementById("unidadEnvio").value ||
+  !document.getElementById("idTransporte").value ||
+  !document.getElementById("lineaTransportista").value
+)) ||
   !firmaGuardada
  );
 }
@@ -1788,6 +1965,7 @@ const { error: errorUpload } = await supabaseClient
    unidad:       document.getElementById("unidad").value || null,
    unidad_envio: document.getElementById("unidadEnvio").value || null,
    id_transporte:document.getElementById("idTransporte").value || null,
+   linea_transportista: document.getElementById("lineaTransportista").value || null,
    firma: urlFirma,
    imagenes:     urlsImagenes
   }]);
