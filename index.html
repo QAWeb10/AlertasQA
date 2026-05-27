@@ -863,6 +863,7 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
     </div>
     <div class="card-body">
 
+
       <div class="field combo">
         <label>Modo  <span class="req">*</span></label>
         <input id="hallazgo" placeholder="Escribe el hallazgo" autocomplete="off" oninput="filtrarHallazgos()">
@@ -943,10 +944,12 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
   </div>
 
   <!-- ACCIONES -->
-  <div class="btn-row">
-    <button class="btn btn-primary" onclick="guardar()">Guardar </button>
-    <button class="btn btn-accent" onclick="pdf()">Generar PDF</button>
-  </div>
+  
+<div class="btn-row">
+  <button class="btn btn-primary" onclick="guardar()">Guardar</button>
+  <button class="btn btn-dark" onclick="abrirReportes()">Reportes</button>
+</div>
+
 
   <button class="btn btn-ghost" style="margin-top:10px;" onclick="exportarExcel()">
     Descargar Excel
@@ -1015,12 +1018,22 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
         <input id="adminHallazgo" placeholder="Escribe hallazgo" autocomplete="off" oninput="filtrarHallazgosAdmin()">
         <div id="listaHallazgosAdmin" class="dropdown" style="display:none;"></div>
       </div>
+      <div class="field">
+  <label>Filtrar por persona</label>
+  <input id="adminNombre" placeholder="Escribe nombre" oninput="cargarAdmin()">
+</div>
+
+
+<div class="field">
+  <label>Filtrar por persona</label>
+</div>
 
       <div class="btn-row-3">
   <button class="btn btn-primary" onclick="cargarAdmin()">Buscar</button>
-  <button class="btn btn-accent" onclick="excelDesdeTabla()">Excel</button>
-  <button class="btn btn-dark" onclick="abrirDashboard()">Dashboard</button>
+  <button id="btnExcelAdmin" class="btn btn-accent hidden" onclick="excelDesdeTabla()">Excel</button>
+  <button id="btnDashboardAdmin" class="btn btn-dark hidden" onclick="abrirDashboard()">Dashboard</button>
 </div>
+
 
 
       <div class="tbl-wrap">
@@ -1119,6 +1132,7 @@ function autocompletar(){
 }
 
 let datosGenerales = {}, folioGlobal = "";
+let usuarioEsAdmin = false;
 let resultadosAdmin = [];
 
 
@@ -1151,6 +1165,8 @@ async function login(){
 
  let esAdmin = user.admin === true;
 
+ usuarioEsAdmin = esAdmin;
+
  datosGenerales = {
   nombre: nombreLimpio,
   cuadrilla: user.cuadrilla,
@@ -1172,7 +1188,13 @@ async function login(){
 
  localStorage.setItem("sesionActiva", JSON.stringify({datos:datosGenerales, inicio:Date.now()}));
 
- if(esAdmin) document.getElementById("adminBtn").classList.remove("hidden");
+ if(esAdmin){
+  document.getElementById("adminBtn").classList.remove("hidden");
+
+  // ✅ mostrar botones del panel reportes
+  document.getElementById("btnExcelAdmin").classList.remove("hidden");
+  document.getElementById("btnDashboardAdmin").classList.remove("hidden");
+}
 
  toast("Sesión iniciada","ok");
 }
@@ -1431,7 +1453,11 @@ function ajustarCanvas(){
   ctx.lineCap     = "round";
 }
 
-window.addEventListener("load", ajustarCanvas);
+
+window.addEventListener("load", () => {
+  setTimeout(ajustarCanvas, 200);
+});
+
 
 let canvasGrande, ctxGrande;
 
@@ -1458,71 +1484,98 @@ canvasGrande.style.height = "220px";
 
 ctxGrande.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-  ctxGrande.strokeStyle = "#1A1A1A";
-  ctxGrande.lineWidth   = 2.5;
-  ctxGrande.lineCap     = "round";
+  ctxGrande.strokeStyle = "#111";
+ctxGrande.lineWidth   = 2.2;
+ctxGrande.lineCap     = "round";
+ctxGrande.lineJoin    = "round";
 
- // EVENTOS DE MOUSE
-canvasGrande.addEventListener("mousedown", function(e){
-  dr = true;
-  ctxGrande.beginPath();
-  ctxGrande.moveTo(e.offsetX, e.offsetY);
-});
+let drawing = false;
+let points = [];
 
-canvasGrande.addEventListener("mousemove", function(e){
-  if(!dr) return;
-  ctxGrande.lineTo(e.offsetX, e.offsetY);
-  ctxGrande.stroke();
-  firmaDibujada = true;
-});
+function getPos(e) {
+  const rect = canvasGrande.getBoundingClientRect();
 
-canvasGrande.addEventListener("mouseup", function(){
-  dr = false;
-  ctxGrande.beginPath();
-});
+  if (e.touches) {
+    return {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top
+    };
+  } else {
+    return {
+      x: e.offsetX,
+      y: e.offsetY
+    };
+  }
+}
 
-canvasGrande.addEventListener("mouseleave", function(){
-  dr = false;
-  ctxGrande.beginPath();
-});
+// INICIO
+function startDraw(e) {
+  e.preventDefault();
+  drawing = true;
+  points = [];
 
-// EVENTOS TOUCH CORREGIDOS PARA ANDROID
-canvasGrande.addEventListener("touchstart", function(e){
+  ctxGrande.beginPath(); // 🔥 IMPORTANTE
+
+  const pos = getPos(e);
+  points.push(pos);
+}
+
+function draw(e) {
+  if (!drawing) return;
   e.preventDefault();
 
-  const rect = canvasGrande.getBoundingClientRect();
-  const t = e.touches[0];
+  const pos = getPos(e);
+  points.push(pos);
+
+  // 🖥️ SOPORTE PC (mouse)
+  if(points.length === 1){
+    ctxGrande.beginPath();
+    ctxGrande.moveTo(pos.x, pos.y);
+    return;
+  }
+
+  if(points.length === 2){
+    ctxGrande.lineTo(pos.x, pos.y);
+    ctxGrande.stroke();
+    firmaDibujada = true;
+    return;
+  }
+
+  // 📱 SUAVIZADO MÓVIL
+  const p0 = points[points.length - 3];
+  const p1 = points[points.length - 2];
+  const p2 = points[points.length - 1];
+
+  const midX = (p1.x + p2.x) / 2;
+  const midY = (p1.y + p2.y) / 2;
 
   ctxGrande.beginPath();
-  ctxGrande.moveTo(t.clientX - rect.left, t.clientY - rect.top);
-
-  dr = true;
-
-}, { passive:false });
-
-canvasGrande.addEventListener("touchmove", function(e){
-  if(!dr) return;
-
-  e.preventDefault();
-
-  const rect = canvasGrande.getBoundingClientRect();
-  const t = e.touches[0];
-
-  ctxGrande.lineTo(t.clientX - rect.left, t.clientY - rect.top);
+  ctxGrande.moveTo(p0.x, p0.y);
+  ctxGrande.quadraticCurveTo(p1.x, p1.y, midX, midY);
   ctxGrande.stroke();
 
   firmaDibujada = true;
+}
 
-}, { passive:false });
+// FIN
+function endDraw() {
+  drawing = false;
+}
 
-canvasGrande.addEventListener("touchend", function(){
-  dr = false;
-  ctxGrande.beginPath();
-});
+// EVENTOS
+canvasGrande.addEventListener("mousedown", startDraw);
+canvasGrande.addEventListener("mousemove", draw);
+canvasGrande.addEventListener("mouseup", endDraw);
+canvasGrande.addEventListener("mouseleave", endDraw);
+
+canvasGrande.addEventListener("touchstart", startDraw, { passive:false });
+canvasGrande.addEventListener("touchmove", draw, { passive:false });
+canvasGrande.addEventListener("touchend", endDraw);
  }, 80);
 }
 function limpiarFirmaGrande(){
-  ctxGrande.clearRect(0,0,canvasGrande.width,canvasGrande.height);
+  ctxGrande.fillStyle = "#fff";
+  ctxGrande.fillRect(0, 0, canvasGrande.width, canvasGrande.height);
   firmaDibujada = false;
 }
 
@@ -1537,14 +1590,34 @@ function guardarFirma(){
     return;
   }
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(canvasGrande, 0, 0, canvas.width, canvas.height);
+  const img = new Image();
 
-  firmaGuardada = true;
+  img.onload = function(){
 
-  cerrarFirma();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  toast("Firma guardada","ok");
+// dibuja respetando tamaño visible
+ctx.drawImage(
+  img,
+  0,
+  0,
+  canvas.width / (window.devicePixelRatio || 1),
+  140
+);
+
+
+  canvas.style.display = "none";
+  canvas.offsetHeight; // fuerza re-render (reflow)
+  canvas.style.display = "block";
+
+
+    firmaGuardada = true;
+
+    cerrarFirma();
+    toast("Firma guardada","ok");
+  };
+
+  img.src = canvasGrande.toDataURL("image/png", 1.0);
 }
 
 
@@ -1637,6 +1710,44 @@ async function guardar(){
  }
 
  try{
+
+  // =========================
+// SUBIR FIRMA A SUPABASE
+// =========================
+let urlFirma = null;
+
+if(!canvasVacio(canvas)){
+
+  // Convertir canvas a archivo real (blob)
+  const dataURL = canvas.toDataURL("image/png");
+  const blob = await (await fetch(dataURL)).blob();
+
+  // Nombre del archivo
+  const nombreFirma = `firma_${folioGlobal}.png`;
+
+  // Subir a Supabase Storage
+  const { error: errFirma } = await supabaseClient
+    .storage
+    .from("evidencias")
+    .upload(nombreFirma, blob, {
+      contentType: "image/png",
+      upsert: true
+    });
+
+  if(errFirma){
+    console.error("Error subiendo firma:", errFirma);
+    toast("Error subiendo firma","err");
+  } else {
+
+    // Obtener URL pública
+    const { data } = supabaseClient
+      .storage
+      .from("evidencias")
+      .getPublicUrl(nombreFirma);
+
+    urlFirma = data.publicUrl;
+  }
+}
   // Subir imágenes
   let urlsImagenes = [];
   if(fotosSeleccionadas.length > 0){
@@ -1677,7 +1788,7 @@ const { error: errorUpload } = await supabaseClient
    unidad:       document.getElementById("unidad").value || null,
    unidad_envio: document.getElementById("unidadEnvio").value || null,
    id_transporte:document.getElementById("idTransporte").value || null,
-   firma:        canvas.toDataURL("image/jpeg", 0.7),
+   firma: urlFirma,
    imagenes:     urlsImagenes
   }]);
 
@@ -1721,6 +1832,7 @@ async function resetFormulario(){
 
   // Firma
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  firmaGuardada = false;
 
   // Fotos
   fotosSeleccionadas = [];
@@ -1776,8 +1888,20 @@ function verificarSesion(){
   document.getElementById("folioBox").innerText = folioGlobal;
  });
 
- const user = personal[datosGenerales.nombre];
- if(user?.admin) document.getElementById("adminBtn").classList.remove("hidden");
+const user = personal[datosGenerales.nombre];
+
+if(user?.admin){
+  usuarioEsAdmin = true;
+
+  document.getElementById("adminBtn").classList.remove("hidden");
+
+  // ✅ volver a mostrar botones del panel
+  const btnExcel = document.getElementById("btnExcelAdmin");
+  const btnDash  = document.getElementById("btnDashboardAdmin");
+
+  if(btnExcel) btnExcel.classList.remove("hidden");
+  if(btnDash) btnDash.classList.remove("hidden");
+}
 }
 window.addEventListener("load", verificarSesion);
 
@@ -1814,15 +1938,35 @@ function pdf(){
 
   const firmaY = 230;
   function dibujarFirma(){
-   doc.setFont("helvetica","bold");
-   doc.setFontSize(11);
-   doc.setTextColor(0);
-   doc.text("FIRMA: " + (datosGenerales.nombre || "-"), 105, firmaY, null, null, "center");
-   doc.setDrawColor(180);
-   doc.rect(60, firmaY+5, 90, 40);
-   try{ doc.addImage(canvas.toDataURL(), "PNG", 62, firmaY+7, 86, 34); }
-   catch(e){ doc.text("Sin firma", 105, firmaY+25, null, null, "center"); }
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(11);
+  doc.setTextColor(0);
+
+  doc.text(
+    "FIRMA: " + (datosGenerales.nombre || "-"),
+    105,
+    firmaY,
+    null,
+    null,
+    "center"
+  );
+
+  doc.setDrawColor(180);
+  doc.rect(60, firmaY+5, 90, 40);
+
+  if(!canvasVacio(canvas)){
+    doc.addImage(
+      canvas.toDataURL("image/png"),
+      "PNG",
+      62,
+      firmaY+7,
+      86,
+      34
+    );
+  }else{
+    doc.text("Sin firma", 105, firmaY+25, null, null, "center");
   }
+}
 
   // PAGE 1
   header();
@@ -1905,10 +2049,8 @@ function pdf(){
    EXCEL DEL DÍA
    ============================================ */
 async function exportarExcel(){
- if(!formularioCompleto()){
-  toast("Completa el formulario antes de exportar","err");
-  return;
- }
+ 
+
  const fechaHoy = fechaFormato();
  const { data, error } = await supabaseClient
   .from("Reportes").select("*").eq("fecha", fechaHoy).order("id",{ascending:false});
@@ -1940,6 +2082,10 @@ function cerrarAdmin(){
 }
 
 async function cargarAdmin(){
+ const nombreFiltro = (document.getElementById("adminNombre")?.value || "")
+  .toLowerCase()
+  .trim();
+  
  const hallazgo    = document.getElementById("adminHallazgo").value.toUpperCase();
  const fechaInicio = document.getElementById("fechaInicio").value;
  const fechaFin    = document.getElementById("fechaFin").value;
@@ -1960,6 +2106,10 @@ async function cargarAdmin(){
    const fr = convertirFecha(r.fecha);
    if(fr < fechaInicio || fr > fechaFin) pasa = false;
   }
+
+  if(nombreFiltro && !r.nombre.toLowerCase().includes(nombreFiltro)){
+  pasa = false;
+}
   if(!pasa) return;
 
   resultadosAdmin.push(r);
@@ -2111,10 +2261,21 @@ async function generarPDFdesdeAdmin(r){
    pública de Supabase y carga datos por sí solo.
    ============================================ */
 function abrirDashboard(){
+
+  if(!usuarioEsAdmin){
+  toast("Acceso restringido","err");
+  return;
+}
+
  window.open("dashboard.html", "_blank");
 }
 
 function excelDesdeTabla(){
+
+  if(!usuarioEsAdmin){
+  toast("Acceso restringido","err");
+  return;
+}
 
   if(resultadosAdmin.length === 0){
     toast("Primero presiona BUSCAR","err");
@@ -2135,6 +2296,11 @@ function excelDesdeTabla(){
   link.click();
 
   toast("Excel descargado","ok");
+}
+
+function abrirReportes(){
+  document.getElementById("adminBox").classList.add("show");
+  cargarAdmin();
 }
 
 </script>
