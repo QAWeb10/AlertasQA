@@ -1582,11 +1582,6 @@ function eliminarFoto(index){
   actualizarVistaFotos();
 }
 
-/* ============================================
-   FIRMA — Canvas pequeño + modal grande
-   ============================================ */
-const canvas = document.getElementById("firma");
-const ctx    = canvas.getContext("2d");
 
 function ajustarCanvas(){
 
@@ -1880,7 +1875,7 @@ async function guardar(){
  btn.disabled = true;
 
  if(!formularioCompleto()){
-  toast("Completa todos los campos y firma","err");
+  toast("Completa todos los campos","err");
   btn.disabled = false;
   return;
 }
