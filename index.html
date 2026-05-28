@@ -949,23 +949,6 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
     </div>
   </div>
 
-  <!-- FIRMA -->
-  <div class="card">
-    <div class="card-head card-head-step">
-      <div class="step-badge">04</div>
-      <h3>Firma</h3>
-      <div class="step-hint"></div>
-    </div>
-    <div class="card-body">
-
-      <div class="sign-zone" onclick="abrirFirma()">
-        <canvas id="firma"></canvas>
-        <div class="sign-hint">Toca aquí para firmar</div>
-      </div>
-
-    </div>
-  </div>
-
   <!-- ACCIONES -->
   
 <div class="btn-row">
@@ -994,25 +977,6 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
 
 </div><!-- /.page -->
 
-<!-- ============================================
-     MODAL FIRMA
-     ============================================ -->
-<div id="firmaModal" class="modal">
-  <div class="modal-card">
-    <div class="modal-head">
-      <h3>Firma</h3>
-      <span style="font-size:11px;opacity:.85;">Usa dedo o stylus</span>
-    </div>
-    <div class="modal-body">
-      <canvas id="firmaGrande"></canvas>
-      <div class="btn-row-3" style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="guardarFirma()">Aceptar</button>
-        <button class="btn btn-ghost" onclick="limpiarFirmaGrande()">Limpiar</button>
-        <button class="btn btn-dark" onclick="cerrarFirma()">Salir</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ============================================
      ADMIN PANEL OVERLAY
@@ -1830,27 +1794,42 @@ async function comprimirImagen(file){
     const img = new Image();
     const reader = new FileReader();
 
-    reader.onload = e => {
-      img.src = e.target.result;
-    };
+    reader.onload = e => img.src = e.target.result;
 
     img.onload = () => {
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      const maxWidth = 800;
-      const scale = maxWidth / img.width;
+      // ✅ NUEVO CONTROL DE TAMAÑO
+      const MAX_SIZE = 700;
 
-      canvas.width = maxWidth;
-      canvas.height = img.height * scale;
+      let width  = img.width;
+      let height = img.height;
 
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // ✅ MANTENER PROPORCIÓN (IMPORTANTE)
+      if(width > height){
+        if(width > MAX_SIZE){
+          height = height * (MAX_SIZE / width);
+          width  = MAX_SIZE;
+        }
+      } else {
+        if(height > MAX_SIZE){
+          width  = width * (MAX_SIZE / height);
+          height = MAX_SIZE;
+        }
+      }
 
+      canvas.width  = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // ✅ MÁS COMPRESIÓN
       canvas.toBlob(
         blob => resolve(blob),
         "image/jpeg",
-        0.6
+        0.45
       );
     };
 
@@ -1887,8 +1866,8 @@ function formularioCompleto(){
   !document.getElementById("unidadEnvio").value ||
   !document.getElementById("idTransporte").value ||
   !document.getElementById("lineaTransportista").value
-)) ||
-  !firmaGuardada
+))
+ 
  );
 }
 
@@ -1908,43 +1887,7 @@ async function guardar(){
 
  try{
 
-  // =========================
-// SUBIR FIRMA A SUPABASE
-// =========================
-let urlFirma = null;
 
-if(!canvasVacio(canvas)){
-
-  // Convertir canvas a archivo real (blob)
-  const dataURL = canvas.toDataURL("image/png");
-  const blob = await (await fetch(dataURL)).blob();
-
-  // Nombre del archivo
-  const nombreFirma = `firma_${folioGlobal}.png`;
-
-  // Subir a Supabase Storage
-  const { error: errFirma } = await supabaseClient
-    .storage
-    .from("evidencias")
-    .upload(nombreFirma, blob, {
-      contentType: "image/png",
-      upsert: true
-    });
-
-  if(errFirma){
-    console.error("Error subiendo firma:", errFirma);
-    toast("Error subiendo firma","err");
-  } else {
-
-    // Obtener URL pública
-    const { data } = supabaseClient
-      .storage
-      .from("evidencias")
-      .getPublicUrl(nombreFirma);
-
-    urlFirma = data.publicUrl;
-  }
-}
   // Subir imágenes
   let urlsImagenes = [];
   if(fotosSeleccionadas.length > 0){
@@ -1986,7 +1929,7 @@ const { error: errorUpload } = await supabaseClient
    unidad_envio: document.getElementById("unidadEnvio").value || null,
    id_transporte:document.getElementById("idTransporte").value || null,
    linea_transportista: document.getElementById("lineaTransportista").value || null,
-   firma: urlFirma,
+  
    imagenes:     urlsImagenes
   }]);
 
@@ -2030,9 +1973,6 @@ async function resetFormulario(){
   // Hallazgo estilos
   document.getElementById("hallazgo").classList.remove("valid","invalid");
 
-  // Firma
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  firmaGuardada = false;
 
   // Fotos
   fotosSeleccionadas = [];
@@ -2120,11 +2060,21 @@ function pdf(){
   const totalPages = 2;
 
   function footer(page){
-   doc.setFontSize(10);
-   doc.setTextColor(120);
-   doc.text("SISTEMA DE GESTIÓN DE CALIDAD · FY2627", 105, 290, null, null, "center");
-   doc.text(folioGlobal + "  |  " + page + "/" + totalPages, 200, 290, null, null, "right");
-  }
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+
+  doc.text(
+    "ESTE DOCUMENTO FUE ELABORADO POR: " + (datosGenerales.nombre || "-"),
+    105,
+    284,
+    null,
+    null,
+    "center"
+  );
+
+  doc.text("SISTEMA DE GESTIÓN DE CALIDAD · FY2627", 105, 290, null, null, "center");
+  doc.text(folioGlobal + "  |  " + page + "/" + totalPages, 200, 290, null, null, "right");
+}
   function header(){
    doc.setFillColor(207, 0, 46); // brand
    doc.rect(0, 0, 210, 22, "F");
@@ -2135,38 +2085,6 @@ function pdf(){
    doc.setTextColor(255);
    doc.text("REPORTE ALERTA DE CALIDAD", 105, 14, null, null, "center");
   }
-
-  const firmaY = 230;
-  function dibujarFirma(){
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(11);
-  doc.setTextColor(0);
-
-  doc.text(
-    "FIRMA: " + (datosGenerales.nombre || "-"),
-    105,
-    firmaY,
-    null,
-    null,
-    "center"
-  );
-
-  doc.setDrawColor(180);
-  doc.rect(60, firmaY+5, 90, 40);
-
-  if(!canvasVacio(canvas)){
-    doc.addImage(
-      canvas.toDataURL("image/png"),
-      "PNG",
-      62,
-      firmaY+7,
-      86,
-      34
-    );
-  }else{
-    doc.text("Sin firma", 105, firmaY+25, null, null, "center");
-  }
-}
 
   // PAGE 1
   header();
@@ -2199,7 +2117,7 @@ function pdf(){
   fila("Lote", document.getElementById("lote").value);
   fila("Cantidad", document.getElementById("cantidad").value);
 
-  dibujarFirma();
+  
   footer(1);
 
   // PAGE 2
@@ -2228,14 +2146,14 @@ function pdf(){
      x += 100;
      if(x > 110){ x = 10; yImg += 80; }
     });
-    dibujarFirma();
+    
     footer(2);
     doc.save(folioGlobal + ".pdf");
    });
   } else {
    doc.setFontSize(11);
    doc.text("Sin evidencia", 10, 60);
-   dibujarFirma();
+  
    footer(2);
    doc.save(folioGlobal + ".pdf");
   }
@@ -2367,11 +2285,21 @@ async function generarPDFdesdeAdmin(r){
   const totalPages = 2;
 
   function footer(page){
-   doc.setFontSize(10);
-   doc.setTextColor(120);
-   doc.text("SISTEMA DE GESTIÓN DE CALIDAD · FY2627",105,290,null,null,"center");
-   doc.text(r.folio+"  |  "+page+"/"+totalPages,200,290,null,null,"right");
-  }
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+
+  doc.text(
+    "ESTE DOCUMENTO FUE ELABORADO POR: " + (r.nombre || "-"),
+    105,
+    284,
+    null,
+    null,
+    "center"
+  );
+
+  doc.text("SISTEMA DE GESTIÓN DE CALIDAD · FY2627",105,290,null,null,"center");
+  doc.text(r.folio+"  |  "+page+"/"+totalPages,200,290,null,null,"right");
+}
   function header(){
    doc.setFillColor(207,0,46);
    doc.rect(0,0,210,22,"F");
@@ -2381,17 +2309,6 @@ async function generarPDFdesdeAdmin(r){
    doc.setFontSize(16);
    doc.setTextColor(255);
    doc.text("REPORTE ALERTA DE CALIDAD",105,14,null,null,"center");
-  }
-
-  const firmaY = 230;
-  function dibujarFirma(){
-   doc.setFont("helvetica","bold");
-   doc.setFontSize(11);
-   doc.setTextColor(0);
-   doc.text("FIRMA: " + (r.nombre || "-"), 105, firmaY, null, null, "center");
-   doc.setDrawColor(180);
-   doc.rect(60, firmaY+5, 90, 40);
-   if(r.firma){ doc.addImage(r.firma,"PNG",62,firmaY+7,86,34); }
   }
 
   header();
@@ -2418,7 +2335,7 @@ async function generarPDFdesdeAdmin(r){
   fila("Lote",r.lote);
   fila("Cantidad",r.cantidad);
 
-  dibujarFirma();
+ 
   footer(1);
 
   doc.addPage();
@@ -2446,7 +2363,7 @@ async function generarPDFdesdeAdmin(r){
   } else {
    doc.text("Sin evidencia",10,60);
   }
-  dibujarFirma();
+
   footer(2);
   doc.save(r.folio + ".pdf");
  } catch(e){
