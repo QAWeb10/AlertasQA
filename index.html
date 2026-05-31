@@ -894,9 +894,13 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
       </div>
 
       <div class="field">
-        <label>Ubicación <span class="req">*</span></label>
-        <input id="ubicacion" placeholder="Ingresa la Ubicación en sistema">
-      </div>
+  <label>Ubicación <span class="req">*</span></label>
+  <input 
+    id="ubicacion" 
+    placeholder="Ingresa la Ubicación en sistema"
+    oninput="this.value = this.value.toUpperCase()"
+  >
+</div>
 
     </div>
   </div>
