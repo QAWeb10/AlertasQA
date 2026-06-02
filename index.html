@@ -1105,14 +1105,31 @@ document.getElementById("fechaLogin").value = fechaFormato();
    PERSONAL Y CATÁLOGOS
    ============================================ */
 const personal = {
- "Angel Moreno":     {cuadrilla:"A", area:"Embarque", pass:"1234"},
- "Antonio Badillo":  {cuadrilla:"A", area:"Recibo",   pass:"1234"},
- "Areli Rosas":      {cuadrilla:"B", area:"Embarque", pass:"1234"},
- "Ivan Coxanteje":   {cuadrilla:"B", area:"Recibo",   pass:"1234"},
- "Gregorio Pérez":   {cuadrilla:"C", area:"Recibo",   pass:"1234"},
- "Jesús Gonzalez":   {cuadrilla:"C", area:"Embarque", pass:"1234"},
- "Gabriela Alvarado":{cuadrilla:"D", area:"Recibo",   pass:"1234"},
- "Carlos Cruz":      {cuadrilla:"D", area:"Embarque", pass:"1234"},
+ "ANGEL MORENO": {cuadrilla:"A", area:"EMBARQUE", pass:"AMG765"},
+"ANTONIO BADILLO": {cuadrilla:"A", area:"RECIBO", pass:"BAA244"},
+"ARIADNA ROSAS": {cuadrilla:"B", area:"EMBARQUE", pass:"AAR239"},
+"CARLOS CRUZ": {cuadrilla:"D", area:"EMBARQUE", pass:"CCC891"},
+"DANIELA MARTINEZ": {cuadrilla:"N/A", area:"IMPORTADOS", pass:"DMS146"},
+"EDITH PEREZ": {cuadrilla:"N/A", area:"PFCT", pass:"EPG272"},
+"EDUARDO NAVA": {cuadrilla:"N/A", area:"PFCT", pass:"JNL789"},
+"GREGORIO PEREZ": {cuadrilla:"C", area:"RECIBO", pass:"JPP284"},
+"IVAN COXANTEJE": {cuadrilla:"B", area:"RECIBO", pass:"ICC432"},
+"JESUS GONZALEZ": {cuadrilla:"C", area:"EMBARQUE", pass:"JGA186"},
+"LILIANA SOTELO": {cuadrilla:"N/A", area:"CRYD", pass:"LSC374"},
+"MANUEL CHAGALA": {cuadrilla:"N/A", area:"CRYD", pass:"MCD607"},
+"NATALIA JUAREZ": {cuadrilla:"N/A", area:"CUSTOMIZADO", pass:"NJV609"},
+"OMAR MENDOZA": {cuadrilla:"N/A", area:"SUPERVISOR", pass:"FMI512"},
+"PAOLA RAMIREZ": {cuadrilla:"N/A", area:"IMPORTADOS", pass:"PRS997"},
+"ROGELIO SOTO": {cuadrilla:"N/A", area:"IMPORTADOS", pass:"RGS895"},
+"ROSA ESPINO": {cuadrilla:"N/A", area:"PFCT", pass:"REL697"},
+"SAMANTHA GONZALEZ": {cuadrilla:"N/A", area:"CRYD", pass:"SGF168"},
+"SARA POZOS": {cuadrilla:"N/A", area:"CRYD", pass:"SPC567"},
+"VALERIA FUENTES": {cuadrilla:"N/A", area:"PFCT", pass:"VFG432"},
+"VICTOR ORTIZ": {cuadrilla:"N/A", area:"MASTER DATA", pass:"VHO587"},
+"COORDINADOR1": {cuadrilla:"A", area:"OPERACIONES", pass:"OPS123"},
+"COORDINADOR2": {cuadrilla:"B", area:"OPERACIONES", pass:"OPS123"},
+"COORDINADOR2_C": {cuadrilla:"C", area:"OPERACIONES", pass:"OPS123"},
+"COORDINADOR4": {cuadrilla:"D", area:"OPERACIONES", pass:"OPS123"},
  "Felix Montoya":    {cuadrilla:"ADMIN", area:"QA", pass:"1710", admin:true}
 };
 
@@ -1126,7 +1143,7 @@ const listaHallazgosDatos = [
  "PLAGA","PRODUCTO SUELTO","PRODUCTO MOJADO","RACK DAÑADO","REGLETA DAÑADA","REGLETA NO LEGIBLE",
  "SECTORIZACIÓN INCORRECTA","SOBRANTE","SUSTRACCION","TARIMA DAÑADA", "CERTIFICADO VENCIDO", "SIN CERTIFICADO DE FUMIGACIÓN", "PISO EN FORMA DE T",
  "PISO DAÑADO", "PARED DAÑADA", "TECHO DAÑADO", "GOTERAS", "CLAROS DE LUZ", "OLOR FÉTIDO", "PLAGA",
- "DESECHOS", "REMOLQUE SUCIO", "PUERTA CORREDIZA", "MENOR DIMENSIÓN", "SIN ADITAMENTOS DE SUJECIÓN", "RIEL LOGÍSTICO INCORRECTO"
+ "DESECHOS", "REMOLQUE SUCIO", "PUERTA CORREDIZA", "MENOR DIMENSIÓN", "SIN ADITAMENTOS DE SUJECIÓN", "RIEL LOGÍSTICO INCORRECTO", "LOTES FANTASMA"
  
 ];
 
