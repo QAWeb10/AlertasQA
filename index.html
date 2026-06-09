@@ -852,6 +852,15 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
 
       <div id="transporteSec" class="hidden">
         <div class="divider">Datos de transporte</div>
+
+        <button
+          type="button"
+          class="btn btn-accent"
+          style="margin-bottom:12px;"
+          onclick="usarDatosTransporteAnterior()"
+        >
+          🚚 Usar datos del evento anterior
+        </button>
         <div class="field">
           <label>Unidad de envío / STO <span class="req">*</span></label>
           <input id="unidadEnvio" placeholder="Unidad de envío / STO">
@@ -2668,6 +2677,55 @@ function excelDesdeTabla(){
 function abrirReportes(){
   document.getElementById("adminBox").classList.add("show");
   cargarAdmin();
+}
+
+/* ============================================
+   USAR DATOS TRANSPORTE ANTERIOR
+   ============================================ */
+async function usarDatosTransporteAnterior(){
+
+  try{
+
+    // Buscar el último reporte de transporte
+    const { data, error } = await supabaseClient
+      .from("Reportes")
+      .select("*")
+      .eq("tipo", "Transporte")
+      .order("id", { ascending:false })
+      .limit(1);
+
+    if(error){
+      console.error(error);
+      toast("Error obteniendo datos anteriores","err");
+      return;
+    }
+
+    // Validar si encontró algo
+    if(!data || data.length === 0){
+      toast("No hay eventos anteriores de transporte","err");
+      return;
+    }
+
+    const ultimo = data[0];
+
+    // Rellenar campos
+    document.getElementById("unidadEnvio").value =
+      ultimo.unidad_envio || "";
+
+    document.getElementById("idTransporte").value =
+      ultimo.id_transporte || "";
+
+    document.getElementById("lineaTransportista").value =
+      ultimo.linea_transportista || "";
+
+    toast("Datos cargados correctamente","ok");
+
+  }catch(e){
+
+    console.error(e);
+    toast("Error inesperado","err");
+
+  }
 }
 
 function validarCodigo(input){
