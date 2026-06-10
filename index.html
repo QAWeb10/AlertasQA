@@ -866,9 +866,29 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
           <input id="unidadEnvio" placeholder="Unidad de envío / STO">
         </div>
         <div class="field">
-          <label>Identificador (Eco) <span class="req">*</span></label>
-          <input id="idTransporte" placeholder="">
-        </div>
+  <label>Identificador (Eco) <span class="req">*</span></label>
+
+  <input 
+    id="idTransporte" 
+    placeholder=""
+    oninput="validarEcoDuplicado()"
+  >
+
+  <div 
+    id="alertaEco"
+    style="
+      display:none;
+      margin-top:10px;
+      background:#FFF4E5;
+      border-left:4px solid #F59E0B;
+      padding:12px;
+      border-radius:8px;
+      font-size:13px;
+      color:#7A4B00;
+      line-height:1.5;
+    "
+  ></div>
+</div>
         <div class="field combo">
   <label>LINEA TRANSPORTISTA <span class="req">*</span></label>
 
@@ -1048,7 +1068,23 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
   <button id="btnDashboardAdmin" class="btn btn-dark hidden" onclick="abrirDashboard()">Dashboard</button>
 </div>
 
+<div class="field">
+  <label>Filtrar por área</label>
 
+  <select id="adminArea" onchange="cargarAdmin()">
+    <option value="">Todas las áreas</option>
+    <option>EMBARQUE</option>
+    <option>RECIBO</option>
+    <option>IMPORTADOS</option>
+    <option>PFCT</option>
+    <option>CRYD</option>
+    <option>CUSTOMIZADO</option>
+    <option>MASTER DATA</option>
+    <option>OPERACIONES</option>
+    <option>SUPERVISOR</option>
+    <option>QA</option>
+  </select>
+</div>
 
       <div class="tbl-wrap">
         <table class="tbl">
@@ -1150,9 +1186,9 @@ const listaHallazgosDatos = [
  "FALTANTE","GOTERA","MAL EMPLAYADO","MEZCLA DE CÓDIGOS","MEZCLA DE LOTES","MURO",
  "ORDEN Y LIMPIEZA","ORIENTACIÓN INCORRECTA","PALLET CON POLVO","PALLET CON RESTO","PALLET LADEADO",
  "PALLET SIN ETIQUETA","PALLET SOBRE PASILLO","PALLET VACÍO EN UBICACIÓN","PIRAMIDE DE FRAGILIDAD",
- "PLAGA","PRODUCTO SUELTO","PRODUCTO MOJADO","RACK DAÑADO","REGLETA DAÑADA","REGLETA NO LEGIBLE",
+ "PLAGA","PRODUCTO SUELTO","PRODUCTO MOJADO","RACK DAÑADO","REGLETA DAÑADA","REGLETA NO LEGIBLE", "EXCURSIÓN DE TEMPERATURA",
  "SECTORIZACIÓN INCORRECTA","SOBRANTE","SUSTRACCION","TARIMA DAÑADA", "CERTIFICADO VENCIDO", "SIN CERTIFICADO DE FUMIGACIÓN", "PISO EN FORMA DE T",
- "PISO DAÑADO", "PARED DAÑADA", "TECHO DAÑADO", "GOTERAS", "CLAROS DE LUZ", "OLOR FÉTIDO",  "TRAMPAS DAÑADAS",  "LÁMPARAS APAGADAS",  "LÁMPARAS DAÑADAS",
+ "PISO DAÑADO", "PARED DAÑADA", "TECHO DAÑADO", "CLAROS DE LUZ", "OLOR FÉTIDO",  "TRAMPAS DAÑADAS",  "LÁMPARAS APAGADAS",  "LÁMPARAS DAÑADAS",
  "DESECHOS", "REMOLQUE SUCIO", "PUERTA CORREDIZA", "MENOR DIMENSIÓN", "SIN ADITAMENTOS DE SUJECIÓN", "RIEL LOGÍSTICO INCORRECTO", "LOTES FANTASMA"
 ];
 
@@ -1288,11 +1324,25 @@ let resultadosAdmin = [];
    FOLIO
    ============================================ */
 async function generarFolio(){
- const { data } = await supabaseClient.from("Reportes").select("folio");
- if(!data || data.length === 0) return "AC-2627-001";
- let numeros = data.map(r => parseInt(r.folio.split("-")[2]));
- let max = Math.max(...numeros);
- return "AC-2627-" + String(max+1).padStart(3,'0');
+
+  const { data, error } = await supabaseClient
+    .from("Reportes")
+    .select("consecutivo")
+    .order("consecutivo", { ascending:false })
+    .limit(1);
+
+  if(error){
+    console.error(error);
+    return "AC-2627-001";
+  }
+
+  let siguiente = 1;
+
+  if(data && data.length > 0){
+    siguiente = Number(data[0].consecutivo) + 1;
+  }
+
+  return "AC-2627-" + String(siguiente).padStart(3,'0');
 }
 
 /* ============================================
@@ -1326,8 +1376,7 @@ async function login(){
  document.getElementById("cuadrilla").value = user.cuadrilla;
  document.getElementById("areaLogin").value = user.area;
 
- folioGlobal = await generarFolio();
- document.getElementById("folioBox").innerText = folioGlobal;
+document.getElementById("folioBox").innerText = "GENERANDO...";
 
  document.getElementById("bienvenida").innerText = datosGenerales.nombre.toUpperCase();
 
@@ -1948,6 +1997,11 @@ async function guardar(){
 
  try{
 
+  // GENERAR FOLIO JUSTO ANTES DE GUARDAR
+folioGlobal = await generarFolio();
+
+document.getElementById("folioBox").innerText = folioGlobal;
+
 
   // Subir imágenes
   let urlsImagenes = [];
@@ -1973,26 +2027,53 @@ const { error: errorUpload } = await supabaseClient
    }
   }
 
-  const { error } = await supabaseClient.from("Reportes").insert([{
-   folio:        folioGlobal,
-   fecha:        datosGenerales.fecha,
-   nombre:       datosGenerales.nombre,
-   turno:        datosGenerales.turno,
-   cuadrilla:    datosGenerales.cuadrilla,
-   area:         datosGenerales.area,
-   tipo:         document.getElementById("tipo").value,
-   hallazgo:     document.getElementById("hallazgo").value,
-   ubicacion:    document.getElementById("ubicacion").value,
-   codigo:       document.getElementById("codigo").value || null,
-   lote:         document.getElementById("lote").value   || null,
-   cantidad:     document.getElementById("cantidad").value || null,
-   unidad:       document.getElementById("unidad").value || null,
-   unidad_envio: document.getElementById("unidadEnvio").value || null,
-   id_transporte:document.getElementById("idTransporte").value || null,
-   linea_transportista: document.getElementById("lineaTransportista").value || null,
-  
-   imagenes:     urlsImagenes
-  }]);
+  let guardado = false;
+let intentos = 0;
+
+while(!guardado && intentos < 5){
+
+  intentos++;
+
+  folioGlobal = await generarFolio();
+
+  const { error } = await supabaseClient
+    .from("Reportes")
+    .insert([{
+      folio:        folioGlobal,
+      fecha:        datosGenerales.fecha,
+      nombre:       datosGenerales.nombre,
+      turno:        datosGenerales.turno,
+      cuadrilla:    datosGenerales.cuadrilla,
+      area:         datosGenerales.area,
+      tipo:         document.getElementById("tipo").value,
+      hallazgo:     document.getElementById("hallazgo").value,
+      ubicacion:    document.getElementById("ubicacion").value,
+      codigo:       document.getElementById("codigo").value || null,
+      lote:         document.getElementById("lote").value || null,
+      cantidad:     document.getElementById("cantidad").value || null,
+      unidad:       document.getElementById("unidad").value || null,
+      unidad_envio: document.getElementById("unidadEnvio").value || null,
+      id_transporte:document.getElementById("idTransporte").value || null,
+      linea_transportista: document.getElementById("lineaTransportista").value || null,
+      imagenes: urlsImagenes
+    }]);
+
+  if(error){
+
+    // DUPLICADO
+    if(error.message.includes("duplicate")){
+      console.warn("Folio duplicado, reintentando...");
+      continue;
+    }
+
+    console.error(error);
+    toast("Error al guardar","err");
+    btn.disabled = false;
+    return;
+  }
+
+  guardado = true;
+}
 
   if(error){
    console.error(error);
@@ -2303,7 +2384,9 @@ async function cargarAdmin(){
  const nombreFiltro = (document.getElementById("adminNombre")?.value || "")
   .toLowerCase()
   .trim();
+
   
+ const areaFiltro = document.getElementById("adminArea")?.value || ""; 
  const hallazgo    = document.getElementById("adminHallazgo").value.toUpperCase();
  const fechaInicio = document.getElementById("fechaInicio").value;
  const fechaFin    = document.getElementById("fechaFin").value;
@@ -2326,6 +2409,10 @@ async function cargarAdmin(){
   }
 
   if(nombreFiltro && !r.nombre.toLowerCase().includes(nombreFiltro)){
+  pasa = false;
+}
+
+if(areaFiltro && r.area !== areaFiltro){
   pasa = false;
 }
   if(!pasa) return;
@@ -2744,6 +2831,89 @@ function validarCodigo(input){
     input.classList.add("valid");
   } else {
     input.classList.remove("valid");
+  }
+}
+
+/* ============================================
+   VALIDAR ECO DUPLICADO
+   ============================================ */
+async function validarEcoDuplicado(){
+
+  const ecoInput = document.getElementById("idTransporte");
+  const alerta   = document.getElementById("alertaEco");
+
+  const eco = ecoInput.value.trim().toUpperCase();
+
+  // limpiar si vacío
+  if(!eco){
+    alerta.style.display = "none";
+    ecoInput.classList.remove("invalid");
+    return;
+  }
+
+  try{
+
+    // Buscar ECO existente
+    const { data, error } = await supabaseClient
+      .from("Reportes")
+      .select("*")
+      .eq("tipo", "Transporte")
+      .eq("id_transporte", eco)
+      .order("id", { ascending:false })
+      .limit(1);
+
+    if(error){
+      console.error(error);
+      return;
+    }
+
+    // No existe
+    if(!data || data.length === 0){
+
+      alerta.style.display = "none";
+
+      ecoInput.classList.remove("invalid");
+      ecoInput.classList.add("valid");
+
+      return;
+    }
+
+    // Existe
+    const r = data[0];
+
+    ecoInput.classList.remove("valid");
+    ecoInput.classList.add("invalid");
+
+    alerta.style.display = "block";
+
+    alerta.innerHTML = `
+      <div style="font-weight:700; margin-bottom:6px;">
+        ⚠ ECO YA REGISTRADO
+      </div>
+
+      <b>Folio:</b> ${r.folio}<br>
+      <b>Fecha:</b> ${r.fecha}<br>
+      <b>Persona:</b> ${r.nombre}<br>
+      <b>Turno:</b> ${r.turno}<br>
+      <b>Hallazgo:</b> ${r.hallazgo}<br>
+      <b>Ubicación:</b> ${r.ubicacion || "N/A"}<br><br>
+
+      <div style="
+        background:#FFF;
+        border:1px solid #F59E0B;
+        padding:8px;
+        border-radius:6px;
+        font-weight:600;
+      ">
+        VALIDAR SI LA UNIDAD YA FUE REPORTADA O 
+        SI EL EVENTO SIGUE ACTIVO.
+      </div>
+    `;
+
+  }catch(e){
+
+    console.error(e);
+
   }
 }
 
