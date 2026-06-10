@@ -1321,42 +1321,7 @@ let usuarioEsAdmin = false;
 let resultadosAdmin = [];
 
 
-/* ============================================
-   FOLIO
-   ============================================ */
-/* ============================================
-   FOLIO ROBUSTO
-   ============================================ */
 
-async function generarFolio(){
-
-  const { data, error } = await supabaseClient
-    .from("Reportes")
-    .select("consecutivo")
-    .not("consecutivo", "is", null)
-    .order("consecutivo", { ascending:false })
-    .limit(1);
-
-  if(error){
-    console.error("Error folio:", error);
-
-    return {
-      folio: "AC-2627-001",
-      consecutivo: 1
-    };
-  }
-
-  let siguiente = 1;
-
-  if(data && data.length > 0){
-    siguiente = Number(data[0].consecutivo || 0) + 1;
-  }
-
-  return {
-    folio: "AC-2627-" + String(siguiente).padStart(3,'0'),
-    consecutivo: siguiente
-  };
-}
 
 /* ============================================
    LOGIN
@@ -1389,14 +1354,8 @@ async function login(){
  document.getElementById("cuadrilla").value = user.cuadrilla;
  document.getElementById("areaLogin").value = user.area;
 
-document.getElementById("folioBox").innerText = "GENERANDO...";
-
-const nuevoFolio = await generarFolio();
-
-folioGlobal = nuevoFolio.folio;
-
-document.getElementById("folioBox").innerText = folioGlobal;
-
+folioGlobal = "";
+document.getElementById("folioBox").innerText = "Pendiente...";
 
  document.getElementById("bienvenida").innerText = datosGenerales.nombre.toUpperCase();
 
@@ -1976,7 +1935,7 @@ function formularioCompleto(){
  const ubicacion = document.getElementById("ubicacion").value;
 
  return !(
-  !folioGlobal ||
+  false ||
   !datosGenerales ||
   !datosGenerales.nombre ||
   !datosGenerales.turno ||
@@ -2017,14 +1976,6 @@ async function guardar(){
 
  try{
 
-  // GENERAR FOLIO JUSTO ANTES DE GUARDAR
-const nuevoFolio = await generarFolio();
-
-folioGlobal = nuevoFolio.folio;
-
-const consecutivoActual = nuevoFolio.consecutivo;
-
-document.getElementById("folioBox").innerText = folioGlobal;
 
 
 
@@ -2052,11 +2003,11 @@ const { error: errorUpload } = await supabaseClient
    }
   }
 
-  const { error } = await supabaseClient
+  
+const { data, error } = await supabaseClient
   .from("Reportes")
   .insert([{
-    folio:        folioGlobal,
-    consecutivo:  consecutivoActual,
+
     fecha:        datosGenerales.fecha,
     nombre:       datosGenerales.nombre,
     turno:        datosGenerales.turno,
@@ -2073,7 +2024,19 @@ const { error: errorUpload } = await supabaseClient
     id_transporte:document.getElementById("idTransporte").value || null,
     linea_transportista: document.getElementById("lineaTransportista").value || null,
     imagenes: urlsImagenes
-  }]);
+     }]).select();
+
+const consecutivo = data[0].consecutivo;
+
+folioGlobal = "AC-2627-" + String(consecutivo).padStart(3,'0');
+
+document.getElementById("folioBox").innerText = folioGlobal;
+
+// Guardar folio ya armado en el registro
+await supabaseClient
+  .from("Reportes")
+  .update({ folio: folioGlobal })
+  .eq("consecutivo", consecutivo);
 
 if(error){
   console.error(error);
@@ -2124,12 +2087,8 @@ async function resetFormulario(){
 document.getElementById("fotoCamara").disabled = false;
 document.getElementById("fotoGaleria").disabled = false;
 
-  // Nuevo folio
-  const nuevoFolio = await generarFolio();
-
-folioGlobal = nuevoFolio.folio;
-
-document.getElementById("folioBox").innerText = folioGlobal;
+folioGlobal = "";
+document.getElementById("folioBox").innerText = "Pendiente...";
 
 }
 
@@ -2169,12 +2128,8 @@ function verificarSesion(){
  document.getElementById("loginBox").classList.add("hidden");
  document.getElementById("systemBox").classList.remove("hidden");
 
- generarFolio().then(resultado => {
-
-  folioGlobal = resultado.folio;
-
-  document.getElementById("folioBox").innerText = folioGlobal;
-});
+ folioGlobal = "";
+document.getElementById("folioBox").innerText = "Pendiente...";
 
 const user = personal[datosGenerales.nombre];
 
