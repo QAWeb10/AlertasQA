@@ -38,15 +38,13 @@
 html,body{ margin:0; padding:0; }
 
 body{
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
   font-size: 15px;
   color: var(--ink);
-  background:
-    radial-gradient(1200px 600px at -10% -20%, rgba(253,208,0,.15), transparent 60%),
-    radial-gradient(900px 500px at 110% 110%, rgba(207,0,46,.06), transparent 60%),
-    linear-gradient(180deg, #FFFFFF 0%, #FFF7D6 100%);
+
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF4C2 100%);
+
   min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
 }
 
 /* APPBAR */
@@ -131,7 +129,15 @@ body{
 }
 @media (min-width: 900px){
   .filtros-grid{
-    grid-template-columns: 2fr 1fr 1fr 2fr auto;
+    grid-template-columns:
+      1.6fr
+      1fr
+      1fr
+      1.6fr
+      1fr
+      auto;
+
+    gap: 14px;
     align-items: end;
   }
 }
@@ -180,10 +186,35 @@ input:focus{
   box-shadow: var(--shadow-1);
 }
 .btn-primary:active{ transform: translateY(1px); }
-.btn-ghost{
-  background: var(--surface);
-  color: var(--ink);
-  border: 1.5px solid var(--line);
+
+.btn-field{
+  display:flex;
+  flex-direction:column;
+}
+
+.btn-field .btn{
+  height: 47px;
+  min-width: 130px;
+  white-space: nowrap;
+}
+
+.acciones-filtros{
+  margin-top: 14px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btn-field{
+  display:flex;
+  flex-direction:column;
+}
+
+.btn-field .btn{
+  height: 47px;
+  min-width: 130px;
+  white-space: nowrap;
 }
 
 .dropdown{
@@ -344,6 +375,23 @@ input:focus{
   margin-right: 10px;
 }
 @keyframes spin{ to{ transform: rotate(360deg); } }
+
+input, select {
+  width:100%;
+  padding: 11px 13px;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1.5px solid #E5E5E5;
+  background: #fff;
+  transition: all .2s;
+}
+
+input:focus, select:focus {
+  border-color: #CF002E;
+  box-shadow: 0 0 0 3px rgba(207,0,46,.15);
+  outline:none;
+}
+
 </style>
 </head>
 <body>
@@ -387,19 +435,32 @@ input:focus{
         </div>
 
         <div class="field">
-          <label>Hallazgo</label>
-          <input id="hallazgo" placeholder="Buscar hallazgo" autocomplete="off" oninput="autoHallazgo()">
-          <div id="listaHallazgo" class="dropdown" style="display:none;"></div>
-        </div>
+  <label>Hallazgo</label>
+  <input id="hallazgo" placeholder="Buscar hallazgo"
+         autocomplete="off" oninput="autoHallazgo()">
+  <div id="listaHallazgo" class="dropdown"
+       style="display:none;"></div>
+</div>
 
-        <div class="field">
-          <label style="opacity:0;">.</label>
-          <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar filtros</button>
-        </div>
+<div class="field">
+  <label>Área</label>
+  <select id="area">
+    <option value="">Todas las áreas</option>
+  </select>
+</div>
+
+<div class="field btn-field">
+  <label style="opacity:0;">.</label>
+
+  <button class="btn btn-primary"
+          onclick="aplicarFiltros()">
+    Aplicar
+  </button>
+</div>
 
       </div>
 
-      <div style="margin-top:10px; display:flex; gap:8px;">
+      <div class="acciones-filtros">
         <button class="btn btn-ghost" style="width:auto; padding:8px 14px; font-size:12px;" onclick="limpiarFiltros()">
           Limpiar filtros
         </button>
@@ -490,6 +551,25 @@ function toast(msg, type){
 let datos = [];
 let chart1, chart2;
 
+function cargarAreas(){
+ const select = document.getElementById("area");
+
+ const areas = [...new Set(
+   datos.map(d => d.area).filter(Boolean)
+ )].sort();
+
+ select.innerHTML = `
+   <option value="">Todas las áreas</option>
+ `;
+
+ areas.forEach(a => {
+   const op = document.createElement("option");
+   op.value = a;
+   op.textContent = a;
+   select.appendChild(op);
+ });
+}
+
 const BRAND = "#CF002E";
 const BRAND_DARK = "#A00023";
 const ACCENT = "#FDD000";
@@ -508,6 +588,9 @@ async function cargar(){
   return;
  }
  datos = data || [];
+
+ cargarAreas();
+
  if(datos.length === 0){
   toast("No hay reportes aún en la base de datos");
  } else {
@@ -530,15 +613,25 @@ function aplicarFiltros(){
  const h  = document.getElementById("hallazgo").value.toUpperCase();
  const fi = document.getElementById("inicio").value;
  const ff = document.getElementById("fin").value;
+ const area = document.getElementById("area").value;
 
  const filtrados = datos.filter(r => {
   if(!r) return false;
-  if(p && (!r.nombre || !r.nombre.toLowerCase().includes(p))) return false;
-  if(h && r.hallazgo !== h) return false;
+
+  if(p && (!r.nombre || !r.nombre.toLowerCase().includes(p)))
+    return false;
+
+  if(h && r.hallazgo !== h)
+    return false;
+
+  if(area && r.area !== area)
+    return false;
+
   if(fi && ff && r.fecha){
    const f = convertir(r.fecha);
    if(f < fi || f > ff) return false;
   }
+
   return true;
  });
 
@@ -546,13 +639,17 @@ function aplicarFiltros(){
  actualizarGraficas(filtrados);
 }
 
+
 function limpiarFiltros(){
  document.getElementById("persona").value = "";
  document.getElementById("hallazgo").value = "";
  document.getElementById("inicio").value = "";
  document.getElementById("fin").value = "";
+ document.getElementById("area").value = "";
+
  aplicarFiltros();
 }
+
 
 /* ============================================
    KPIs
