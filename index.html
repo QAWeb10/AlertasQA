@@ -1062,6 +1062,7 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
   <label>Filtrar por persona</label>
 </div>
 
+
       <div class="btn-row-3">
   <button class="btn btn-primary" onclick="cargarAdmin()">Buscar</button>
   <button id="btnExcelAdmin" class="btn btn-accent hidden" onclick="excelDesdeTabla()">Excel</button>
@@ -1323,26 +1324,38 @@ let resultadosAdmin = [];
 /* ============================================
    FOLIO
    ============================================ */
+/* ============================================
+   FOLIO ROBUSTO
+   ============================================ */
+
 async function generarFolio(){
 
   const { data, error } = await supabaseClient
     .from("Reportes")
     .select("consecutivo")
+    .not("consecutivo", "is", null)
     .order("consecutivo", { ascending:false })
     .limit(1);
 
   if(error){
-    console.error(error);
-    return "AC-2627-001";
+    console.error("Error folio:", error);
+
+    return {
+      folio: "AC-2627-001",
+      consecutivo: 1
+    };
   }
 
   let siguiente = 1;
 
   if(data && data.length > 0){
-    siguiente = Number(data[0].consecutivo) + 1;
+    siguiente = Number(data[0].consecutivo || 0) + 1;
   }
 
-  return "AC-2627-" + String(siguiente).padStart(3,'0');
+  return {
+    folio: "AC-2627-" + String(siguiente).padStart(3,'0'),
+    consecutivo: siguiente
+  };
 }
 
 /* ============================================
@@ -1377,6 +1390,13 @@ async function login(){
  document.getElementById("areaLogin").value = user.area;
 
 document.getElementById("folioBox").innerText = "GENERANDO...";
+
+const nuevoFolio = await generarFolio();
+
+folioGlobal = nuevoFolio.folio;
+
+document.getElementById("folioBox").innerText = folioGlobal;
+
 
  document.getElementById("bienvenida").innerText = datosGenerales.nombre.toUpperCase();
 
@@ -1998,9 +2018,14 @@ async function guardar(){
  try{
 
   // GENERAR FOLIO JUSTO ANTES DE GUARDAR
-folioGlobal = await generarFolio();
+const nuevoFolio = await generarFolio();
+
+folioGlobal = nuevoFolio.folio;
+
+const consecutivoActual = nuevoFolio.consecutivo;
 
 document.getElementById("folioBox").innerText = folioGlobal;
+
 
 
   // Subir imágenes
@@ -2027,59 +2052,35 @@ const { error: errorUpload } = await supabaseClient
    }
   }
 
-  let guardado = false;
-let intentos = 0;
-
-while(!guardado && intentos < 5){
-
-  intentos++;
-
-  folioGlobal = await generarFolio();
-
   const { error } = await supabaseClient
-    .from("Reportes")
-    .insert([{
-      folio:        folioGlobal,
-      fecha:        datosGenerales.fecha,
-      nombre:       datosGenerales.nombre,
-      turno:        datosGenerales.turno,
-      cuadrilla:    datosGenerales.cuadrilla,
-      area:         datosGenerales.area,
-      tipo:         document.getElementById("tipo").value,
-      hallazgo:     document.getElementById("hallazgo").value,
-      ubicacion:    document.getElementById("ubicacion").value,
-      codigo:       document.getElementById("codigo").value || null,
-      lote:         document.getElementById("lote").value || null,
-      cantidad:     document.getElementById("cantidad").value || null,
-      unidad:       document.getElementById("unidad").value || null,
-      unidad_envio: document.getElementById("unidadEnvio").value || null,
-      id_transporte:document.getElementById("idTransporte").value || null,
-      linea_transportista: document.getElementById("lineaTransportista").value || null,
-      imagenes: urlsImagenes
-    }]);
+  .from("Reportes")
+  .insert([{
+    folio:        folioGlobal,
+    consecutivo:  consecutivoActual,
+    fecha:        datosGenerales.fecha,
+    nombre:       datosGenerales.nombre,
+    turno:        datosGenerales.turno,
+    cuadrilla:    datosGenerales.cuadrilla,
+    area:         datosGenerales.area,
+    tipo:         document.getElementById("tipo").value,
+    hallazgo:     document.getElementById("hallazgo").value,
+    ubicacion:    document.getElementById("ubicacion").value,
+    codigo:       document.getElementById("codigo").value || null,
+    lote:         document.getElementById("lote").value || null,
+    cantidad:     document.getElementById("cantidad").value || null,
+    unidad:       document.getElementById("unidad").value || null,
+    unidad_envio: document.getElementById("unidadEnvio").value || null,
+    id_transporte:document.getElementById("idTransporte").value || null,
+    linea_transportista: document.getElementById("lineaTransportista").value || null,
+    imagenes: urlsImagenes
+  }]);
 
-  if(error){
-
-    // DUPLICADO
-    if(error.message.includes("duplicate")){
-      console.warn("Folio duplicado, reintentando...");
-      continue;
-    }
-
-    console.error(error);
-    toast("Error al guardar","err");
-    btn.disabled = false;
-    return;
-  }
-
-  guardado = true;
+if(error){
+  console.error(error);
+  toast("Error al guardar","err");
+  btn.disabled = false;
+  return;
 }
-
-  if(error){
-   console.error(error);
-   toast("Error al guardar","err");
-   return;
-  }
 
   toast("Guardado: " + folioGlobal, "ok");
 
@@ -2124,8 +2125,11 @@ document.getElementById("fotoCamara").disabled = false;
 document.getElementById("fotoGaleria").disabled = false;
 
   // Nuevo folio
-  folioGlobal = await generarFolio();
-  document.getElementById("folioBox").innerText = folioGlobal;
+  const nuevoFolio = await generarFolio();
+
+folioGlobal = nuevoFolio.folio;
+
+document.getElementById("folioBox").innerText = folioGlobal;
 
 }
 
@@ -2165,10 +2169,12 @@ function verificarSesion(){
  document.getElementById("loginBox").classList.add("hidden");
  document.getElementById("systemBox").classList.remove("hidden");
 
- generarFolio().then(folio => {
-  folioGlobal = folio;
+ generarFolio().then(resultado => {
+
+  folioGlobal = resultado.folio;
+
   document.getElementById("folioBox").innerText = folioGlobal;
- });
+});
 
 const user = personal[datosGenerales.nombre];
 
