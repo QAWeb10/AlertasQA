@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Portal de Calidad</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+background:
+linear-gradient(
+180deg,
+#ffffff 0%,
+#fff7d6 100%
+);
+min-height:100vh;
+display:block;
+}
+
+.appbar{
+
+height:76px;
+
+background:
+linear-gradient(
+90deg,
+#A00023,
+#CF002E
+);
+
+display:flex;
+align-items:center;
+
+padding:0 14px;
+
+color:white;
+}
+
+.logoQA{
+
+width:40px;
+height:40px;
+
+background:#FDD000;
+
+border-radius:8px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-weight:bold;
+color:black;
+
+margin-right:14px;
+}
+
+.tituloSistema{
+line-height:1.2;
+}
+
+.titulo1{
+font-size:12px;
+font-weight:500;
+letter-spacing:.5px;
+opacity:.9;
+}
+
+.titulo2{
+font-size:16px;
+font-weight:700;
+}
+
+.fy{
+
+margin-left:auto;
+
+padding:6px 12px;
+
+border-radius:20px;
+
+background:
+rgba(255,255,255,.15);
+
+font-size:14px;
+}
+
+.hidden{
+display:none;
+}
+
+.card{
+
+background:#ffffff;
+
+width:92%;
+max-width:420px;
+
+margin:25px auto;
+
+padding:30px 24px;
+
+border-radius:24px;
+
+box-shadow:
+0 10px 40px rgba(0,0,0,.08);
+
+text-align:center;
+
+}
+
+.logo{
+width:90px;
+height:90px;
+margin:auto;
+border-radius:50%;
+background:#003366;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-size:40px;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+h1{
+margin-bottom:25px;
+color:#1f2937;
+font-size:32px;
+}
+
+input,
+select{
+
+background:#fff;
+font-weight:500;
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:1px solid #ddd;
+border-radius:10px;
+font-size:16px;
+
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-size:16px;
+margin-top:10px;
+}
+
+.btn-login{
+background:#CF002E;
+color:white;
+font-weight:bold;
+}
+
+.menu button{
+margin-bottom:12px;
+}
+
+.btn-dashboard,
+.btn-alerta,
+.btn-auditoria,
+.btn-incidencia{
+display:flex;
+flex-direction:column;
+align-items:flex-start;
+justify-content:center;
+width:100%;
+min-height:92px;
+padding:18px 22px;
+margin-bottom:14px;
+background:#fff;
+border:none;
+border-left:6px solid #CF002E;
+border-radius:20px;
+font-size:18px;
+font-weight:700;
+color:#1f2937;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+transition:.25s;
+position:relative;
+overflow:hidden;
+text-align:left;
+}
+.btn-dashboard:hover,
+.btn-alerta:hover,
+.btn-auditoria:hover,
+.btn-incidencia:hover{
+transform:translateY(-3px);
+box-shadow:0 18px 35px rgba(0,0,0,.15);
+}
+.btn-dashboard::after,
+.btn-alerta::after,
+.btn-auditoria::after,
+.btn-incidencia::after{
+content:"›";
+position:absolute;
+right:22px;
+top:50%;
+transform:translateY(-50%);
+font-size:30px;
+color:#CF002E;
+}
+.btn-alerta{border-left-color:#f4b400;}
+.btn-auditoria{border-left-color:#1976d2;}
+.btn-incidencia{border-left-color:#e53935;}
+.btn-dashboard{border-left-color:#00a884;}
+.tituloBoton{font-size:18px;font-weight:800;margin-bottom:5px;}
+.subtituloBoton{font-size:13px;color:#6b7280;font-weight:500;}
+.usuario{
+margin-bottom:20px;
+font-weight:bold;
+color:#555;
+}
+
+.card-title{
+font-size:16px;
+font-weight:800;
+letter-spacing:.3px;
+text-align:left;
+color:#1f2937;
+margin-bottom:20px;
+}
+
+.separador{
+border:none;
+border-top:1px solid #ddd;
+margin-bottom:25px;
+}
+
+.fila{
+display:flex;
+gap:10px;
+margin-bottom:12px;
+}
+
+.datoAuto{
+flex:1;
+}
+
+.etiqueta{
+font-size:12px;
+font-weight:700;
+color:#555;
+margin-bottom:5px;
+text-align:left;
+}
+
+#cuadrilla,
+#area,
+#fecha{
+background:#f3f4f6;
+font-weight:600;
+}
+
+@media(max-width:600px){
+
+.card{
+width:95%;
+padding:25px;
+}
+
+h1{
+font-size:24px;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="appbar">
+
+    <div class="logoQA">
+        QA
+    </div>
+
+    <div class="tituloSistema">
+        <div class="titulo1">
+            SISTEMA DE GESTIÓN DE CALIDAD
+        </div>
+
+        <div class="titulo2">
+            Portal de Calidad
+        </div>
+    </div>
+
+    <div class="fy">
+        FY2627
+    </div>
+
+</div>
+
+<!-- LOGIN -->
+
+<div id="loginBox" class="card">
+
+<div class="card-title">
+● ACCESO AL SISTEMA
+</div>
+
+<hr class="separador">
+
+<input
+type="text"
+id="usuario"
+placeholder="Escribe tu nombre"
+list="listaUsuarios"
+oninput="actualizarDatos()">
+
+<datalist id="listaUsuarios">
+</datalist>
+
+<input
+type="password"
+id="password"
+placeholder="Contraseña">
+
+<div class="fila">
+
+<div class="datoAuto">
+<div class="etiqueta">CUADRILLA</div>
+<input
+type="text"
+id="cuadrilla"
+readonly>
+</div>
+
+<div class="datoAuto">
+<div class="etiqueta">ÁREA</div>
+<input
+type="text"
+id="area"
+readonly>
+</div>
+
+</div>
+
+<div class="fila">
+
+<div class="datoAuto">
+<div class="etiqueta">TURNO</div>
+
+<select id="turno">
+
+<option value="">
+Seleccionar
+</option>
+
+<option value="1">
+1RO
+</option>
+
+<option value="2">
+2DO
+</option>
+
+<option value="3">
+3RO
+</option>
+
+<option value="MIXTO">
+MIXTO
+</option>
+
+</select>
+
+</div>
+
+<div class="datoAuto">
+<div class="etiqueta">FECHA</div>
+
+<input
+type="text"
+id="fecha"
+readonly>
+
+</div>
+
+</div>
+
+<button
+class="btn-login"
+onclick="login()">
+Ingresar
+</button>
+
+</div>
+
+<!-- HOME -->
+
+<div id="homeBox" class="card hidden">
+
+<h1 style="margin-bottom:10px;">
+Portal de Calidad
+</h1>
+
+<div
+id="usuarioActual"
+style="
+font-size:20px;
+font-weight:600;
+color:#374151;
+margin-bottom:25px;
+">
+</div>
+
+<div class="menu">
+
+<!-- BLOQUE 1 -->
+
+<h3 id="tituloTemplates"
+style="text-align:left;margin:20px 0 10px 0;">
+📁 TEMPLATES
+</h3>
+
+<button
+id="btnAlertas"
+class="btn-alerta"
+onclick="location.href='Alertas de calidad.html'">
+<div class='tituloBoton'>Sistema Alertas</div><div class='subtituloBoton'>Registrar hallazgos de calidad</div>
+</button>
+
+<button
+id="btnAuditoria"
+class="btn-auditoria"
+onclick="location.href='Auditoría recibo.html'">
+<div class='tituloBoton'>Sistema Auditorías</div><div class='subtituloBoton'>Captura de auditorías de recibo</div>
+</button>
+
+<button
+id="btnIncidencia"
+class="btn-incidencia"
+onclick="location.href='Incidencia en Recibo.html'">
+<div class='tituloBoton'>Sistema Incidencias</div><div class='subtituloBoton'>Registro de incidencias operativas</div>
+</button>
+
+
+<!-- BLOQUE 2 -->
+
+<h3 id="tituloDashboards"
+style="text-align:left;margin:25px 0 10px 0;">
+📊 DASHBOARDS
+</h3>
+
+<button
+id="btnDashboardAlertas"
+class="btn-dashboard"
+onclick="location.href='dashboard.html'">
+<div class='tituloBoton'>Dashboard Alertas</div><div class='subtituloBoton'>Indicadores y tendencias</div>
+</button>
+
+<button
+id="btnDashboardAuditorias"
+class="btn-dashboard"
+onclick="location.href='dashboard-auditorias.html'">
+<div class='tituloBoton'>Dashboard Auditorías</div><div class='subtituloBoton'>Resultados de auditorías</div>
+</button>
+
+<button
+id="btnDashboardIncidencias"
+class="btn-dashboard"
+onclick="location.href='dashboard-incidencias.html'">
+<div class='tituloBoton'>Dashboard Incidencias</div><div class='subtituloBoton'>Seguimiento de incidencias</div>
+</button>
+
+<h3
+id="tituloConcentrados"
+style="text-align:left;margin:25px 0 10px 0;">
+📥 CONCENTRADOS
+</h3>
+
+<button
+id="btnExcelAlertas"
+class="btn-dashboard"
+onclick="descargarExcelAlertas()">
+<div class='tituloBoton'>Excel Alertas</div><div class='subtituloBoton'>Descargar base completa</div>
+</button>
+
+<button
+id="btnExcelAuditorias"
+class="btn-dashboard"
+onclick="descargarExcelAuditorias()">
+<div class='tituloBoton'>Excel Auditorías</div><div class='subtituloBoton'>Descargar base completa</div>
+</button>
+
+<button
+id="btnExcelIncidencias"
+class="btn-dashboard"
+onclick="descargarExcelIncidencias()">
+<div class='tituloBoton'>Excel Incidencias</div><div class='subtituloBoton'>Descargar base completa</div>
+</button>
+
+<button
+class="btn-salir"
+onclick="logout()">
+🚪 Cerrar sesión
+</button>
+
+</div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+/*USUARIOS*/
+
+const personal = {
+
+ "ANGEL MORENO": {cuadrilla:"A", area:"EMBARQUE", pass:"AMG765"},
+ "ANTONIO BADILLO": {cuadrilla:"A", area:"RECIBO", pass:"BAA244"},
+ "ARIADNA ROSAS": {cuadrilla:"B", area:"EMBARQUE", pass:"AAR239"},
+ "CARLOS CRUZ": {cuadrilla:"D", area:"EMBARQUE", pass:"CCC891"},
+ "DANIELA MARTINEZ": {cuadrilla:"N/A", area:"IMPORTADOS", pass:"DMS146"},
+ "EDITH PEREZ": {cuadrilla:"N/A", area:"PFCT", pass:"EPG272"},
+ "EDUARDO NAVA": {cuadrilla:"N/A", area:"PFCT", pass:"JNL789"},
+ "GABRIELA ALVARADO": {cuadrilla:"D", area:"RECIBO", pass:"GAR390"},
+ "GREGORIO PEREZ": {cuadrilla:"C", area:"RECIBO", pass:"JPP284"},
+ "IVAN COXANTEJE": {cuadrilla:"B", area:"RECIBO", pass:"ICC432"},
+ "JESUS GONZALEZ": {cuadrilla:"C", area:"EMBARQUE", pass:"JGA186"},
+ "LILIANA SOTELO": {cuadrilla:"N/A", area:"CRYD", pass:"LSC374"},
+ "MANUEL CHAGALA": {cuadrilla:"N/A", area:"CRYD", pass:"MCD607"},
+ "NATALIA JUAREZ": {cuadrilla:"N/A", area:"CUSTOMIZADO", pass:"NJV609"},
+ "OMAR MENDOZA": {cuadrilla:"N/A", area:"SUPERVISOR", pass:"FMI512"},
+ "PAOLA RAMIREZ": {cuadrilla:"N/A", area:"IMPORTADOS", pass:"PRS997"},
+ "ROGELIO SOTO": {cuadrilla:"N/A", area:"IMPORTADOS", pass:"RGS895"},
+ "ROSA ESPINO": {cuadrilla:"N/A", area:"PFCT", pass:"REL697"},
+ "SAMANTHA GONZALEZ": {cuadrilla:"N/A", area:"CRYD", pass:"SGF168"},
+ "SARA POZOS": {cuadrilla:"N/A", area:"CRYD", pass:"SPC567"},
+ "VALERIA FUENTES": {cuadrilla:"N/A", area:"PFCT", pass:"VFG432"},
+ "VICTOR ORTIZ": {cuadrilla:"N/A", area:"MASTER DATA", pass:"VHO587"},
+ "COORDINADOR A": {cuadrilla:"A", area:"OPERACIONES", pass:"OPS123"},
+ "COORDINADOR B": {cuadrilla:"B", area:"OPERACIONES", pass:"OPS123"},
+ "COORDINADOR C": {cuadrilla:"C", area:"OPERACIONES", pass:"OPS123"},
+ "COORDINADOR D": {cuadrilla:"D", area:"OPERACIONES", pass:"OPS123"},
+ "Felix Montoya": {cuadrilla:"ADMIN", area:"QA", pass:"1710", admin:true}
+
+};
+
+function cargarUsuarios(){
+
+const lista =
+document.getElementById("listaUsuarios");
+
+lista.innerHTML = "";
+
+for(const nombre in personal){
+
+const opcion =
+document.createElement("option");
+
+opcion.value = nombre;
+
+lista.appendChild(opcion);
+
+}
+
+}
+
+function actualizarDatos(){
+
+const usuario =
+document.getElementById("usuario").value.trim();
+
+const info = personal[usuario];
+
+if(info){
+
+document.getElementById("cuadrilla").value =
+info.cuadrilla;
+
+document.getElementById("area").value =
+info.area;
+
+}else{
+
+document.getElementById("cuadrilla").value="";
+document.getElementById("area").value="";
+
+}
+
+}
+function login(){
+
+const usuario =
+document.getElementById("usuario").value.trim();
+
+const password =
+document.getElementById("password").value.trim();
+
+const turno =
+document.getElementById("turno").value;
+
+const user = personal[usuario];
+
+if(user && user.pass === password){
+
+if(!turno){
+
+alert("Selecciona un turno");
+return;
+
+}
+
+localStorage.setItem(
+"usuarioPortal",
+usuario
+);
+
+localStorage.setItem(
+"adminPortal",
+user.admin ? "true" : "false"
+);
+
+const sesionActiva = {
+datos:{
+nombre: usuario,
+cuadrilla: user.cuadrilla,
+area: user.area,
+turno: turno,
+fecha: document.getElementById("fecha").value
+},
+inicio: Date.now()
+};
+
+localStorage.setItem(
+"sesionActiva",
+JSON.stringify(sesionActiva)
+);
+
+mostrarHome(usuario);
+
+}else{
+
+alert("Usuario o contraseña incorrectos");
+
+}
+
+}
+
+function mostrarHome(usuario){
+
+const info = personal[usuario];
+
+document.getElementById("loginBox")
+.classList.add("hidden");
+
+document.getElementById("homeBox")
+.classList.remove("hidden");
+
+document.getElementById("usuarioActual")
+.innerText = usuario;
+
+/* OCULTAR TODO */
+
+const botones = [
+
+"btnAlertas",
+"btnAuditoria",
+"btnIncidencia",
+
+"btnDashboardAlertas",
+"btnDashboardAuditorias",
+"btnDashboardIncidencias",
+
+"btnExcelAlertas",
+"btnExcelAuditorias",
+"btnExcelIncidencias",
+
+"tituloTemplates",
+"tituloDashboards",
+"tituloConcentrados"
+
+];
+
+botones.forEach(id=>{
+
+const elemento =
+document.getElementById(id);
+
+if(elemento){
+ elemento.style.display="none";
+}
+
+});
+
+/* ADMIN */
+
+if(info.admin){
+
+document.getElementById("tituloTemplates").style.display="block";
+document.getElementById("tituloDashboards").style.display="block";
+document.getElementById("tituloConcentrados").style.display="block";
+
+document.getElementById("tituloTemplates").style.display="block";
+
+document.getElementById("btnAlertas").style.display="block";
+document.getElementById("btnAuditoria").style.display="block";
+document.getElementById("btnIncidencia").style.display="block";
+
+document.getElementById("btnDashboardAlertas").style.display="block";
+document.getElementById("btnDashboardAuditorias").style.display="block";
+document.getElementById("btnDashboardIncidencias").style.display="block";
+
+document.getElementById("btnExcelAlertas").style.display="block";
+document.getElementById("btnExcelAuditorias").style.display="block";
+document.getElementById("btnExcelIncidencias").style.display="block";
+
+return;
+
+}
+
+/* COORDINADORES */
+
+if(usuario.startsWith("COORDINADOR")){
+
+document.getElementById("btnAlertas").style.display="block";
+
+return;
+
+}
+
+/* RESTO DEL PERSONAL */
+
+document.getElementById("btnAlertas").style.display="block";
+document.getElementById("btnAuditoria").style.display="block";
+document.getElementById("btnIncidencia").style.display="block";
+
+}
+
+function logout(){
+
+localStorage.removeItem("usuarioPortal");
+
+location.reload();
+
+}
+
+window.onload=()=>{
+
+cargarUsuarios();
+const fecha = new Date();
+
+const meses = [
+"ENE","FEB","MAR","ABR","MAY","JUN",
+"JUL","AGO","SEP","OCT","NOV","DIC"
+];
+
+const fechaFormateada =
+fecha.getDate().toString().padStart(2,"0") +
+" " +
+meses[fecha.getMonth()] +
+" " +
+fecha.getFullYear().toString().slice(-2);
+
+document.getElementById("fecha").value =
+fechaFormateada;
+
+const usuario=
+localStorage.getItem("usuarioPortal");
+
+if(usuario){
+
+mostrarHome(usuario);
+
+}
+
+}
+
+// =========================
+// SUPABASE
+// =========================
+
+const supabaseClient = supabase.createClient(
+"https://wpitemofrqzjcsetmmim.supabase.co",
+"sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
+);
+
+// =========================
+// ALERTAS
+// =========================
+
+async function descargarExcelAlertas(){
+
+ let todos = [];
+ let desde = 0;
+ let hasta = 999;
+
+ while(true){
+
+   const { data, error } =
+   await supabaseClient
+   .from("Reportes")
+   .select("*")
+   .range(desde,hasta);
+
+   if(error){
+      console.error(error);
+      return;
+   }
+
+   todos = todos.concat(data);
+
+   if(data.length < 1000){
+      break;
+   }
+
+   desde += 1000;
+   hasta += 1000;
+ }
+
+ console.log("Total:",todos.length);
+
+ let csv =
+ "Folio,Fecha,Nombre,Turno,Cuadrilla,Area,Tipo,Hallazgo\n";
+
+ todos.forEach(r=>{
+
+   csv +=
+`${limpiar(r.folio)},${limpiar(r.fecha)},${limpiar(r.nombre)},${limpiar(r.turno)},${limpiar(r.cuadrilla)},${limpiar(r.area)},${limpiar(r.tipo)},${limpiar(r.hallazgo)}\n`;
+ });
+
+ descargarCSV(csv,"Alertas_Completo.csv");
+}
+
+// =========================
+// AUDITORIAS
+// =========================
+
+async function descargarExcelAuditorias(){
+
+ const { data,error } =
+ await supabaseClient
+ .from("Auditoria_Recibo")
+ .select("*");
+
+ if(error){
+   alert("Error cargando auditorías");
+   return;
+ }
+
+ let csv =
+ "Folio,Nombre,Area,Turno,Cortina,STO,Origen,Etiqueta,Desviacion\n";
+
+ data.forEach(r=>{
+
+   csv +=
+`${limpiar(r.folio)},${limpiar(r.nombre)},${limpiar(r.area)},${limpiar(r.turno)},${limpiar(r.cortina)},${limpiar(r.sto)},${limpiar(r.origen)},${limpiar(r.etiqueta)},${limpiar(r.desviacion)}\n`;
+ });
+
+ descargarCSV(csv,"Auditorias_Completo.csv");
+
+}
+
+// =========================
+// INCIDENCIAS
+// =========================
+
+async function descargarExcelIncidencias(){
+
+ const { data,error } =
+ await supabaseClient
+ .from("incidencias_recibo")
+ .select("*");
+
+ if(error){
+   alert("Error cargando incidencias");
+   return;
+ }
+
+ let csv =
+ "Folio,Nombre,Cortina,STO,Origen,Motivo\n";
+
+ data.forEach(r=>{
+
+   const motivo =
+   r.desviaciones?.[0]?.motivo || "";
+
+   csv +=
+`${limpiar(r.folio)},${limpiar(r.nombre)},${limpiar(r.cortina)},${limpiar(r.sto)},${limpiar(r.origen)},${limpiar(motivo)}\n`;
+
+ });
+
+ descargarCSV(csv,"Incidencias_Completo.csv");
+
+}
+
+function limpiar(valor){
+
+ return `"${String(valor ?? "")
+   .replace(/"/g,'""')
+   .replace(/\n/g,' ')
+   .replace(/\r/g,' ')}"`;
+
+}
+
+// =========================
+
+function descargarCSV(csv,nombre){
+
+ const blob = new Blob(
+  ["\uFEFF" + csv],
+  {
+   type:"text/csv;charset=utf-8;"
+  }
+ );
+
+ const url =
+ URL.createObjectURL(blob);
+
+ const enlace =
+ document.createElement("a");
+
+ enlace.href = url;
+ enlace.download = nombre;
+
+ document.body.appendChild(enlace);
+
+ enlace.click();
+
+ document.body.removeChild(enlace);
+
+ URL.revokeObjectURL(url);
+
+}
+
+</script>
+
+</body>
+</html>
