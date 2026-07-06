@@ -955,7 +955,7 @@ this.value=this.value
   <label>Lote *</label>
   <input
 maxlength="10"
-placeholder="LOTE"
+placeholder="Lote (6-10 caracteres)"
 oninput="
 this.value=this.value
 .toUpperCase()
@@ -1268,9 +1268,9 @@ function validarCodigos(){
       return "GCAS debe contener exactamente 8 dígitos";
     }
 
-    if(c.lote.length !== 10){
-      return "El lote debe contener exactamente 10 caracteres";
-    }
+    if(c.lote.length < 6 || c.lote.length > 10){
+  return "El lote debe contener entre 6 y 10 caracteres";
+}
 
     if(Number(c.cantidad) <= 0){
       return "La cantidad debe ser mayor a cero";
