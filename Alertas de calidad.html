@@ -503,7 +503,7 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 640px;
+  min-width: 900px;
 }
 .tbl thead th{
   background: var(--ink);
@@ -920,10 +920,10 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
   <label>Identificador (Eco) <span class="req">*</span></label>
 
   <input 
-    id="idTransporte" 
-    placeholder=""
-    oninput="validarEcoDuplicado()"
-  >
+  id="idTransporte" 
+  placeholder=""
+  oninput="this.value = this.value.toUpperCase(); validarEcoDuplicado();"
+>
 
   <div 
     id="alertaEco"
@@ -1142,14 +1142,17 @@ input.invalid{ border-color: var(--brand); box-shadow: 0 0 0 3px rgba(207,0,46,.
         <table class="tbl">
           <thead>
             <tr>
-              <th>Folio</th>
-              <th>Fecha</th>
-              <th>Nombre</th>
-              <th>Turno</th>
-              <th>Tipo</th>
-              <th>Hallazgo</th>
-              <th>PDF</th>
-            </tr>
+              <tr>
+  <th>Folio</th>
+  <th>Fecha</th>
+  <th>Nombre</th>
+  <th>Turno</th>
+  <th>Tipo</th>
+  <th>Unidad Envío</th>
+  <th>Ubicación</th>
+  <th>Hallazgo</th>
+  <th>PDF</th>
+</tr>
           </thead>
           <tbody id="adminTabla">
             <tr><td colspan="7" class="empty">Sin resultados</td></tr>
@@ -1251,14 +1254,14 @@ function toast(msg, type){
 
 const listaHallazgosDatos = [
   "CAJAS ABIERTAS","CAJAS DAÑADAS","CAVERNA","CODIGO ERRONEO","COLAPSO",
- "CORTINA DAÑADA","DERRAME DE PRODUCTO","DESVIACIÓN","DIMENSIÓN INADECUADA",
+ "CORTINA DAÑADA", "CORTINA ABIERTA", "DERRAME DE PRODUCTO","DESVIACIÓN","DIMENSIÓN INADECUADA",
  "ENVOLTURAS (DULCES)","ETIQUETA DAÑADA","ETIQUETA DESPRENDIDA","ETIQUETA SIN INFORMACIÓN",
  "FALTANTE","GOTERA","MAL EMPLAYADO","MEZCLA DE CÓDIGOS","MEZCLA DE LOTES","MURO",
  "ORDEN Y LIMPIEZA","ORIENTACIÓN INCORRECTA","PALLET CON POLVO","PALLET CON RESTO","PALLET LADEADO",
  "PALLET SIN ETIQUETA","PALLET SOBRE PASILLO","PALLET VACÍO EN UBICACIÓN","PIRAMIDE DE FRAGILIDAD",
  "PLAGA","PRODUCTO SUELTO","PRODUCTO MOJADO","RACK DAÑADO","REGLETA DAÑADA","REGLETA NO LEGIBLE", "EXCURSIÓN DE TEMPERATURA",
  "SECTORIZACIÓN INCORRECTA","SOBRANTE","SUSTRACCION","TARIMA DAÑADA", "CERTIFICADO VENCIDO", "SIN CERTIFICADO DE FUMIGACIÓN", "PISO EN FORMA DE T",
- "PISO DAÑADO", "PARED DAÑADA", "TECHO DAÑADO", "CLAROS DE LUZ", "OLOR FÉTIDO",  "TRAMPAS DAÑADAS",  "LÁMPARAS APAGADAS",  "LÁMPARAS DAÑADAS",
+ "PISO DAÑADO", "PARED DAÑADA", "TECHO DAÑADO", "CLAROS DE LUZ", "OLOR FÉTIDO",  "TRAMPAS DAÑADAS",  "LÁMPARAS APAGADAS",  "LÁMPARAS DAÑADAS",  "LÁMPARAS FUNDIDAS",
  "DESECHOS", "REMOLQUE SUCIO", "PUERTA CORREDIZA", "MENOR DIMENSIÓN", "SIN ADITAMENTOS DE SUJECIÓN", "RIEL LOGÍSTICO INCORRECTO", "LOTES FANTASMA"
 ];
 
@@ -2123,14 +2126,10 @@ if(!s){
  folioGlobal = "";
 document.getElementById("folioBox").innerText = "Pendiente...";
 
-if(localStorage.getItem("adminPortal")==="true"){  
-usuarioEsAdmin = true;
+const btnExcel = document.getElementById("btnExcelAdmin");
 
-  // ✅ volver a mostrar botones del panel
-  const btnExcel = document.getElementById("btnExcelAdmin");
-
-  if(btnExcel) btnExcel.classList.remove("hidden");
-
+if(btnExcel){
+  btnExcel.style.display = "block";
 }
 }
 window.addEventListener("load", verificarSesion);
@@ -2312,7 +2311,9 @@ const fechaHoy =
   "-" +
   String(hoy.getFullYear()).slice(-2);
  const { data, error } = await supabaseClient
-  .from("Reportes").select("*").eq("fecha", fechaHoy).order("id",{ascending:false});
+  .from("Reportes")
+  .select("*")
+  .order("id",{ascending:false});
  if(error){ toast("Error obteniendo datos","err"); return; }
  if(!data || !data.length){ toast("No hay reportes del día","err"); return; }
 
@@ -2416,14 +2417,22 @@ if(areaFiltro && r.area !== areaFiltro){
    <td>${r.nombre}</td>
    <td>${r.turno}</td>
    <td>${r.tipo}</td>
+   <td>${r.unidad_envio || "-"}</td>
+   <td>${r.ubicacion || "-"}</td>
    <td>${r.hallazgo}</td>
-   <td><button class="btn-mini" onclick='generarPDFdesdeAdmin(${JSON.stringify(r)})'>PDF</button></td>
-  `;
+   <td>
+     <button class="btn-mini"
+       onclick='generarPDFdesdeAdmin(${JSON.stringify(r)})'>
+       PDF
+     </button>
+   </td>
+`;
   tabla.appendChild(fila);
  });
 
  if(count === 0){
-  tabla.innerHTML = '<tr><td colspan="7" class="empty">Sin resultados</td></tr>';
+  ttabla.innerHTML =
+'<tr><td colspan="9" class="empty">Sin resultados</td></tr>';
  }
 }
 
