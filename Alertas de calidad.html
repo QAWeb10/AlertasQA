@@ -1250,7 +1250,7 @@ function toast(msg, type){
 }
 
 const listaHallazgosDatos = [
-  "CAJAS ABIERTAS","CAJAS DAÑADAS","CAVERNA","CODIGO ERRONEO","COLAPSO",
+  "CAJAS ABIERTAS","CAJAS DAÑADAS","CAVERNA","CODIGO ERRONEO","COLAPSO","CORTINA ABIERTA",
  "CORTINA DAÑADA","DERRAME DE PRODUCTO","DESVIACIÓN","DIMENSIÓN INADECUADA",
  "ENVOLTURAS (DULCES)","ETIQUETA DAÑADA","ETIQUETA DESPRENDIDA","ETIQUETA SIN INFORMACIÓN",
  "FALTANTE","GOTERA","MAL EMPLAYADO","MEZCLA DE CÓDIGOS","MEZCLA DE LOTES","DOBLE ESTIBA",
@@ -1990,12 +1990,25 @@ const { error: errorUpload } = await supabaseClient
    }
   }
 
-  
+ const hoy = new Date();
+
+const meses = [
+ "ENE","FEB","MAR","ABR","MAY","JUN",
+ "JUL","AGO","SEP","OCT","NOV","DIC"
+];
+
+const fechaActual =
+ String(hoy.getDate()).padStart(2,"0") +
+ " " +
+ meses[hoy.getMonth()] +
+ " " +
+ String(hoy.getFullYear()).slice(-2);
+
 const { data, error } = await supabaseClient
   .from("Reportes")
   .insert([{
 
-    fecha:        datosGenerales.fecha,
+    fecha:        fechaActual,
     nombre:       datosGenerales.nombre,
     turno:        datosGenerales.turno,
     cuadrilla:    datosGenerales.cuadrilla,
