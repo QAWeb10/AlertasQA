@@ -671,9 +671,33 @@ async function cargar(){
    FILTROS
    ============================================ */
 function convertir(fecha){
- const m = {ene:"01",feb:"02",mar:"03",abr:"04",may:"05",jun:"06",jul:"07",ago:"08",sep:"09",oct:"10",nov:"11",dic:"12"};
- const [d,mes,a] = fecha.split("-");
- return `20${a}-${m[mes]}-${d}`;
+
+ if(!fecha) return "";
+
+ const m = {
+   ENE:"01",
+   FEB:"02",
+   MAR:"03",
+   ABR:"04",
+   MAY:"05",
+   JUN:"06",
+   JUL:"07",
+   AGO:"08",
+   SEP:"09",
+   OCT:"10",
+   NOV:"11",
+   DIC:"12"
+ };
+
+ const partes = fecha.trim().split(" ");
+
+ if(partes.length !== 3) return "";
+
+ const dia = partes[0].padStart(2,"0");
+ const mes = m[partes[1]];
+ const año = "20" + partes[2];
+
+ return `${año}-${mes}-${dia}`;
 }
 
 function aplicarFiltros(){
