@@ -284,6 +284,64 @@ font-size:24px;
 
 }
 
+
+.mensaje-error{
+display:none;
+background:#FEE2E2;
+color:#B91C1C;
+border:1px solid #FCA5A5;
+padding:12px;
+border-radius:10px;
+margin-bottom:15px;
+font-size:14px;
+font-weight:600;
+text-align:left;
+}
+
+.mensaje-ok{
+display:none;
+background:#DCFCE7;
+color:#166534;
+border:1px solid #86EFAC;
+padding:12px;
+border-radius:10px;
+margin-bottom:15px;
+font-size:14px;
+font-weight:600;
+text-align:left;
+}
+
+/* ================================
+   ESTILO GENERAL DE ALERTAS
+================================ */
+
+.swal2-popup{
+    border-radius:18px !important;
+    padding:28px !important;
+    font-family:'Inter',sans-serif !important;
+}
+
+.swal2-title{
+    font-size:22px !important;
+    font-weight:800 !important;
+    color:#1f2937 !important;
+}
+
+.swal2-html-container{
+    font-size:15px !important;
+    color:#6b7280 !important;
+}
+
+.swal2-confirm{
+    border-radius:10px !important;
+    padding:11px 24px !important;
+    font-weight:700 !important;
+}
+
+.swal2-icon{
+    margin-bottom:10px !important;
+}
+
 </style>
 </head>
 <body>
@@ -320,6 +378,7 @@ font-size:24px;
 
 <hr class="separador">
 
+<div id="mensajeError" class="mensaje-error"></div>
 <input
 type="text"
 id="usuario"
@@ -520,6 +579,7 @@ onclick="logout()">
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 
@@ -617,7 +677,13 @@ if(user && user.pass === password){
 
 if(!turno){
 
-alert("Selecciona un turno");
+Swal.fire({
+  icon: 'warning',
+  title: 'Turno requerido',
+  text: 'Selecciona un turno para continuar',
+  confirmButtonText: 'Aceptar',
+  confirmButtonColor: '#CF002E'
+});
 return;
 
 }
@@ -652,7 +718,15 @@ mostrarHome(usuario);
 
 }else{
 
-alert("Usuario o contraseña incorrectos");
+    Swal.fire({
+        icon: 'error',
+        title: 'Acceso denegado',
+        text: 'Usuario o contraseña incorrectos',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#CF002E',
+        background: '#ffffff',
+        color: '#1f2937'
+    });
 
 }
 
@@ -832,7 +906,13 @@ async function descargarExcelAlertas(){
  console.log("Total:",todos.length);
 
 if(todos.length === 0){
-   alert("No hay datos");
+   Swal.fire({
+  icon: 'info',
+  title: 'Sin registros',
+  text: 'No se encontraron datos para exportar',
+  confirmButtonText: 'Aceptar',
+  confirmButtonColor: '#CF002E'
+});
    return;
 }
 
@@ -867,7 +947,12 @@ async function descargarExcelAuditorias(){
  .select("*");
 
  if(error){
-   alert("Error cargando auditorías");
+  Swal.fire({
+  icon: 'error',
+  title: 'Error',
+  text: 'No se pudieron cargar las auditorías',
+  confirmButtonColor: '#CF002E'
+});
    return;
  }
 
@@ -896,7 +981,12 @@ async function descargarExcelIncidencias(){
  .select("*");
 
  if(error){
-   alert("Error cargando incidencias");
+   Swal.fire({
+  icon: 'error',
+  title: 'Error',
+  text: 'No se pudieron cargar las incidencias',
+  confirmButtonColor: '#CF002E'
+});
    return;
  }
 
