@@ -284,6 +284,7 @@ font-size:24px;
 
 }
 
+
 .mensaje-error{
 display:none;
 background:#FEE2E2;
@@ -462,6 +463,41 @@ onclick="login()">
 Ingresar
 </button>
 
+<button
+class="btn-dashboard"
+style="margin-top:15px;"
+onclick="mostrarCliente()">
+Acceso Cliente
+</button>
+
+</div>
+
+<div id="clienteBox" class="card hidden">
+
+<div class="card-title">
+● ACCESO CLIENTE
+</div>
+
+<hr class="separador">
+
+<input
+type="text"
+id="clienteNombre"
+placeholder="Nombre completo">
+
+<select id="clienteEmpresa">
+<option value="">Selecciona compañía</option>
+<option value="COORSA">COORSA</option>
+<option value="P&G">P&G</option>
+<option value="NIMU">NIMU</option>
+</select>
+
+<button
+class="btn-login"
+onclick="ingresarCliente()">
+Ingresar como Cliente
+</button>
+
 </div>
 
 <!-- HOME -->
@@ -612,6 +648,10 @@ const personal = {
  "COORDINADOR B": {cuadrilla:"B", area:"OPERACIONES", pass:"OPS123"},
  "COORDINADOR C": {cuadrilla:"C", area:"OPERACIONES", pass:"OPS123"},
  "COORDINADOR D": {cuadrilla:"D", area:"OPERACIONES", pass:"OPS123"},
+ "HS&E A": {cuadrilla:"A", area:"HS&E", pass:"HSE123"},
+"HS&E B": {cuadrilla:"B", area:"HS&E", pass:"HSE123"},
+"HS&E C": {cuadrilla:"C", area:"HS&E", pass:"HSE123"},
+"HS&E D": {cuadrilla:"D", area:"HS&E", pass:"HSE123"},
  "Felix Montoya": {cuadrilla:"ADMIN", area:"QA", pass:"1710", admin:true}
 
 };
@@ -659,6 +699,72 @@ document.getElementById("area").value="";
 }
 
 }
+
+function mostrarCliente(){
+
+document.getElementById("loginBox")
+.classList.add("hidden");
+
+document.getElementById("clienteBox")
+.classList.remove("hidden");
+
+}
+
+function ingresarCliente(){
+
+const nombre =
+document.getElementById("clienteNombre")
+.value.trim();
+
+const empresa =
+document.getElementById("clienteEmpresa")
+.value;
+
+if(!nombre || !empresa){
+
+Swal.fire({
+icon:'warning',
+title:'Información requerida',
+text:'Captura nombre y compañía',
+confirmButtonColor:'#CF002E'
+});
+
+return;
+
+}
+
+const sesionActiva = {
+datos:{
+nombre:nombre,
+cuadrilla:"VISITA",
+area:empresa,
+turno:"VISITA",
+fecha:document.getElementById("fecha").value,
+empresa:empresa,
+tipo:"CLIENTE"
+},
+inicio:Date.now()
+};
+
+localStorage.setItem(
+"sesionActiva",
+JSON.stringify(sesionActiva)
+);
+
+localStorage.setItem(
+"usuarioPortal",
+nombre
+);
+
+localStorage.setItem(
+"tipoUsuario",
+"CLIENTE"
+);
+
+location.href="Alertas de calidad.html";
+
+}
+
 function login(){
 
 const usuario =
@@ -805,7 +911,10 @@ return;
 
 /* COORDINADORES */
 
-if(usuario.startsWith("COORDINADOR")){
+if(
+usuario.startsWith("COORDINADOR") ||
+usuario.startsWith("HS&E")
+){
 
 document.getElementById("btnAlertas").style.display="block";
 
