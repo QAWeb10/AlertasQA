@@ -1376,6 +1376,7 @@ TRANSPORTE:[
 "PARED DAÑADA",
 "TECHO DAÑADO",
 "CLAROS DE LUZ",
+"GOTERA",
 "PUERTA CORREDIZA",
 "CERTIFICADO VENCIDO",
 "CERTIFICADO CON INCOSISTENCIAS",
@@ -3994,7 +3995,7 @@ function validarCodigo(input){
    ============================================ */
 async function validarEcoDuplicado(){
 
-  const ecoInput = document.getElementById("idTransporte");
+  const ecoInput = document.getElementById("id");
   const alerta   = document.getElementById("alertaEco");
 
   const eco = ecoInput.value.trim().toUpperCase();
