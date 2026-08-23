@@ -342,30 +342,6 @@ textarea:focus{
   0 3px 8px rgba(0,0,0,.10);
 }
 
-.btn-add-codigo{
-  width:auto;
-  align-self:center;
-  min-width:140px;
-  height:42px;
-  padding:0 20px;
-  border:none;
-  border-radius:999px;
-  background:#FDD000;
-  color:#1A1A1A;
-  font-size:13px;
-  font-weight:700;
-  cursor:pointer;
-  transition:.15s;
-}
-
-.btn-add-codigo:hover{
-  transform:translateY(-1px);
-}
-
-.btn-add-codigo:active{
-  transform:scale(.96);
-}
-
 .admin-overlay{
   position:fixed;
   top:0;
@@ -590,7 +566,6 @@ this.value=this.value
   <option>IMPORTADO</option>
   <option>IRAPUATO (CHRONOS)</option>
   <option>MARISCALA</option>
-  <option>MERCK</option>
   <option>MILENIO</option>
   <option>NAUCALPAN</option>
   <option>P&G BROWNS SUMMIT SW</option>
@@ -618,14 +593,6 @@ this.value=this.value
 
   <div class="card-body">
     <div id="codigos" style="display:flex; flex-direction:column; gap:14px;"></div>
-
-<button
-  class="btn-add-codigo"
-  onclick="agregarCodigo()">
-  + Agregar código
-</button>
-  </div>
-</div>
 
 <!-- ✅ FOTOS -->
 <div class="card">
@@ -884,13 +851,6 @@ function agregarCodigo(){
 
  div.innerHTML=`
 
- <button
-type="button"
-class="delete-float"
-onclick="this.closest('.codigo-box').remove()">
-🗑️
-</button>
-
 <div>
   <label>Motivo de incidencia *</label>
   <input list="listaIncidencias" placeholder="Escribe y selecciona">
@@ -909,7 +869,6 @@ onclick="this.closest('.codigo-box').remove()">
 <option>ETIQUETA SIN INFORMACIÓN</option>,
 <option>FALTANTE</option>,
 <option>GOTERA</option>,
-<option>DOBLE ESTIBA</option>,
 <option>MAL EMPLAYADO</option>,
 <option>MEZCLA DE CÓDIGOS</option>,
 <option>MEZCLA DE LOTES</option>,
@@ -1919,17 +1878,6 @@ function irHome(){
   window.location.href = "index.html";
 }
 
-function controlCodigos(valor){
-
- if(valor === "SI"){
-   agregarCodigo();
- }
-
- if(valor === "NO"){
-   alert("Captura finalizada");
- }
-
-}
 function irHome(){
   window.location.href = "index.html";
 }
