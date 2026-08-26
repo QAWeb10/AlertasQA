@@ -2977,6 +2977,7 @@ const { data, error } = await supabaseClient
   .insert([{
 
     fecha:        fechaActual,
+    fecha_hora_evento: new Date().toISOString(),
     nombre:       datosGenerales.nombre,
     turno:        datosGenerales.turno,
     cuadrilla:    datosGenerales.cuadrilla,
