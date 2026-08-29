@@ -18,14 +18,25 @@ font-family:'Inter',sans-serif;
 }
 
 body{
+
 background:
+
+radial-gradient(
+circle at top right,
+rgba(253,208,0,.20),
+transparent 30%
+),
+
 linear-gradient(
 180deg,
 #ffffff 0%,
 #fff7d6 100%
 );
+
 min-height:100vh;
+
 display:block;
+
 }
 
 .appbar{
@@ -359,6 +370,261 @@ text-align:left;
     margin-bottom:10px !important;
 }
 
+.creditos{
+text-align:center;
+font-size:11px;
+color:#6b7280;
+margin:20px 0 30px 0;
+font-weight:500;
+}
+
+.creditos b{
+color:#CF002E;
+}
+
+/* ===== LOGIN PREMIUM ===== */
+
+.card-login{
+
+padding-top:85px !important;
+
+}
+
+.logo-login{
+
+width:120px;
+height:120px;
+
+margin:auto;
+
+margin-top:-90px;
+margin-bottom:20px;
+
+border-radius:50%;
+
+background:#FDD000;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:54px;
+font-weight:800;
+
+color:#A00023;
+
+border:8px solid #fff;
+
+box-shadow:
+0 10px 25px rgba(0,0,0,.12);
+
+}
+
+.login-subtitle{
+
+font-size:15px;
+color:#6b7280;
+
+margin-bottom:6px;
+
+}
+
+.login-title{
+
+font-size:20px;
+font-weight:800;
+
+color:#1f2937;
+
+margin-bottom:6px;
+
+}
+
+.login-system{
+
+font-size:16px;
+font-weight:700;
+
+color:#CF002E;
+
+margin-bottom:20px;
+
+}
+
+.encabezado-visitante{
+
+position:relative;
+
+margin-bottom:10px;
+
+}
+
+.encabezado-visitante .logo-login{
+
+margin-top:0;
+
+margin-bottom:18px;
+
+}
+
+.encabezado-visitante .btn-home{
+
+position:absolute;
+
+top:0;
+
+right:0;
+
+}
+
+.card-visitante{
+
+display:flex;
+
+align-items:center;
+
+gap:14px;
+
+background:#ffffff;
+
+padding:20px;
+
+margin-top:16px;
+
+border-radius:22px;
+
+box-shadow:
+0 12px 28px rgba(0,0,0,.08);
+
+border-left:8px solid #FDD000;
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+.card-visitante:hover{
+
+transform:translateY(-3px);
+
+box-shadow:
+0 18px 35px rgba(0,0,0,.12);
+
+}
+
+.card-visitante:hover{
+
+transform:translateY(-2px);
+
+}
+
+.visitante-icono{
+
+width:55px;
+height:55px;
+
+background:#FFF4CC;
+
+border-radius:50%;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:24px;
+
+}
+
+.visitante-texto{
+
+flex:1;
+
+text-align:left;
+
+}
+
+.visitante-titulo{
+
+font-size:17px;
+font-weight:800;
+
+color:#1f2937;
+
+}
+
+.visitante-sub{
+
+font-size:13px;
+
+color:#6b7280;
+
+margin-top:3px;
+
+}
+
+.visitante-flecha{
+
+font-size:30px;
+font-weight:700;
+
+color:#CF002E;
+
+}
+
+.btn-login{
+
+width:100%;
+
+height:62px;
+
+background:#CF002E;
+
+border:none;
+
+border-radius:18px;
+
+color:white;
+
+font-size:20px;
+
+font-weight:800;
+
+letter-spacing:.4px;
+
+cursor:pointer;
+
+transition:all .25s ease;
+
+box-shadow:
+0 8px 20px rgba(207,0,46,.18);
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+}
+
+.btn-login:hover{
+
+background:#B00028;
+
+transform:translateY(-2px);
+
+box-shadow:
+0 14px 28px rgba(207,0,46,.25);
+
+}
+
+.btn-login:active{
+
+transform:translateY(0);
+
+box-shadow:
+0 6px 14px rgba(207,0,46,.18);
+
+}
+
 </style>
 </head>
 <body>
@@ -387,10 +653,22 @@ text-align:left;
 
 <!-- LOGIN -->
 
-<div id="loginBox" class="card">
+<div id="loginBox" class="card card-login">
 
-<div class="card-title">
-● ACCESO AL SISTEMA
+<div class="logo-login">
+QA
+</div>
+
+<div class="login-subtitle">
+Bienvenido
+</div>
+
+<div class="login-title">
+Portal de Calidad
+</div>
+
+<div class="login-system">
+Sistema QA
 </div>
 
 <hr class="separador">
@@ -477,29 +755,60 @@ readonly>
 <button
 class="btn-login"
 onclick="login()">
-Ingresar
+INGRESAR
 </button>
 
-<button
-class="btn-dashboard"
-style="margin-top:15px;"
+<div
+class="card-visitante"
 onclick="mostrarCliente()">
-Invitado
-</button>
+
+<div class="visitante-icono">
+👤
+</div>
+
+<div class="visitante-texto">
+
+<div class="visitante-titulo">
+Acceso para visitantes
+</div>
+
+<div class="visitante-sub">
+Registrar alerta sin cuenta
+</div>
+
+</div>
+
+<div class="visitante-flecha">
+›
+</div>
+
+</div>
 
 </div>
 
 <div id="clienteBox" class="card hidden">
 
-<div class="card-title"
-style="display:flex;justify-content:space-between;align-items:center;">
+<div class="encabezado-visitante">
 
-<span>INVITADO</span>
-
-<div
-class="btn-home"
+<div class="btn-home"
 onclick="volverInicio()">
 🏠
+</div>
+
+<div class="logo-login">
+QA
+</div>
+
+<div class="login-subtitle">
+Bienvenido
+</div>
+
+<div class="login-title">
+Acceso para Visitantes
+</div>
+
+<div class="login-system">
+Portal de Calidad
 </div>
 
 </div>
@@ -511,17 +820,56 @@ type="text"
 id="clienteNombre"
 placeholder="Nombre completo">
 
-<select id="clienteEmpresa">
+<select id="clienteEmpresa" onchange="validarDHL()">
 <option value="">Selecciona compañía</option>
+<option value="DHL">DHL</option>
 <option value="COORSA">COORSA</option>
 <option value="P&G">P&G</option>
 <option value="NIMU">NIMU</option>
 </select>
 
+<div id="bloqueSMO" class="hidden">
+
+<select id="esSMO">
+<option value="">¿Eres de SMO?</option>
+<option value="SI">SI</option>
+<option value="NO">NO</option>
+</select>
+
+<select id="smoArea" class="hidden">
+<option value="">Selecciona área</option>
+
+<option value="HS&E">HS&E</option>
+<option value="RH">RH</option>
+<option value="CALIDAD">CALIDAD</option>
+<option value="ENTRENAMIENTOS">ENTRENAMIENTOS</option>
+<option value="OMS">OMS</option>
+<option value="INVENTARIOS">INVENTARIOS</option>
+<option value="CRYD">CRYD</option>
+<option value="PFCT">PFCT</option>
+<option value="CUSTOMIZADO">CUSTOMIZADO</option>
+<option value="CONTROLES INTERNOS">CONTROLES INTERNOS</option>
+<option value="SISTEMAS">SISTEMAS</option>
+<option value="PROYECTOS">PROYECTOS</option>
+<option value="TRANSPORTE">TRANSPORTE</option>
+
+</select>
+
+<select id="smoCuadrilla" class="hidden">
+<option value="">Selecciona cuadrilla</option>
+<option value="A">A</option>
+<option value="B">B</option>
+<option value="C">C</option>
+<option value="D">D</option>
+<option value="STAFF">STAFF</option>
+</select>
+
+</div>
+
 <button
 class="btn-login"
 onclick="ingresarCliente()">
-Ingresar como Invitado
+INGRESAR
 </button>
 
 </div>
@@ -642,6 +990,10 @@ onclick="logout()">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<div class="creditos">
+⚙️ Sistema QA | Desarrollado por <b>Felix Montoya</b>
+</div>
+
 <script>
 
 /*USUARIOS*/
@@ -678,7 +1030,28 @@ const personal = {
 "HS&E B": {cuadrilla:"B", area:"HS&E", pass:"HSE123"},
 "HS&E C": {cuadrilla:"C", area:"HS&E", pass:"HSE123"},
 "HS&E D": {cuadrilla:"D", area:"HS&E", pass:"HSE123"},
-"Felix Montoya": {cuadrilla:"ADMIN", area:"QA", pass:"1710", admin:true}
+"Felix Montoya": {cuadrilla:"ADMIN", area:"QA", pass:"1710", admin:true},
+
+"JUAN ROQUE": {
+    cuadrilla:"P&G",
+    area:"OPERACIONES",
+    pass:"JR123",
+    rol:"VISUALIZADOR"
+},
+
+"PABLO BECERRA": {
+    cuadrilla:"P&G",
+    area:"CALIDAD",
+    pass:"PB123",
+    rol:"VISUALIZADOR"
+},
+
+"JULIO ARAIZA": {
+    cuadrilla:"P&G",
+    area:"CALIDAD",
+    pass:"JA123",
+    rol:"VISUALIZADOR"
+}
 
 };
 
@@ -746,6 +1119,50 @@ document.getElementById("loginBox")
 
 }
 
+function validarDHL(){
+
+const empresa =
+document.getElementById("clienteEmpresa").value;
+
+if(empresa === "DHL"){
+
+document.getElementById("bloqueSMO")
+.classList.remove("hidden");
+
+}else{
+
+document.getElementById("bloqueSMO")
+.classList.add("hidden");
+
+}
+
+}
+
+document.addEventListener("change",(e)=>{
+
+if(e.target.id==="esSMO"){
+
+if(e.target.value==="SI"){
+
+document.getElementById("smoArea")
+.classList.remove("hidden");
+
+document.getElementById("smoCuadrilla")
+.classList.remove("hidden");
+
+}else{
+
+document.getElementById("smoArea")
+.classList.add("hidden");
+
+document.getElementById("smoCuadrilla")
+.classList.add("hidden");
+
+}
+
+}
+
+});
 
 function ingresarCliente(){
 
@@ -756,6 +1173,15 @@ document.getElementById("clienteNombre")
 const empresa =
 document.getElementById("clienteEmpresa")
 .value;
+
+const esSMO =
+document.getElementById("esSMO").value;
+
+const smoArea =
+document.getElementById("smoArea").value;
+
+const smoCuadrilla =
+document.getElementById("smoCuadrilla").value;
 
 if(!nombre || !empresa){
 
@@ -770,14 +1196,43 @@ return;
 
 }
 
+if(
+empresa === "DHL" &&
+esSMO === "SI" &&
+(!smoArea || !smoCuadrilla)
+){
+
+Swal.fire({
+icon:'warning',
+title:'Información requerida',
+text:'Selecciona área y cuadrilla',
+confirmButtonColor:'#CF002E'
+});
+
+return;
+
+}
+
 const sesionActiva = {
 datos:{
 nombre:nombre,
-cuadrilla:"VISITA",
-area:empresa,
+
+cuadrilla:
+empresa === "DHL" && esSMO === "SI"
+? smoCuadrilla
+: "VISITA",
+
+area:
+empresa === "DHL" && esSMO === "SI"
+? smoArea
+: empresa,
+
 turno:"VISITA",
+
 fecha:document.getElementById("fecha").value,
+
 empresa:empresa,
+
 tipo:"INVITADO"
 },
 inicio:Date.now()
@@ -944,6 +1399,22 @@ document.getElementById("btnExcelIncidencias").style.display="block";
 
 return;
 
+}
+
+/* VISUALIZADOR */
+
+if(info.rol === "VISUALIZADOR"){
+
+    document.getElementById("tituloTemplates").style.display="block";
+    document.getElementById("tituloDashboards").style.display="block";
+
+    document.getElementById("btnAlertas").style.display="block";
+
+    document.getElementById("btnDashboardAlertas").style.display="block";
+    document.getElementById("btnDashboardAuditorias").style.display="block";
+    document.getElementById("btnDashboardIncidencias").style.display="block";
+
+    return;
 }
 
 /* COORDINADORES */
