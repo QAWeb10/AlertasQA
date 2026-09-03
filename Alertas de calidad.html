@@ -1288,7 +1288,7 @@ PRODUCTO:[
 "COLAPSO",
 "MAL EMPLAYADO",
 "DOBLE ESTIBA",
-"PALLET LADEADO",
+"TARIMA LADEADA",
 "PIRAMIDE DE FRAGILIDAD",
 "SUSTRACCIÓN"
 ],
@@ -1297,7 +1297,7 @@ ETIQUETADO:[
 "ETIQUETA DAÑADA",
 "ETIQUETA DESPRENDIDA",
 "ETIQUETA SIN INFORMACIÓN",
-"PALLET SIN ETIQUETA"
+"TARIMA SIN ETIQUETA"
 ],
 
 INVENTARIO:[
@@ -1316,14 +1316,15 @@ INVENTARIO:[
 ALMACENAMIENTO:[
 "ORIENTACIÓN INCORRECTA",
 "SECTORIZACIÓN INCORRECTA",
-"PALLET SOBRE PASILLO",
-"PALLET VACÍO EN UBICACIÓN",
+"TARIMA SOBRE PASILLO",
+"TARIMA VACÍA EN UBICACIÓN",
+"TARIMA DAÑADA",
 "CAVERNA"
 ],
 
 "ORDEN Y LIMPIEZA":[
 "ENVOLTURAS (DULCES)",
-"PALLET CON POLVO",
+"TARIMA CON POLVO",
 "MATERIAL FUERA DE UBICACIÓN",
 "HERRAMIENTAS FUERA DE SU LUGAR",
 "BASURA EN PASILLOS",
@@ -1362,6 +1363,7 @@ INFRAESTRUCTURA:[
 "GOTERA",
 "PISO DAÑADO",
 "PARED DAÑADA",
+"TARIMA ATORADA",
 "TECHO DAÑADO"
 ],
 
@@ -1377,7 +1379,6 @@ TRANSPORTE:[
 "TECHO DAÑADO",
 "CLAROS DE LUZ",
 "GOTERA",
-"PLAGA",
 "PUERTA CORREDIZA",
 "CERTIFICADO VENCIDO",
 "CERTIFICADO CON INCOSISTENCIAS",
@@ -1390,7 +1391,7 @@ TRANSPORTE:[
 ],
 
 "MASTER DATA":[
-"DIFERENCIA DE ESTIBA",
+"ERROR EN ESTIBADO",
 "VISTAS FALTANTES SAP",
 "SIN INFORMACIÓN EN IOPT",
 "IOPT FUERA DE ESTÁNDAR",
@@ -2074,7 +2075,18 @@ else if(clasificacion === "MASTER DATA"){
 contenedor.innerHTML = `
 
 <div class="field">
+<label>
+Código
+<span class="req">*</span>
+</label>
+<input
+  id="codigoDinamico"
+  maxlength="8"
+  placeholder="Código"
+  oninput="validarCodigo(this)">
+</div>
 
+<div class="field">
 <label>
 Proceso
 </label>
@@ -2877,6 +2889,24 @@ if(clasificacion === "CONTROL AMBIENTAL"){
 
 }
 
+if(clasificacion === "MASTER DATA"){
+
+  const codigo =
+  document.getElementById("codigoDinamico")?.value;
+
+  if(!codigo){
+
+    toast(
+      "Captura el código de Master Data",
+      "err"
+    );
+
+    btn.disabled = false;
+    return;
+  }
+
+}
+
 const clasificacionesConProceso = [
 
   "PRODUCTO",
@@ -2922,6 +2952,8 @@ if(
 
 }
 
+// Foto opcional
+/*
 if(fotosSeleccionadas.length === 0){
 
   toast(
@@ -2933,6 +2965,7 @@ if(fotosSeleccionadas.length === 0){
   return;
 
 }
+*/
 
 try{
 
@@ -3814,6 +3847,19 @@ if(r.clasificacion === "CONTROL AMBIENTAL"){
 
   campo(10,y,90,"Tipo Ambiental",r.tipo_ambiental);
   campo(105,y,95,"Valor Ambiental",r.valor_ambiental);
+
+  y += GAP;
+}
+
+if(r.clasificacion === "MASTER DATA"){
+
+  campo(
+    10,
+    y,
+    190,
+    "Código",
+    r.codigo
+  );
 
   y += GAP;
 }
