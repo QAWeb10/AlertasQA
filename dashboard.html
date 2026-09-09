@@ -9,7 +9,6 @@
   <title>QA · Dashboard de Alertas</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
@@ -794,7 +793,7 @@
 
 .transport-section .transport-main{
   grid-column:span 2;
-  height:500px;
+  height:360px;
 }
 
 .transport-section .transport-side{
@@ -807,7 +806,7 @@
 }
 
 .transport-section .transport-main .chart-wrap{
-  height:430px;
+  height:300px;
 }
 
 .transport-section .chart-title{
@@ -1472,7 +1471,168 @@
 
   }
 
-  </style>
+  
+/* ===== ESTETICA CORREGIDA — SIN CAMBIAR FUNCIONALIDAD ===== */
+:root{--ui-border:#dfe3e8;--ui-soft:#f7f8fa;--ui-shadow:0 8px 24px rgba(25,35,45,.08)}
+body{background:linear-gradient(180deg,#f8f9fb 0%,#fffdf3 100%)}
+.appbar{min-height:72px;padding:12px 26px;gap:14px;box-shadow:0 4px 18px rgba(0,0,0,.14)}
+.logo{width:44px;height:44px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+.nav-dash a,.badge{display:inline-flex;align-items:center;justify-content:center;min-height:36px;font-size:12px;font-weight:800;transition:all .18s ease}
+.nav-dash a{padding:8px 16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.32);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.nav-dash a:hover{transform:translateY(-1px);background:rgba(255,255,255,.22);box-shadow:0 4px 12px rgba(0,0,0,.14)}
+.badge{padding:7px 12px}
+.card,.kpi,.chart-card,.criticidad-card{border-color:var(--ui-border);box-shadow:var(--ui-shadow);transition:box-shadow .18s ease,transform .18s ease}
+.card:hover,.kpi:hover,.chart-card:hover{box-shadow:0 10px 28px rgba(25,35,45,.10)}
+.card-head{padding:11px 16px;background:linear-gradient(180deg,#fffdf4,#fff);}
+.card-head h3,.section-title h2{font-weight:900}
+input,select,.multi-select-box{border-color:#d6dbe1;background:#fff;box-shadow:inset 0 1px 2px rgba(0,0,0,.025)}
+input:hover,select:hover,.multi-select-box:hover{border-color:#b9c0c8}
+input:focus,select:focus,.multi-select.open .multi-select-box{border-color:var(--brand);box-shadow:0 0 0 3px rgba(207,0,46,.09),0 2px 8px rgba(0,0,0,.05)}
+.multi-dropdown{border-color:#d9dee4;padding:8px;box-shadow:0 14px 34px rgba(20,30,40,.16)}
+.multi-option{min-height:34px}
+.multi-option:hover{background:#fff8dc}
+.acciones-filtros{gap:10px}
+.btn{min-height:42px;padding:10px 18px;border:1px solid transparent;border-radius:10px;letter-spacing:.15px;box-shadow:0 3px 8px rgba(0,0,0,.07)}
+.btn-primary{background:linear-gradient(180deg,#d80735,#b60028);box-shadow:0 4px 10px rgba(207,0,46,.20)}
+.btn-primary:hover{filter:brightness(1.03);transform:translateY(-1px);box-shadow:0 6px 14px rgba(207,0,46,.24)}
+.btn-secondary{background:#fff;border-color:#d8dde3;color:#34383d}
+.btn-secondary:hover{background:#f6f7f8;border-color:#c7cdd4;transform:translateY(-1px)}
+.kpi{padding:15px;min-height:108px}
+.kpi-value{font-weight:900;letter-spacing:-.4px}
+.chart-card{padding:13px;border-radius:14px}
+.chart-title{font-weight:900;line-height:1.3}
+.criticidad-card{border-radius:12px;background:linear-gradient(180deg,#fff,#fafafa)}
+.toast{border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px)}
+@media(max-width:900px){.appbar{padding:11px 16px}.wrap{padding:16px 16px 34px}}
+
+
+
+/* =========================================================
+   TRANSPORTISTAS — TOP 10 + TOP 30 EMERGENTE
+========================================================= */
+.transport-section .transport-main .chart-title{display:flex;align-items:center;gap:8px;}
+.transport-top-btn{margin-left:auto;border:1px solid #d8dde3;background:#fff;color:var(--brand);border-radius:8px;padding:6px 9px;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap;}
+.transport-top-btn:hover{background:#fff8dc;border-color:#c7cdd4;}
+.transport-modal{position:fixed;inset:0;z-index:9900;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.62);}
+.transport-modal.show{display:flex;}
+.transport-modal-content{width:min(760px,96vw);max-height:90vh;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 20px 55px rgba(0,0,0,.25);}
+.transport-modal-head{flex:none;padding:13px 16px;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,var(--brand-deep),var(--brand));color:#fff;}
+.transport-modal-head h3{margin:0;font-size:14px;font-weight:800;}
+.transport-modal-head small{margin-left:auto;font-size:10px;opacity:.82;}
+.transport-modal-close{width:32px;height:32px;border:1px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-size:22px;line-height:1;cursor:pointer;}
+.transport-modal-body{padding:14px;overflow:auto;background:#FAFAFA;}
+.transport-ranking{display:flex;flex-direction:column;gap:7px;}
+.transport-rank-row{display:grid;grid-template-columns:34px minmax(150px,1fr) 130px 52px;align-items:center;gap:10px;padding:9px 10px;background:#fff;border:1px solid var(--line);border-radius:10px;}
+.transport-rank-num{font-size:11px;font-weight:900;color:var(--brand);text-align:center;}
+.transport-rank-name{font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.transport-rank-bar{height:8px;background:#edf0f2;border-radius:99px;overflow:hidden;}
+.transport-rank-bar span{display:block;height:100%;border-radius:99px;background:var(--brand);}
+.transport-rank-value{text-align:right;font-size:11px;font-weight:900;}
+.transport-empty{padding:35px 15px;text-align:center;color:var(--ink-muted);font-size:12px;}
+@media(max-width:600px){.transport-top-btn{padding:5px 7px;font-size:8px;}.transport-modal{padding:8px;}.transport-modal-content{max-height:94vh;border-radius:12px;}.transport-rank-row{grid-template-columns:28px minmax(100px,1fr) 70px 42px;gap:7px;padding:8px;}}
+
+/* =========================================================
+   EVIDENCIAS — VISOR EMERGENTE
+========================================================= */
+.evidencias-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:13px 15px;
+  margin-top:11px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-1);
+}
+.evidencias-info{min-width:0;}
+.evidencias-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.55px;}
+.evidencias-sub{margin-top:3px;font-size:10px;color:var(--ink-muted);}
+.evidencias-btn{
+  flex:none;
+  border:0;
+  border-radius:9px;
+  padding:9px 13px;
+  background:linear-gradient(180deg,var(--brand),var(--brand-dark));
+  color:#fff;
+  font-family:inherit;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 2px 5px rgba(207,0,46,.18);
+}
+.evidencias-btn:disabled{opacity:.5;cursor:not-allowed;}
+.evidencias-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:24px;height:20px;padding:0 6px;margin-left:6px;
+  border-radius:999px;background:var(--accent);color:var(--brand-deep);
+  font-size:10px;font-weight:900;
+}
+.evidencias-modal{
+  position:fixed;inset:0;z-index:9800;display:none;
+  background:rgba(15,15,15,.72);backdrop-filter:blur(5px);
+  padding:18px;
+}
+.evidencias-modal.show{display:flex;align-items:center;justify-content:center;}
+.evidencias-modal-content{
+  width:min(1180px,100%);max-height:min(90vh,900px);
+  background:#fff;border-radius:16px;box-shadow:var(--shadow-3);
+  overflow:hidden;display:flex;flex-direction:column;
+}
+.evidencias-modal-head{
+  flex:none;padding:13px 16px;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(90deg,var(--brand-deep),var(--brand));color:#fff;
+}
+.evidencias-modal-head h3{margin:0;font-size:14px;font-weight:800;}
+.evidencias-modal-head small{margin-left:auto;font-size:10px;opacity:.82;}
+.evidencias-close{
+  width:32px;height:32px;border:1px solid rgba(255,255,255,.3);
+  border-radius:8px;background:rgba(255,255,255,.12);color:#fff;
+  font-size:22px;line-height:1;cursor:pointer;
+}
+.evidencias-modal-body{padding:14px;overflow:auto;background:#FAFAFA;}
+.evidencias-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+}
+.evidencia-item{
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;box-shadow:var(--shadow-1);min-width:0;
+}
+.evidencia-meta{padding:10px 11px 8px;}
+.evidencia-folio{font-size:11px;font-weight:900;color:var(--brand);}
+.evidencia-datos{margin-top:3px;font-size:10px;color:var(--ink-soft);line-height:1.4;}
+.evidencia-fotos{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:0 8px 8px;
+}
+.evidencia-foto{
+  width:100%;height:130px;object-fit:cover;display:block;cursor:zoom-in;
+  border-radius:8px;background:#F2F2F2;border:1px solid var(--line-soft);
+}
+.evidencia-sin-foto{padding:14px 10px;color:var(--ink-muted);font-size:10px;text-align:center;}
+.evidencia-lightbox{
+  position:fixed;inset:0;z-index:9950;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(0,0,0,.88);
+}
+.evidencia-lightbox.show{display:flex;}
+.evidencia-lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.45);}
+.evidencia-lightbox-close{
+  position:fixed;top:16px;right:18px;width:38px;height:38px;border:0;border-radius:50%;
+  background:rgba(255,255,255,.16);color:#fff;font-size:26px;cursor:pointer;
+}
+.evidencias-empty{padding:35px 15px;text-align:center;color:var(--ink-muted);font-size:12px;}
+@media(max-width:900px){.evidencias-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){
+  .evidencias-card{align-items:stretch;flex-direction:column;}
+  .evidencias-btn{width:100%;}
+  .evidencias-grid{grid-template-columns:1fr;}
+  .evidencia-foto{height:180px;}
+  .evidencias-modal{padding:8px;}
+  .evidencias-modal-content{max-height:94vh;border-radius:12px;}
+}
+
+</style>
   </head>
 
   <body>
@@ -2191,6 +2351,7 @@
       <div class="chart-title">
         <span class="dot"></span>
         Alertas por transportista
+        <button class="transport-top-btn" type="button" onclick="abrirTransportistas()" title="Ver top 30">Top 30</button>
       </div>
       <div class="chart-wrap">
         <canvas id="grafTransportistas"></canvas>
@@ -2208,6 +2369,49 @@
     </div>
 
   </section>
+
+
+
+  <div id="transportistasModal" class="transport-modal" aria-hidden="true">
+    <div class="transport-modal-content" role="dialog" aria-modal="true" aria-labelledby="transportistasModalTitle">
+      <div class="transport-modal-head">
+        <h3 id="transportistasModalTitle">Top 30 transportistas</h3>
+        <small id="transportistasModalSub">Filtros actuales</small>
+        <button class="transport-modal-close" type="button" onclick="cerrarTransportistas()" aria-label="Cerrar">×</button>
+      </div>
+      <div id="transportistasModalBody" class="transport-modal-body"></div>
+    </div>
+  </div>
+
+
+  <!-- =======================================================
+       EVIDENCIAS RECOLECTADAS — ACCESO COMPACTO
+  ======================================================= -->
+  <div class="evidencias-card">
+    <div class="evidencias-info">
+      <div class="evidencias-title">Evidencias recabadas <span id="evidenciasCount" class="evidencias-count">0</span></div>
+      <div id="evidenciasSub" class="evidencias-sub">Disponibles para las alertas filtradas.</div>
+    </div>
+    <button id="btnEvidencias" class="evidencias-btn" type="button" onclick="abrirEvidencias()" disabled>
+      Ver evidencias
+    </button>
+  </div>
+
+  <div id="evidenciasModal" class="evidencias-modal" aria-hidden="true">
+    <div class="evidencias-modal-content" role="dialog" aria-modal="true" aria-labelledby="evidenciasModalTitle">
+      <div class="evidencias-modal-head">
+        <h3 id="evidenciasModalTitle">Evidencias recabadas</h3>
+        <small id="evidenciasModalSub">0 alertas con evidencia</small>
+        <button class="evidencias-close" type="button" onclick="cerrarEvidencias()" aria-label="Cerrar">×</button>
+      </div>
+      <div id="evidenciasModalBody" class="evidencias-modal-body"></div>
+    </div>
+  </div>
+
+  <div id="evidenciaLightbox" class="evidencia-lightbox" onclick="cerrarEvidenciaImagen()" aria-hidden="true">
+    <button class="evidencia-lightbox-close" type="button" aria-label="Cerrar">×</button>
+    <img id="evidenciaLightboxImg" src="" alt="Evidencia ampliada" onclick="event.stopPropagation()">
+  </div>
 
 
   <!-- =======================================================
@@ -3371,6 +3575,10 @@ if(selector){
       datosFiltrados
     );
 
+    actualizarResumenEvidencias(
+      datosFiltrados
+    );
+
 
     const descripcionFecha =
       inicio || fin
@@ -3470,6 +3678,10 @@ if(selector){
 
 
     actualizarDashboard(
+      datosFiltrados
+    );
+
+    actualizarResumenEvidencias(
       datosFiltrados
     );
 
@@ -5284,158 +5496,89 @@ if(selector){
 
   }
 
-function crearGraficaTransportistas(datos){
+function obtenerRankingTransportistas(datos, limite=30){
+  const mapa = {};
+  (Array.isArray(datos) ? datos : []).forEach(r => {
+    if(normalizar(obtenerCampo(r,"clasificacion")) !== "TRANSPORTE") return;
+    const linea = normalizar(obtenerCampo(r,"linea_transportista"));
+    if(!linea) return;
+    mapa[linea] = (mapa[linea] || 0) + 1;
+  });
+  return Object.entries(mapa)
+    .map(([nombre,total]) => ({nombre,total}))
+    .sort((a,b) => b.total-a.total || a.nombre.localeCompare(b.nombre,"es"))
+    .slice(0,limite);
+}
 
+function crearGraficaTransportistas(datos){
   destruirChart(chartTransportistas);
   chartTransportistas = null;
-
   const canvas = document.getElementById("grafTransportistas");
   if(!canvas){
     console.warn("No existe #grafTransportistas en el HTML.");
     return;
   }
-
-  const mapa = {};
-
-  datos.forEach(r => {
-
-    const clasificacion =
-      normalizar(
-        obtenerCampo(r,"clasificacion")
-      );
-
-    if(clasificacion !== "TRANSPORTE"){
-      return;
-    }
-
-    const linea =
-      normalizar(
-        obtenerCampo(r,"linea_transportista")
-      );
-
-    if(!linea){
-      return;
-    }
-
-    mapa[linea] =
-      (mapa[linea] || 0) + 1;
-
-  });
-
-  const resultados = Object.entries(mapa)
-  .map(([nombre,total]) => ({
-    nombre,
-    total
-  }))
-  .sort((a,b) => b.total - a.total)
-  .slice(0,20);   // SOLO TOP 20
-
-  chartTransportistas = new Chart(
-
-    canvas,
-
-    {
-      type:"bar",
-
-      data:{
-        labels:
-          resultados.map(x => x.nombre),
-
-        datasets:[{
-
-          data:
-            resultados.map(x => x.total),
-
-          backgroundColor:
-            resultados.map(
-              (_,i)=>
-                PALETTE[
-                  i % PALETTE.length
-                ]
-            ),
-
-          borderRadius:6
-
-        }]
-      },
-
-      options:{
-
-        responsive:true,
-        maintainAspectRatio:false,
-
-        indexAxis:"x",
-
-        layout:{
-          padding:{
-            top:10,
-            right:16,
-            bottom:8,
-            left:8
-          }
-        },
-
-        plugins:{
-
-          legend:{
-            display:false
-          },
-
-          datalabels:{
-            color:"#333",
-            anchor:"end",
-            align:"top",
-            offset:4,
-            clamp:true,
-            clip:false,
-            font:{
-              size:11,
-              weight:"bold"
-            },
-            formatter:(value)=>
-              Number(value).toLocaleString("es-MX")
-          }
-
-        },
-
-        scales:{
-          y:{
-            beginAtZero:true,
-            ticks:{
-              precision:0,
-              padding:6
-            },
-            grid:{
-              color:"rgba(0,0,0,.07)"
-            }
-          },
-
-x:{
-  grid:{
-    display:false
-  },
-  ticks:{
-    autoSkip:false,
-    maxRotation:90,
-    minRotation:90,
-    padding:5,
-    font:{
-      family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif',
-      size:9,
-      weight:"700"
-    }
-  }
-}
+  const resultados = obtenerRankingTransportistas(datos,10);
+  chartTransportistas = new Chart(canvas,{
+    type:"bar",
+    data:{
+      labels:resultados.map(x=>x.nombre),
+      datasets:[{
+        data:resultados.map(x=>x.total),
+        backgroundColor:resultados.map((_,i)=>PALETTE[i % PALETTE.length]),
+        borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      indexAxis:"y",
+      layout:{padding:{top:8,right:16,bottom:8,left:4}},
+      plugins:{
+        legend:{display:false},
+        datalabels:{
+          color:"#333",anchor:"end",align:"right",offset:4,clamp:true,clip:false,
+          font:{size:10,weight:"bold"},
+          formatter:(value)=>Number(value).toLocaleString("es-MX")
         }
-
+      },
+      scales:{
+        x:{beginAtZero:true,ticks:{precision:0,padding:6},grid:{color:"rgba(0,0,0,.07)"}},
+        y:{grid:{display:false},ticks:{autoSkip:false,padding:7,font:{size:10,weight:"700"}}}
       }
-
     }
-
-  );
-
+  });
 }
 
+function abrirTransportistas(){
+  const modal=document.getElementById("transportistasModal");
+  const body=document.getElementById("transportistasModalBody");
+  const sub=document.getElementById("transportistasModalSub");
+  if(!modal || !body) return;
+  const ranking=obtenerRankingTransportistas(datosFiltrados,30);
+  if(sub) sub.textContent=`${ranking.length} transportistas · filtros actuales`;
+  if(!ranking.length){
+    body.innerHTML='<div class="transport-empty">No hay alertas de transporte con los filtros actuales.</div>';
+  }else{
+    const max=ranking[0].total || 1;
+    body.innerHTML='<div class="transport-ranking">'+ranking.map((item,index)=>{
+      const porcentaje=Math.max(3,(item.total/max)*100);
+      const nombre=escapeHtml(item.nombre);
+      return `<div class="transport-rank-row"><div class="transport-rank-num">${index+1}</div><div class="transport-rank-name" title="${nombre}">${nombre}</div><div class="transport-rank-bar"><span style="width:${porcentaje}%"></span></div><div class="transport-rank-value">${Number(item.total).toLocaleString("es-MX")}</div></div>`;
+    }).join('')+'</div>';
+  }
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+}
+
+function cerrarTransportistas(){
+  const modal=document.getElementById("transportistasModal");
+  if(!modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+}
 
 function crearGraficaDesviacionesTransporte(datos){
 
@@ -6317,10 +6460,20 @@ function crearGraficaDesviacionesTransporte(datos){
 
       inicializarMultiselects();
 
+      const hoy = new Date();
+      const hoyISO = [
+        hoy.getFullYear(),
+        String(hoy.getMonth()+1).padStart(2,"0"),
+        String(hoy.getDate()).padStart(2,"0")
+      ].join("-");
 
-      actualizarDashboard(
-        datosFiltrados
-      );
+      const inicioHoy = document.getElementById("inicio");
+      const finHoy = document.getElementById("fin");
+
+      if(inicioHoy) inicioHoy.value = hoyISO;
+      if(finHoy) finHoy.value = hoyISO;
+
+      aplicarFiltros();
 
 
       if(
@@ -6458,7 +6611,181 @@ function toggleHeatmap(){
 
   }
 
-  </script>
+  
+
+  /* =========================================================
+     EVIDENCIAS — SUPABASE / Reportes.imagenes
+     Solo muestra evidencias de los registros actualmente filtrados.
+  ========================================================= */
+  function normalizarImagenes(valor){
+    if(valor === null || valor === undefined || valor === "") return [];
+
+    if(Array.isArray(valor)){
+      return valor
+        .flatMap(item=>normalizarImagenes(item))
+        .filter(Boolean);
+    }
+
+    if(typeof valor === "object"){
+      const posibles = [
+        valor.url,
+        valor.publicUrl,
+        valor.public_url,
+        valor.path,
+        valor.src,
+        valor.imagen,
+        valor.foto
+      ];
+      return posibles.flatMap(item=>normalizarImagenes(item)).filter(Boolean);
+    }
+
+    const texto = String(valor).trim();
+    if(!texto) return [];
+
+    try{
+      const parsed = JSON.parse(texto);
+      if(parsed !== valor){
+        const resultado = normalizarImagenes(parsed);
+        if(resultado.length) return resultado;
+      }
+    }catch(e){}
+
+    return texto
+      .split(/[,\n]+/)
+      .map(v=>v.trim().replace(/^['\"]|['\"]$/g,""))
+      .filter(v=>/^https?:\/\//i.test(v));
+  }
+
+  function escapeHtmlSeguro(valor){
+    return String(valor ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function obtenerFolioEvidencia(registro){
+    return obtenerCampo(registro,"folio") ||
+           obtenerCampo(registro,"folio_global") ||
+           (obtenerCampo(registro,"consecutivo") ? "#" + obtenerCampo(registro,"consecutivo") : "Alerta");
+  }
+
+  function obtenerEvidenciasDisponibles(datos){
+    if(!Array.isArray(datos)) return [];
+
+    return datos.map(registro=>{
+      const valor =
+        obtenerCampo(registro,"imagenes") ||
+        obtenerCampo(registro,"evidencias") ||
+        obtenerCampo(registro,"evidencia") ||
+        obtenerCampo(registro,"fotos") ||
+        obtenerCampo(registro,"foto") ||
+        obtenerCampo(registro,"imagen");
+
+      return {
+        registro,
+        imagenes:normalizarImagenes(valor)
+      };
+    }).filter(item=>item.imagenes.length>0);
+  }
+
+  function actualizarResumenEvidencias(datos){
+    const items=obtenerEvidenciasDisponibles(datos);
+    const totalFotos=items.reduce((sum,item)=>sum+item.imagenes.length,0);
+    const count=document.getElementById("evidenciasCount");
+    const btn=document.getElementById("btnEvidencias");
+    const sub=document.getElementById("evidenciasSub");
+    if(count) count.textContent=totalFotos;
+    if(btn) btn.disabled=items.length===0;
+    if(sub){
+      sub.textContent=items.length
+        ? `${items.length} alerta${items.length===1?"":"s"} con evidencia · ${totalFotos} fotografía${totalFotos===1?"":"s"}`
+        : "No hay evidencias en los resultados filtrados.";
+    }
+  }
+
+  function abrirEvidencias(){
+    const items=obtenerEvidenciasDisponibles(datosFiltrados);
+    const modal=document.getElementById("evidenciasModal");
+    const body=document.getElementById("evidenciasModalBody");
+    const sub=document.getElementById("evidenciasModalSub");
+    if(!modal||!body) return;
+
+    if(!items.length){
+      body.innerHTML='<div class="evidencias-empty">No hay evidencias para los filtros seleccionados.</div>';
+      if(sub) sub.textContent="0 alertas con evidencia";
+    }else{
+      const totalFotos=items.reduce((sum,item)=>sum+item.imagenes.length,0);
+      if(sub) sub.textContent=`${items.length} alerta${items.length===1?"":"s"} · ${totalFotos} fotografía${totalFotos===1?"":"s"}`;
+      body.innerHTML=`<div class="evidencias-grid">${items.map(({registro,imagenes})=>{
+        const folio=escapeHtmlSeguro(obtenerFolioEvidencia(registro));
+        const fecha=escapeHtmlSeguro(formatearFechaMostrar(obtenerFechaRegistro(registro)));
+        const clasificacion=escapeHtmlSeguro(obtenerCampo(registro,"clasificacion")||"Sin clasificación");
+        const hallazgo=escapeHtmlSeguro(obtenerCampo(registro,"hallazgo")||"Sin hallazgo");
+        const persona=escapeHtmlSeguro(obtenerCampo(registro,"nombre")||"");
+        return `<article class="evidencia-item">
+          <div class="evidencia-meta">
+            <div class="evidencia-folio">${folio}</div>
+            <div class="evidencia-datos">${fecha ? fecha+" · " : ""}${clasificacion}${persona ? " · "+persona : ""}<br>${hallazgo}</div>
+          </div>
+          <div class="evidencia-fotos">
+            ${imagenes.map(url=>`<img class="evidencia-foto" src="${escapeHtmlSeguro(url)}" alt="Evidencia de ${folio}" loading="lazy" onclick="abrirEvidenciaImagen(this.src)">`).join("")}
+          </div>
+        </article>`;
+      }).join("")}</div>`;
+    }
+
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden","false");
+    document.body.style.overflow="hidden";
+  }
+
+  function cerrarEvidencias(){
+    const modal=document.getElementById("evidenciasModal");
+    if(!modal) return;
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden","true");
+    const light=document.getElementById("evidenciaLightbox");
+    if(light && light.classList.contains("show")) cerrarEvidenciaImagen();
+    document.body.style.overflow="";
+  }
+
+  function abrirEvidenciaImagen(url){
+    const light=document.getElementById("evidenciaLightbox");
+    const img=document.getElementById("evidenciaLightboxImg");
+    if(!light||!img) return;
+    img.src=url;
+    light.classList.add("show");
+    light.setAttribute("aria-hidden","false");
+  }
+
+  function cerrarEvidenciaImagen(){
+    const light=document.getElementById("evidenciaLightbox");
+    const img=document.getElementById("evidenciaLightboxImg");
+    if(!light) return;
+    light.classList.remove("show");
+    light.setAttribute("aria-hidden","true");
+    if(img) img.src="";
+  }
+
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape"){
+      const light=document.getElementById("evidenciaLightbox");
+      if(light && light.classList.contains("show")){
+        cerrarEvidenciaImagen();
+      }else{
+        const transportModal = document.getElementById("transportistasModal");
+        if(transportModal && transportModal.classList.contains("show")){
+          cerrarTransportistas();
+        }else{
+          cerrarEvidencias();
+        }
+      }
+    }
+  });
+
+</script>
 
   </body>
   </html>
