@@ -205,18 +205,20 @@
     FILTROS
   ========================================================= */
 
-  .filtros-grid{
-    display:grid;
-    grid-template-columns:
-      1.25fr
-      .8fr
-      .8fr
-      1.15fr
-      1.35fr
-      1fr;
-    gap:10px;
-    align-items:end;
-  }
+.filtros-grid{
+  display:grid;
+  grid-template-columns:
+    1.2fr   /* Persona */
+    .8fr    /* Fecha inicio */
+    .8fr    /* Fecha fin */
+    1.1fr   /* Clasificación */
+    1.2fr   /* Hallazgo */
+    1fr     /* Área */
+    1fr;    /* Cuadrilla */
+
+  gap:10px;
+  align-items:end;
+}
 
   .field{
     min-width:0;
@@ -1869,8 +1871,47 @@ input:focus,select:focus,.multi-select.open .multi-select-box{border-color:var(-
 
           </div>
 
-        </div>
+<div class="field multi-field">
 
+  <label>Cuadrilla</label>
+
+  <div
+    class="multi-select"
+    id="cuadrillaSelect"
+  >
+
+    <div
+      class="multi-select-box"
+      onclick="abrirMulti('cuadrilla')"
+    >
+
+      <span id="cuadrillaTexto">
+        Todas las cuadrillas
+      </span>
+
+      <span class="multi-arrow">▼</span>
+
+    </div>
+
+    <div class="multi-dropdown">
+
+      <input
+        id="cuadrillaBusqueda"
+        class="multi-search"
+        type="text"
+        placeholder="Buscar cuadrilla..."
+        oninput="buscarMulti('cuadrilla')"
+      >
+
+      <div id="cuadrillaOpciones"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+        </div>
 
         <div class="acciones-filtros">
 
@@ -2659,15 +2700,15 @@ input:focus,select:focus,.multi-select.open .multi-select-box{border-color:var(-
 let chartTransportistas = null;
   let chartDesviacionesTransporte = null;
 
-  const selecciones = {
+const selecciones = {
 
-    persona:new Set(),
-    clasificacion:new Set(),
-    hallazgo:new Set(),
-    area:new Set()
+  persona:new Set(),
+  clasificacion:new Set(),
+  hallazgo:new Set(),
+  area:new Set(),
+  cuadrilla:new Set()
 
-  };
-
+};
 
   /* =========================================================
     NORMALIZACION
@@ -3046,13 +3087,13 @@ let chartTransportistas = null;
 
   function abrirMulti(tipo){
 
-    const tipos = [
-      "persona",
-      "clasificacion",
-      "hallazgo",
-      "area"
-    ];
-
+const tipos = [
+  "persona",
+  "clasificacion",
+  "hallazgo",
+  "area",
+  "cuadrilla"
+];
 
     tipos.forEach(t=>{
 
@@ -3142,6 +3183,10 @@ let chartTransportistas = null;
 
   }
 
+  renderOpciones(
+  "cuadrilla",
+  valoresUnicos("cuadrilla")
+);
 
   /* =========================================================
     RENDER OPCIONES
@@ -3279,20 +3324,23 @@ let chartTransportistas = null;
 
     if(total === 0){
 
-      const textos = {
+const textos = {
 
-        persona:"Todas las personas",
+  persona:"Todas las personas",
 
-        clasificacion:
-          "Todas las clasificaciones",
+  clasificacion:
+    "Todas las clasificaciones",
 
-        hallazgo:
-          "Todos los hallazgos",
+  hallazgo:
+    "Todos los hallazgos",
 
-        area:
-          "Todas las áreas"
+  area:
+    "Todas las áreas",
 
-      };
+  cuadrilla:
+    "Todas las cuadrillas"
+
+};
 
 
       texto.textContent =
@@ -3429,6 +3477,8 @@ if(selector){
     const areas =
       obtenerSeleccionados("area");
 
+const cuadrillas =
+  obtenerSeleccionados("cuadrilla");
 
     const inicioInput =
       document.getElementById("inicio");
@@ -3534,6 +3584,19 @@ if(selector){
             return false;
           }
 
+if(
+  cuadrillas.length > 0 &&
+  !cuadrillas.includes(
+    normalizar(
+      obtenerCampo(
+        registro,
+        "cuadrilla"
+      )
+    )
+  )
+){
+  return false;
+}
 
           const fecha =
             obtenerFechaRegistro(
@@ -3659,6 +3722,10 @@ if(selector){
         "hallazgoBusqueda"
       );
 
+      const cuadrillaBusqueda =
+  document.getElementById(
+    "cuadrillaBusqueda"
+  );
 
     if(personaBusqueda){
       personaBusqueda.value = "";
@@ -3669,6 +3736,9 @@ if(selector){
       hallazgoBusqueda.value = "";
     }
 
+    if(cuadrillaBusqueda){
+  cuadrillaBusqueda.value = "";
+}
 
     inicializarMultiselects();
 
