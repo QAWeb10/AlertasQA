@@ -1030,6 +1030,20 @@ button{
   font-size:9px;
   font-weight:900;
 }
+/* EVIDENCIA POSITIVA · 100% APROBADO */
+.evidencia-positiva-panel{margin-top:12px;padding:11px;border:1px solid #9fd8aa;border-radius:10px;background:#f5fbf6}
+.evidencia-positiva-title{font-size:11px;font-weight:900;color:#17652c}
+.evidencia-positiva-subtitle{margin-top:4px;color:var(--ink-muted);font-size:9px;line-height:1.4}
+.evidencia-positiva-list{display:flex;flex-direction:column;gap:8px;margin-top:9px}
+.evidencia-positiva-item{padding:9px;border:1px solid #ccebd3;border-radius:9px;background:#fff}
+.evidencia-positiva-item-title{font-size:10px;font-weight:900}
+.evidencia-positiva-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.evidencia-positiva-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:7px}
+.evidencia-positiva-thumb{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid #ccebd3;border-radius:6px;background:#f5fbf6}
+.evidencia-positiva-thumb img{width:100%;height:100%;object-fit:cover}
+.evidencia-positiva-thumb button{position:absolute;top:2px;right:2px;width:19px;height:19px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:900}
+.evidencia-positiva-empty{margin-top:7px;color:var(--ink-muted);font-size:8px}
+@media(max-width:520px){.evidencia-positiva-preview{grid-template-columns:repeat(3,1fr);}}
 
 /* =========================================================
    ALMACENAJE
@@ -2065,8 +2079,33 @@ button{
             placeholder="Origen">
 
           <datalist id="origenListado">
-            <option value="Origen 1">
-            <option value="Origen 2">
+              <option>AEROBAL</option>
+  <option>ALCE BLANCO</option>
+  <option>ANDOVER PLANT GILLET</option>
+  <option>COLEP</option>
+  <option>DETERGENTES Y JABONES</option>
+  <option>DLMC DALLAS MIX CENT</option>
+  <option>EVSA</option>
+  <option>FIURI</option>
+  <option>GELCAPS</option>
+  <option>GERMANY IMP</option>
+  <option>GREENSBORO</option>
+  <option>IMPORTADO</option>
+  <option>IRAPUATO (CHRONOS)</option>
+  <option>MARISCALA</option>
+  <option>MILENIO</option>
+  <option>NAUCALPAN</option>
+  <option>P&G BROWNS SUMMIT SW</option>
+  <option>PHOENIX PLANT V1725Z</option>
+  <option>QUIFA</option>
+  <option>QUIMICA & FARMACIA S</option>
+  <option>SMO MASTER DC-PG MFG</option>
+  <option>SMOMASTERDC-PGMFG</option>
+  <option>TABLER STATION PLANT</option>
+  <option>TEPEJI</option>
+  <option>THE PROCTER & GAMBLE</option>
+  <option>USA TABLER STATION PLANT</option>
+  <option>VALLEJO</option>
           </datalist>
 
         </div>
@@ -2270,8 +2309,19 @@ button{
   </section>
 
   <!-- =====================================================
-       06 · RESULTADO
-  ====================================================== -->
+     06 · EVIDENCIA POSITIVA · 100% APROBADO
+====================================================== -->
+<section class="card hidden" id="evidenciaPositivaSection">
+  <div class="card-head"><div><h2><span class="section-number">06</span> Evidencia positiva</h2><small>LPN con 100% de aprobación</small></div></div>
+  <div class="card-body">
+    <div id="evidenciaPositivaAlert" class="alert alert-info">El panel se habilitará por LPN cuando todas sus verificaciones estén aprobadas y no exista ninguna desviación.</div>
+    <div id="evidenciaPositivaLista" class="evidencia-positiva-list"></div>
+  </div>
+</section>
+
+<!-- =====================================================
+     07 · RESULTADO
+====================================================== -->
 
 <section class="card" id="resultadoSection">
 
@@ -2660,6 +2710,13 @@ function prepararAuditoriaParaBorrador(items){
       });
     });
     copia.evidencia_campos=evidencias;
+    copia.evidencia_positiva=(item?.evidencia_positiva||[]).map(archivo=>{
+      if(typeof archivo==="string")return {tipo:"url",url:archivo};
+      if(archivo?.tipo==="url"&&archivo.url)return archivo;
+      const localId=archivo?.__qaEvidenceId||`evidencia:${auditoriaId}:${crypto.randomUUID()}`;
+      try{archivo.__qaEvidenceId=localId;}catch(e){}
+      return {tipo:"local",localId,name:archivo?.name||"evidencia.jpg",type:archivo?.type||"image/jpeg",lastModified:archivo?.lastModified||Date.now()};
+    });
     return copia;
   });
 }
@@ -2721,6 +2778,9 @@ async function guardarBorradorLocal(){
           }
         }
       }
+    }
+    for(const archivo of item?.evidencia_positiva||[]){
+      if(typeof archivo!=="string"&&archivo?.__qaEvidenceId) await guardarArchivoBorradorLocal(archivo.__qaEvidenceId,archivo);
     }
     const estado={
       auditoriaId,
@@ -2798,6 +2858,24 @@ async function prepararBorradorCompartido(estado){
     }
   }
 
+    for(const item of copia.auditoriaActual||[]){
+      const positivas=[];
+      for(const archivo of item?.evidencia_positiva||[]){
+        if(archivo?.tipo!=="local"||!archivo.localId){positivas.push(archivo);continue;}
+        try{
+          const registro=await obtenerArchivoBorradorLocal(archivo.localId);
+          if(!registro?.blob)continue;
+          const extension=(registro.type||archivo.type||"image/jpeg").split("/")[1]||"jpg";
+          const ruta=`borradores/${estado.auditoriaId}/${item.lpn||"sin_lpn"}/evidencia_positiva/${ahora}_${Math.random().toString(36).slice(2,8)}.${extension}`;
+          const {error}=await supabaseClient.storage.from(BUCKET).upload(ruta,registro.blob,{contentType:registro.type||archivo.type||"image/jpeg",upsert:true});
+          if(error){console.error("Error compartiendo evidencia positiva:",error);continue;}
+          const {data}=supabaseClient.storage.from(BUCKET).getPublicUrl(ruta);
+          if(data?.publicUrl)positivas.push({tipo:"url",url:data.publicUrl});
+        }catch(error){console.error("Error procesando evidencia positiva compartida:",error);}
+      }
+      item.evidencia_positiva=positivas;
+    }
+
   return copia;
 }
 
@@ -2868,6 +2946,7 @@ async function restaurarEstadoBorrador(estado){
 
   for(const item of auditoriaActual){
     item.evidencia_campos=item.evidencia_campos||{};
+    item.evidencia_positiva=item.evidencia_positiva||[];
     for(const categoria of ["generales","inventario","pallet","granel"]){
       item.evidencia_campos[categoria]=item.evidencia_campos[categoria]||{};
       for(const [campo,archivos] of Object.entries(item.evidencia_campos[categoria])){
@@ -2889,6 +2968,24 @@ async function restaurarEstadoBorrador(estado){
         item.evidencia_campos[categoria][campo]=restaurados;
       }
     }
+  }
+
+  for(const item of auditoriaActual){
+    const arr=[];
+    for(const archivo of item.evidencia_positiva||[]){
+      if(typeof archivo==="string"){arr.push(archivo);continue;}
+      if(archivo?.tipo==="url"&&archivo.url){arr.push(archivo.url);continue;}
+      if(archivo?.tipo==="local"&&archivo.localId){
+        const registro=await obtenerArchivoBorradorLocal(archivo.localId);
+        if(registro?.blob){
+          try{
+            const file=new File([registro.blob],registro.name||archivo.name||"evidencia.jpg",{type:registro.type||archivo.type||"image/jpeg",lastModified:registro.lastModified||archivo.lastModified||Date.now()});
+            file.__qaEvidenceId=archivo.localId;arr.push(file);
+          }catch(error){console.error("No fue posible restaurar evidencia positiva:",error);}
+        }
+      }
+    }
+    item.evidencia_positiva=arr;
   }
 
   cambiarTipoAuditoria();
@@ -2942,39 +3039,127 @@ async function cargarAuditoriaEnProceso(id){
   }finally{qaDraftRestoring=false;}
 }
 
-async function eliminarAuditoriaEnProceso(id){
-  const lista=await obtenerAuditoriasEnProceso();
-  const estado=lista.find(x=>x?.auditoriaId===id);
-  if(!estado)return;
+function esUsuarioAdministrador(){
+  // El portal de Calidad define el rol real del usuario en:
+  // localStorage.adminPortal = "true" cuando personal[usuario].admin === true.
+  // También soportamos la sesión activa para evitar depender de un campo que
+  // actualmente no se copia dentro de sesionActiva.
+  const adminPortal = localStorage.getItem("adminPortal");
+  if(String(adminPortal).toLowerCase() === "true") return true;
 
-  const propietario=estado.propietario || estado.usuario || usuarioQA?.nombre || "";
-  if(propietario!==usuarioQA?.nombre){
-    mostrarAlertaQA("Solo el usuario que inició la auditoría puede eliminar su avance compartido.","warning","Auditoría compartida");
+  const usuarioPortal = String(
+    localStorage.getItem("usuarioPortal") || ""
+  ).trim();
+
+  // Respaldo directo contra la misma estructura de sesión:
+  // si adminPortal no existe, revisamos los datos disponibles.
+  const sesionRaw = localStorage.getItem("sesionActiva");
+  if(sesionRaw){
+    try{
+      const sesion = JSON.parse(sesionRaw);
+      const datos = sesion?.datos || sesion || {};
+
+      if(datos.admin === true || String(datos.admin).toLowerCase() === "true"){
+        return true;
+      }
+
+      if(
+        ["administrador","admin","administrator","administradora","superadmin","super administrador"]
+          .includes(String(datos.rol || datos.perfil || datos.tipoUsuario || "").trim().toLowerCase())
+      ){
+        return true;
+      }
+    }catch(error){
+      console.warn("No fue posible leer sesionActiva para validar administrador:",error);
+    }
+  }
+
+  // Último respaldo: consultar el usuario guardado en el portal.
+  // Esto replica exactamente la fuente de roles del index.
+  if(usuarioPortal){
+    const nombresAdmin = [
+      "Felix Montoya"
+    ];
+
+    if(nombresAdmin.some(nombre =>
+      nombre.toUpperCase() === usuarioPortal.toUpperCase()
+    )){
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function eliminarAuditoriaEnProceso(id){
+  if(!esUsuarioAdministrador()){
+    mostrarAlertaQA("Solo el usuario Administrador puede eliminar auditorías en proceso de cualquier usuario.","warning","Acceso restringido");
     return;
   }
 
-  const nueva=lista.filter(x=>x?.auditoriaId!==id);
-  localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(nueva));
-  if(localStorage.getItem(QA_DRAFT_STATE_KEY)){
-    try{const actual=JSON.parse(localStorage.getItem(QA_DRAFT_STATE_KEY));if(actual?.auditoriaId===id)localStorage.removeItem(QA_DRAFT_STATE_KEY);}catch(e){}
+  if(!id){
+    mostrarAlertaQA("No se encontró el identificador de la auditoría.","warning","No se puede eliminar");
+    return;
   }
 
+  const lista=await obtenerAuditoriasEnProceso();
+  const estado=lista.find(x=>String(x?.auditoriaId||'')===String(id));
+  const propietario=estado?.propietario || estado?.usuario || "";
+
   try{
-    const {error}=await supabaseClient
+    const {data,error}=await supabaseClient
       .from("Auditoria_Recibo_Borrador")
       .delete()
       .eq("auditoria_id",id)
-      .eq("usuario",propietario);
-    if(error)console.error("Error eliminando borrador remoto:",error);
-  }catch(error){console.error("Error eliminando borrador remoto:",error);}
+      .select("auditoria_id");
 
-  const archivos=[];
-  (estado.auditoriaActual||[]).forEach(item=>{
-    Object.values(item?.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(x=>{if(x?.localId)archivos.push(x.localId);})));
-  });
-  if(estado.excelLocalId)archivos.push(estado.excelLocalId);
-  for(const idArchivo of archivos) await eliminarArchivoBorradorLocal(idArchivo);
-  mostrarAuditoriasEnProceso();
+    if(error){
+      console.error("Error eliminando borrador remoto:",error);
+      mostrarAlertaQA(
+        `Supabase rechazó la eliminación de la auditoría ${id}. ${error.message||error.details||"Verifica la política RLS de DELETE de Auditoria_Recibo_Borrador para Administrador."}`,
+        "danger",
+        "No se pudo eliminar"
+      );
+      return;
+    }
+
+    // Con RLS, un DELETE exitoso puede devolver data vacía si no había una fila visible.
+    // Si el borrador remoto no existe, todavía limpiamos la copia local.
+    const nueva=lista.filter(x=>String(x?.auditoriaId||'')!==String(id));
+    localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(nueva));
+    if(localStorage.getItem(QA_DRAFT_STATE_KEY)){
+      try{
+        const actual=JSON.parse(localStorage.getItem(QA_DRAFT_STATE_KEY));
+        if(String(actual?.auditoriaId||'')===String(id)) localStorage.removeItem(QA_DRAFT_STATE_KEY);
+      }catch(e){ console.error(e); }
+    }
+
+    const archivos=[];
+    (estado?.auditoriaActual||[]).forEach(item=>{
+      Object.values(item?.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(x=>{
+        if(x?.localId)archivos.push(x.localId);
+      })));
+      (item?.evidencia_positiva||[]).forEach(x=>{
+        if(x?.localId)archivos.push(x.localId);
+      });
+    });
+    if(estado?.excelLocalId)archivos.push(estado.excelLocalId);
+    for(const idArchivo of archivos) await eliminarArchivoBorradorLocal(idArchivo);
+
+    await mostrarAuditoriasEnProceso();
+    mostrarAlertaQA(
+      `La auditoría ${id}${propietario?` de ${propietario}`:""} fue eliminada correctamente.`,
+      "success",
+      "Auditoría eliminada"
+    );
+  }catch(error){
+    console.error("Error eliminando auditoría en proceso:",error);
+    mostrarAlertaQA(
+      `No fue posible eliminar la auditoría ${id}. ${error?.message||error||"Error desconocido"}`,
+      "danger",
+      "No se pudo eliminar"
+    );
+  }
 }
 
 async function mostrarAuditoriasEnProceso(){
@@ -2991,7 +3176,7 @@ async function mostrarAuditoriasEnProceso(){
   listaEl.innerHTML=lista.map((x)=>{
     const fecha=x.actualizado?new Date(x.actualizado).toLocaleString("es-MX"):"";
     const lpn=Array.isArray(x.auditoriaActual)?x.auditoriaActual.length:0;
-    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">Iniciada por: ${escapeHtml(x.propietario||x.usuario||"—")}<br>Última edición: ${escapeHtml(x.ultimaEdicionPor||x.propietario||"—")}<br>STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small" onclick="cargarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">CONTINUAR</button>${(x.propietario||x.usuario)===usuarioQA?.nombre?`<button type="button" class="btn btn-secondary btn-small" onclick="eliminarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">ELIMINAR</button>`:""}</div></div>`;
+    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">Iniciada por: ${escapeHtml(x.propietario||x.usuario||"—")}<br>Última edición: ${escapeHtml(x.ultimaEdicionPor||x.propietario||"—")}<br>STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small" onclick="cargarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">CONTINUAR</button>${esUsuarioAdministrador()?`<button type="button" class="btn btn-secondary btn-small" onclick="eliminarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">ELIMINAR</button>`:""}</div></div>`;
   }).join("");
 }
 
@@ -3509,6 +3694,9 @@ function generarMuestra(){
         granel:{}
       },
 
+      evidencia_positiva:[],
+
+
       playo_estado:"",
       danos:"",
       codigo_ok:"",
@@ -3563,10 +3751,35 @@ function actualizarLpn(index,campo,valor){
   guardarBorrador();
 }
 
+function claveLpnDuplicado(valor){
+  return String(valor??"").replace(/\u00A0/g," ").replace(/[\u200B-\u200D\uFEFF]/g,"").trim().toUpperCase().replace(/[\s-]+/g,"");
+}
+function buscarIndiceLpnDuplicada(valor,excluirIndex=-1){
+  const clave=claveLpnDuplicado(valor);if(!clave)return -1;
+  return auditoriaActual.findIndex((item,index)=>index!==excluirIndex&&claveLpnDuplicado(item?.lpn)===clave);
+}
+function validarLpnDuplicada(index,valor,mostrarMensaje=true){
+  if(!String(valor??"").trim())return false;
+  const duplicada=buscarIndiceLpnDuplicada(valor,index);if(duplicada<0)return false;
+  const item=auditoriaActual[index];
+  if(item){item.lpn="";item.excel_encontrada=false;item.sto="";item.gcas="";item.lote="";item.sistema_cantidad="";item.descripcion="";item.cliente="";item.inventory_status="";item.storage_location="";}
+  const input=document.getElementById(`lpn_${index}`);if(input){input.value="";input.focus();}
+  if(mostrarMensaje)mostrarAlertaQA(`LPN duplicada.<br><br>La LPN <strong>${escapeHtml(String(valor??"").trim())}</strong> ya fue registrada en la LPN ${duplicada+1} de esta auditoría.`,"warning","LPN duplicada");
+  actualizarVistaLpn(index);actualizarEstadoLpn(index);actualizarResultadoGeneral();guardarBorrador();return true;
+}
+function validarLpnDuplicadasAntesDeGuardar(){
+  const mapa=new Map(),duplicadas=[];
+  auditoriaActual.forEach((item,index)=>{const clave=claveLpnDuplicado(item?.lpn);if(!clave)return;if(mapa.has(clave))duplicadas.push({lpn:item.lpn,primero:mapa.get(clave)+1,segundo:index+1});else mapa.set(clave,index);});
+  if(!duplicadas.length)return true;
+  mostrarAlertaQA("No se puede guardar la auditoría porque existen LPN repetidas.<br><br>"+duplicadas.map(x=>`LPN ${escapeHtml(String(x.lpn))} está repetida entre las posiciones ${x.primero} y ${x.segundo}.`).join("<br>"),"warning","LPN duplicada");
+  return false;
+}
 function actualizarLpnEntrada(
   index,
   valor
 ){
+
+  if(validarLpnDuplicada(index,valor,true))return;
 
   actualizarLpn(
     index,
@@ -5271,6 +5484,42 @@ function obtenerTodosLosChecks(item){
   const out=[]; ["generales","inventario","pallet","granel"].forEach(c=>Object.entries(item?.[c]||{}).forEach(([campo,valor])=>out.push({categoria:c,campo,valor}))); return out;
 }
 
+function lpnAprobada100(index){
+  const item=auditoriaActual[index];
+  if(!item||!String(item.lpn||"").trim())return false;
+  const tieneDesviacion=calcularHallazgos(item).length>0||obtenerTodosLosChecks(item).some(x=>x.valor==="ERROR")||
+    item.playo_estado==="ERROR"||item.danos==="ERROR"||item.codigo_ok==="ERROR"||item.lote_ok==="ERROR"||
+    item.cantidad_ok==="ERROR"||item.mezcla_lotes_ok==="ERROR"||item.mezcla_codigos_ok==="ERROR";
+  if(tieneDesviacion)return false;
+  const checks=checksRequeridosParaItem(item);
+  return checks.length>0&&checks.every(([categoria,campo])=>item[categoria]?.[campo]==="OK");
+}
+function manejarEvidenciaPositiva(event,index){
+  const item=auditoriaActual[index],archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
+  if(!item||!archivos.length){if(event?.target)event.target.value="";return;}
+  if(!lpnAprobada100(index)){if(event?.target)event.target.value="";mostrarAlertaQA("La evidencia positiva solo puede agregarse a una LPN con 100% de aprobación y sin desviaciones.","warning","Evidencia no habilitada");return;}
+  item.evidencia_positiva=item.evidencia_positiva||[];
+  archivos.forEach(archivo=>{try{archivo.__qaEvidenceId=`evidencia:${auditoriaId}:${crypto.randomUUID()}`;}catch(e){}});
+  item.evidencia_positiva.push(...archivos);if(event?.target)event.target.value="";renderizarEvidenciaPositiva();guardarBorrador();
+}
+function eliminarEvidenciaPositiva(index,evidenciaIndex){
+  const item=auditoriaActual[index],arr=item?.evidencia_positiva;if(!arr||!arr[evidenciaIndex])return;
+  const archivo=arr[evidenciaIndex],pos=fotosSeleccionadas.indexOf(archivo);if(pos>=0)fotosSeleccionadas.splice(pos,1);
+  arr.splice(evidenciaIndex,1);renderizarEvidenciaPositiva();guardarBorrador();
+}
+function renderizarEvidenciaPositiva(){
+  const section=document.getElementById("evidenciaPositivaSection"),lista=document.getElementById("evidenciaPositivaLista"),alert=document.getElementById("evidenciaPositivaAlert");
+  if(!section||!lista)return;
+  const aprobadas=auditoriaActual.map((item,index)=>({item,index})).filter(x=>lpnAprobada100(x.index));
+  section.classList.toggle("hidden",aprobadas.length===0);
+  if(!aprobadas.length){lista.innerHTML="";if(alert){alert.className="alert alert-info";alert.textContent="El panel se habilitará por LPN cuando todas sus verificaciones estén aprobadas y no exista ninguna desviación.";}return;}
+  if(alert){alert.className="alert alert-success";alert.textContent=`${aprobadas.length} LPN con 100% de aprobación habilitadas para evidencia positiva.`;}
+  lista.innerHTML=aprobadas.map(({item,index})=>{
+    const evidencias=item.evidencia_positiva||[];
+    const previews=evidencias.map((archivo,i)=>{const url=typeof archivo==="string"?archivo:(archivo?.tipo==="url"?archivo.url:URL.createObjectURL(archivo));return `<div class="evidencia-positiva-thumb"><img src="${escapeHtml(url||"")}" alt="Evidencia positiva de ${escapeHtml(item.lpn)}"><button type="button" onclick="eliminarEvidenciaPositiva(${index},${i})">×</button></div>`;}).join("");
+    return `<div class="evidencia-positiva-item"><div class="evidencia-positiva-item-title">LPN ${escapeHtml(item.lpn)} — 100% APROBADO</div><div class="evidencia-positiva-subtitle">Evidencia asociada específicamente a esta LPN.</div><div class="evidencia-positiva-actions"><label class="evidence-mini" for="positiveCam_${index}">Cámara</label><label class="evidence-mini secondary" for="positiveFile_${index}">Archivos</label></div><input id="positiveCam_${index}" class="hidden" type="file" accept="image/*" capture="environment" multiple onchange="manejarEvidenciaPositiva(event,${index})"><input id="positiveFile_${index}" class="hidden" type="file" accept="image/*" multiple onchange="manejarEvidenciaPositiva(event,${index})">${previews?`<div class="evidencia-positiva-preview">${previews}</div>`:`<div class="evidencia-positiva-empty">Sin evidencia cargada.</div>`}</div>`;
+  }).join("");
+}
 function evaluarLpn(
   index
 ){
@@ -5678,6 +5927,7 @@ function actualizarResultadoGeneral(){
 
   actualizarKPIs();
 
+  renderizarEvidenciaPositiva();
 }
 
 
@@ -6228,6 +6478,21 @@ async function subirEvidencias(
 
   }
 
+  for(let index=0;index<auditoriaActual.length;index++){
+    const item=auditoriaActual[index];
+    for(const archivo of item?.evidencia_positiva||[]){
+      if(typeof archivo==="string"){urls.push({tipo:"positiva",url:archivo,index,lpn:item.lpn});continue;}
+      if(archivo?.tipo==="url"&&archivo.url){urls.push({tipo:"positiva",url:archivo.url,index,lpn:item.lpn});continue;}
+      try{
+        const url=await subirArchivo(archivo,"lpn",`${index+1}_${normalizarLpn(item.lpn)}_evidencia_positiva`);
+        urls.push({tipo:"positiva",url,index,lpn:item.lpn});
+      }catch(error){
+        const detalle=`LPN ${item.lpn||index+1} · evidencia positiva`;
+        fallas.push({detalle,error});console.error("No fue posible guardar la evidencia positiva:",detalle,error);
+      }
+    }
+  }
+
   if(fallas.length){
 
     const detalle =
@@ -6722,6 +6987,8 @@ async function guardarAuditoria(){
 
   }
 
+  if(!validarLpnDuplicadasAntesDeGuardar())return;
+
   if(
     !validarTiempoReal()
   ){
@@ -6976,8 +7243,11 @@ function construirDatosAuditoria(
 
         delete copia._excelTimer;
         delete copia.evidencia_campos;
+        delete copia.evidencia_positiva;
 
         const evidenciaCampoUrls = {};
+        const evidenciaPositivaUrls=[];
+        (imagenes||[]).filter(x=>x.tipo==="positiva"&&x.index===auditoriaActual.indexOf(item)).forEach(x=>{if(x.url)evidenciaPositivaUrls.push(x.url);});
 
         (imagenes || [])
           .filter(
@@ -7007,6 +7277,9 @@ function construirDatosAuditoria(
 
           evidencia_campos_urls:
             evidenciaCampoUrls,
+
+          evidencia_positiva_urls:
+            evidenciaPositivaUrls,
 
           sistema_cantidad:
             item.sistema_cantidad === ""
