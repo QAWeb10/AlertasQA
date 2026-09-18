@@ -140,6 +140,18 @@ button{
   font-weight:800;
 }
 
+.inicio-mobile-btn{
+  display:none;
+  text-decoration:none;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.1);
+  border-radius:8px;
+  padding:8px 9px;
+  font-size:10px;
+  font-weight:800;
+}
+
 .wrap{
   width:min(100% - 20px,700px);
   margin:12px auto 35px;
@@ -1383,6 +1395,12 @@ button{
     display:none;
   }
 
+  .inicio-mobile-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+
   .audit-type-grid{
     grid-template-columns:1fr;
   }
@@ -1680,6 +1698,8 @@ button{
     <a href="Incidencia en Recibo.html">Incidencias</a>
     <a href="index.html">Inicio</a>
   </nav>
+
+  <a href="index.html" class="inicio-mobile-btn">Inicio</a>
 
 </header>
 
@@ -2040,7 +2060,14 @@ button{
           <input
             id="origen"
             type="text"
+            list="origenListado"
+            autocomplete="off"
             placeholder="Origen">
+
+          <datalist id="origenListado">
+            <option value="Origen 1">
+            <option value="Origen 2">
+          </datalist>
 
         </div>
 
@@ -2442,6 +2469,7 @@ button{
     <div class="auditorias-inicio-body">
       <button type="button" class="btn btn-primary auditorias-inicio-btn" id="btnAuditoriaNueva" onclick="iniciarAuditoriaNueva(); return false;">AUDITORIA NUEVA</button>
       <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso" onclick="mostrarAuditoriasEnProceso(); return false;">AUDITORIAS EN PROCESO</button>
+      <a href="index.html" class="btn btn-secondary auditorias-inicio-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">INICIO</a>
       <div id="auditoriasEnProcesoPanel" class="auditorias-proceso-panel hidden">
         <div id="auditoriasEnProcesoLista"></div>
       </div>
@@ -5168,7 +5196,18 @@ function evaluarLpn(
     item.inventario?.coincide_codigo === "ERROR" ||
     item.inventario?.coincide_lote === "ERROR";
 
-  if(!hallazgos.length){
+  const tieneDesviacion =
+    hallazgos.length > 0 ||
+    item.playo_estado === "ERROR" ||
+    item.danos === "ERROR" ||
+    item.codigo_ok === "ERROR" ||
+    item.lote_ok === "ERROR" ||
+    item.cantidad_ok === "ERROR" ||
+    item.mezcla_lotes_ok === "ERROR" ||
+    item.mezcla_codigos_ok === "ERROR" ||
+    obtenerTodosLosChecks(item).some(x => x.valor === "ERROR");
+
+  if(!tieneDesviacion){
     item.error_tipo = "NINGUNO";
     item.error_tipo_manual = false;
   }else if(!item.error_tipo_manual){
@@ -5236,9 +5275,8 @@ function evaluarLpn(
     );
 
   if(panel){
-    const tieneHallazgo=hallazgos.length>0;
-    panel.classList.toggle("hidden",!tieneHallazgo&&item.error_tipo==="NINGUNO");
-    if(tieneHallazgo) panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+    panel.classList.toggle("hidden",!tieneDesviacion);
+    if(tieneDesviacion) panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
 
   actualizarVisibilidadEvidencias(index);
@@ -5286,10 +5324,18 @@ function mostrarEstadoLpn(
 
   }
 
-  if(
-    item.error_tipo ===
-    "NINGUNO"
-  ){
+  const tieneDesviacion =
+    calcularHallazgos(item).length > 0 ||
+    obtenerTodosLosChecks(item).some(x => x.valor === "ERROR") ||
+    item.playo_estado === "ERROR" ||
+    item.danos === "ERROR" ||
+    item.codigo_ok === "ERROR" ||
+    item.lote_ok === "ERROR" ||
+    item.cantidad_ok === "ERROR" ||
+    item.mezcla_lotes_ok === "ERROR" ||
+    item.mezcla_codigos_ok === "ERROR";
+
+  if(!tieneDesviacion){
 
     panel.classList.add(
       "hidden"
@@ -6195,11 +6241,9 @@ function validarTiempoReal(){
     if(existeErrorObjetivo(item)){
       if(!String(item.error_detalle||"").trim()) faltantes.push(`descripción del hallazgo de la LPN ${n}`);
       if(item.error_tipo==="NINGUNO") faltantes.push(`clasificación PLANTA u OPERACIÓN del hallazgo de la LPN ${n}`);
-      if(item.error_tipo==="OPERACION"){
-        if(!item.responsable_usuario) faltantes.push(`usuario responsable de la LPN ${n}`);
-        if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
-        if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
-      }
+      if(!item.responsable_usuario) faltantes.push(`usuario responsable de la LPN ${n}`);
+      if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
+      if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
       if(!["SI","NO"].includes(item.desviacion_corregida)) faltantes.push(`indicación de si el error de la LPN ${n} fue corregido`);
     }
   });
@@ -8177,9 +8221,9 @@ async function generarPDFdesdeReporte(indice){
     header();
     let y=28;
     y=bloque("DATOS DE AUDITORÍA",y);
-    campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Turno",r.turno);campo(140,y,60,"Cuadrilla",r.cuadrilla);y+=19;
-    campo(10,y,60,"STO",r.sto);campo(75,y,60,"Origen",r.origen);campo(140,y,60,"Cortina",r.cortina);y+=19;
-    campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
+    campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Auditor",r.nombre);campo(140,y,60,"Turno",r.turno);y+=19;
+    campo(10,y,60,"Cuadrilla",r.cuadrilla);campo(75,y,60,"STO",r.sto);campo(140,y,60,"Origen",r.origen);y+=19;
+    campo(10,y,60,"Cortina",r.cortina);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
     campo(10,y,190,"Observaciones",r.observaciones);y+=19;
 
     for(let i=0;i<codigos.length;i++){
@@ -8192,9 +8236,7 @@ async function generarPDFdesdeReporte(indice){
       campo(10,y,190,"Resultado",item.error_tipo&&item.error_tipo!=="NINGUNO"?"ERROR":"OK");y+=19;
       if(item.error_tipo&&item.error_tipo!=="NINGUNO"){
         campo(10,y,60,"Error tipo",item.error_tipo);campo(75,y,125,"Error detalle",item.error_detalle);y+=19;
-        if(item.responsable_usuario||item.responsable_cuadrilla||item.responsable_coordinador){
-          campo(10,y,60,"Responsable usuario",item.responsable_usuario);campo(75,y,60,"Responsable cuadrilla",item.responsable_cuadrilla);campo(140,y,60,"Responsable coordinador",item.responsable_coordinador);y+=19;
-        }
+        campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Responsable usuario",item.responsable_usuario);campo(140,y,60,"Responsable cuadrilla",item.responsable_cuadrilla);y+=19;
       }
       const urls=[];
       if(Array.isArray(item.evidencia_campos_urls)){urls.push(...item.evidencia_campos_urls.filter(Boolean));}
