@@ -1518,6 +1518,20 @@ button{
   .reportes-kpi:last-child{grid-column:1/-1;}
 }
 
+
+.auditorias-inicio-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;}
+.auditorias-inicio-overlay.hidden{display:none;}
+.auditorias-inicio-shell{width:min(560px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.25);}
+.auditorias-inicio-head{padding:20px 22px;border-bottom:1px solid #eee;text-align:center;}
+.auditorias-inicio-head h2{margin:0;font-size:20px;}
+.auditorias-inicio-body{padding:22px;display:grid;gap:12px;}
+.auditorias-inicio-btn{width:100%;min-height:48px;font-weight:700;}
+.auditorias-proceso-panel{border-top:1px solid #eee;padding-top:16px;margin-top:4px;}
+.auditoria-proceso-item{border:1px solid #ddd;border-radius:10px;padding:13px;margin-bottom:10px;background:#fafafa;}
+.auditoria-proceso-item strong{display:block;margin-bottom:6px;}
+.auditoria-proceso-meta{font-size:12px;color:#666;line-height:1.5;margin-bottom:10px;}
+.auditoria-proceso-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
 </style>
 
 <style>
@@ -1675,7 +1689,13 @@ button{
        01 · TIPO DE AUDITORÍA
   ====================================================== -->
 
-  <section class="card">
+  
+
+  <!-- =====================================================
+       01 · TIPO DE AUDITORÍA
+  ====================================================== -->
+
+<section class="card">
 
     <div class="card-head">
       <h2>
@@ -1740,15 +1760,107 @@ button{
   </section>
 
   <!-- =====================================================
-       02 · MUESTREO
+       02 · ARCHIVO DE RECIBO
   ====================================================== -->
 
-  <section class="card" id="samplingSection">
+<section class="card" id="archivoReciboSection">
 
     <div class="card-head">
 
       <h2>
         <span class="section-number">02</span>
+        Archivo de Recibo
+      </h2>
+
+      <small id="excelHeaderStatus">
+        Sin archivo
+      </small>
+
+    </div>
+
+    <div class="card-body">
+
+      <div
+        class="file-drop"
+        id="excelDropZone">
+
+        <div class="file-drop-title">
+          📊 Cargar archivo de recibo
+        </div>
+
+        <div class="file-drop-text">
+          Selecciona o arrastra el archivo Excel. Se leerán todas las filas
+          y se usarán las columnas Load Number, Master Receipt ID,
+          Item Number, Lot Number, Display Unit Quantity, Description,
+          Item Client ID, Inventory Status y Storage Location.
+        </div>
+
+        <div class="file-actions">
+
+          <button
+            class="photo-button"
+            type="button"
+            id="btnSeleccionarExcel"
+            onclick="seleccionarArchivoExcel()">
+            Seleccionar Excel
+          </button>
+
+          <button
+            class="btn btn-secondary btn-small"
+            type="button"
+            onclick="limpiarExcel()">
+            Quitar archivo
+          </button>
+
+        </div>
+
+        <input
+          id="archivoExcel"
+          type="file"
+          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          style="display:none">
+
+      </div>
+
+      <div
+        id="excelStatus"
+        class="file-status empty">
+        No se ha cargado ningún archivo.
+      </div>
+
+      <div class="excel-kpis">
+
+        <div class="excel-kpi">
+          <span>Archivo</span>
+          <strong id="excelFileName">—</strong>
+        </div>
+
+        <div class="excel-kpi">
+          <span>Total de registros</span>
+          <strong id="excelRecordCount">0</strong>
+        </div>
+
+        <div class="excel-kpi">
+          <span>LPN registradas</span>
+          <strong id="excelLpnCount">0</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- =====================================================
+       03 · MUESTREO
+  ====================================================== -->
+
+<section class="card" id="samplingSection">
+
+    <div class="card-head">
+
+      <h2>
+        <span class="section-number">03</span>
         Muestreo
       </h2>
 
@@ -1872,103 +1984,11 @@ button{
   </section>
 
   <!-- =====================================================
-       03 · ARCHIVO DE RECIBO
-  ====================================================== -->
-
-  <section class="card" id="archivoReciboSection">
-
-    <div class="card-head">
-
-      <h2>
-        <span class="section-number">03</span>
-        Archivo de Recibo
-      </h2>
-
-      <small id="excelHeaderStatus">
-        Sin archivo
-      </small>
-
-    </div>
-
-    <div class="card-body">
-
-      <div
-        class="file-drop"
-        id="excelDropZone">
-
-        <div class="file-drop-title">
-          📊 Cargar archivo de recibo
-        </div>
-
-        <div class="file-drop-text">
-          Selecciona o arrastra el archivo Excel. Se leerán todas las filas
-          y se usarán las columnas Load Number, Master Receipt ID,
-          Item Number, Lot Number, Display Unit Quantity, Description,
-          Item Client ID, Inventory Status y Storage Location.
-        </div>
-
-        <div class="file-actions">
-
-          <button
-            class="photo-button"
-            type="button"
-            id="btnSeleccionarExcel"
-            onclick="seleccionarArchivoExcel()">
-            Seleccionar Excel
-          </button>
-
-          <button
-            class="btn btn-secondary btn-small"
-            type="button"
-            onclick="limpiarExcel()">
-            Quitar archivo
-          </button>
-
-        </div>
-
-        <input
-          id="archivoExcel"
-          type="file"
-          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          style="display:none">
-
-      </div>
-
-      <div
-        id="excelStatus"
-        class="file-status empty">
-        No se ha cargado ningún archivo.
-      </div>
-
-      <div class="excel-kpis">
-
-        <div class="excel-kpi">
-          <span>Archivo</span>
-          <strong id="excelFileName">—</strong>
-        </div>
-
-        <div class="excel-kpi">
-          <span>Total de registros</span>
-          <strong id="excelRecordCount">0</strong>
-        </div>
-
-        <div class="excel-kpi">
-          <span>LPN registradas</span>
-          <strong id="excelLpnCount">0</strong>
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-  <!-- =====================================================
        04 · DATOS DE RECIBO
        SOLO TIEMPO REAL
   ====================================================== -->
 
-  <section class="card" id="datosReciboSection">
+<section class="card" id="datosReciboSection">
 
     <div class="card-head">
 
@@ -2178,10 +2198,10 @@ button{
   </section>
 
   <!-- =====================================================
-       05 · TIEMPO REAL
+       05 · LPN A AUDITAR
   ====================================================== -->
 
-  <section
+<section
     class="card"
     id="tiempoRealSection">
 
@@ -2223,90 +2243,15 @@ button{
   </section>
 
   <!-- =====================================================
-       06 · ALMACENAJE
-       DIRECTAMENTE BUSCAR LPN
+       06 · RESULTADO
   ====================================================== -->
 
-  <section
-    class="card hidden"
-    id="almacenajeSection">
-
-    <div class="card-head">
-
-      <div>
-
-        <h2>
-          <span class="section-number">06</span>
-          Auditoría en Almacenaje
-        </h2>
-
-        <small>
-          Seguimiento de una LPN con error
-        </small>
-
-      </div>
-
-    </div>
-
-    <div class="card-body">
-
-      <div class="alert alert-info">
-
-        Busca la LPN o selecciona una tarea pendiente.
-        El sistema recuperará automáticamente la información
-        del recibo y te mostrará el error registrado para
-        validar su corrección.
-
-      </div>
-
-      <div
-        id="tareasPendientes"
-        class="pending-tasks">
-      </div>
-
-      <div class="storage-search">
-
-        <div class="field">
-
-          <label for="buscarLpn">
-            LPN
-          </label>
-
-          <input
-            id="buscarLpn"
-            type="text"
-            placeholder="Ingresa la LPN"
-            autocomplete="off">
-
-        </div>
-
-        <button
-          class="btn btn-primary"
-          type="button"
-          onclick="buscarLPNAlmacenaje()">
-
-          Buscar
-
-        </button>
-
-      </div>
-
-      <div id="resultadoAlmacenaje"></div>
-
-    </div>
-
-  </section>
-
-  <!-- =====================================================
-       08 · RESULTADO
-  ====================================================== -->
-
-  <section class="card">
+<section class="card">
 
     <div class="card-head">
 
       <h2>
-        <span class="section-number">08</span>
+        <span class="section-number">06</span>
         Resultado
       </h2>
 
@@ -2376,6 +2321,15 @@ button{
         <button
           class="btn btn-secondary"
           type="button"
+          onclick="guardarAvance()">
+
+          Guardar avance
+
+        </button>
+
+        <button
+          class="btn btn-secondary"
+          type="button"
           onclick="limpiarFormulario()">
 
           Limpiar
@@ -2397,8 +2351,103 @@ button{
 
   </section>
 
+  <!-- =====================================================
+       07 · ALMACENAJE
+       DIRECTAMENTE BUSCAR LPN
+  ====================================================== -->
+
+<section
+    class="card hidden"
+    id="almacenajeSection">
+
+    <div class="card-head">
+
+      <div>
+
+        <h2>
+          <span class="section-number">07</span>
+          Auditoría en Almacenaje
+        </h2>
+
+        <small>
+          Seguimiento de una LPN con error
+        </small>
+
+      </div>
+
+    </div>
+
+    <div class="card-body">
+
+      <div class="alert alert-info">
+
+        Busca la LPN o selecciona una tarea pendiente.
+        El sistema recuperará automáticamente la información
+        del recibo y te mostrará el error registrado para
+        validar su corrección.
+
+      </div>
+
+      <div
+        id="tareasPendientes"
+        class="pending-tasks">
+      </div>
+
+      <div class="storage-search">
+
+        <div class="field">
+
+          <label for="buscarLpn">
+            LPN
+          </label>
+
+          <input
+            id="buscarLpn"
+            type="text"
+            placeholder="Ingresa la LPN"
+            autocomplete="off">
+
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          onclick="buscarLPNAlmacenaje()">
+
+          Buscar
+
+        </button>
+
+      </div>
+
+      <div id="resultadoAlmacenaje"></div>
+
+    </div>
+
+  </section>
+
+
+
 </main>
 
+
+<!-- =========================================================
+     PANEL INICIAL DE AUDITORÍAS
+========================================================= -->
+<div id="auditoriasInicioOverlay" class="auditorias-inicio-overlay" aria-hidden="false">
+  <div class="auditorias-inicio-shell">
+    <div class="auditorias-inicio-head">
+      <h2>AUDITORÍA EN RECIBO</h2>
+    </div>
+    <div class="auditorias-inicio-body">
+      <button type="button" class="btn btn-primary auditorias-inicio-btn" id="btnAuditoriaNueva" onclick="iniciarAuditoriaNueva(); return false;">AUDITORIA NUEVA</button>
+      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso" onclick="mostrarAuditoriasEnProceso(); return false;">AUDITORIAS EN PROCESO</button>
+      <div id="auditoriasEnProcesoPanel" class="auditorias-proceso-panel hidden">
+        <div id="auditoriasEnProcesoLista"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- =========================================================
      PANEL REPORTES
@@ -2486,182 +2535,359 @@ let lpnAlmacenajeActual = null;
 
 let correccionAlmacenaje = "";
 
-async function guardarBorrador() {
-  try {
+/* =========================================================
+   BORRADOR LOCAL + SUPABASE
+========================================================= */
 
-    const estado = {
+const QA_DRAFT_DB_NAME = "QA_AuditoriaRecibo_Local";
+const QA_DRAFT_DB_VERSION = 1;
+const QA_DRAFT_STORE = "archivos";
+const QA_DRAFT_STATE_KEY = "QA_AuditoriaRecibo_Estado";
+const QA_DRAFTS_STATE_KEY = "QA_AuditoriaRecibo_Auditorias";
+
+let qaDraftDbPromise = null;
+let qaDraftRemoteTimer = null;
+let qaDraftRestoring = false;
+let auditoriaEnEdicion = false;
+
+function abrirBaseBorrador(){
+  if(qaDraftDbPromise) return qaDraftDbPromise;
+  qaDraftDbPromise=new Promise((resolve,reject)=>{
+    if(!window.indexedDB){resolve(null);return;}
+    const request=indexedDB.open(QA_DRAFT_DB_NAME,QA_DRAFT_DB_VERSION);
+    request.onupgradeneeded=()=>{
+      const db=request.result;
+      if(!db.objectStoreNames.contains(QA_DRAFT_STORE)) db.createObjectStore(QA_DRAFT_STORE);
+    };
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+  });
+  return qaDraftDbPromise;
+}
+
+async function guardarArchivoBorradorLocal(id,file){
+  if(!id || !file)return false;
+  try{
+    const db=await abrirBaseBorrador();
+    if(!db)return false;
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(QA_DRAFT_STORE,"readwrite");
+      tx.objectStore(QA_DRAFT_STORE).put({
+        blob:file,
+        name:file.name||"evidencia.jpg",
+        type:file.type||"image/jpeg",
+        lastModified:file.lastModified||Date.now()
+      },id);
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+      tx.onabort=()=>reject(tx.error);
+    });
+    return true;
+  }catch(error){console.error("Error guardando archivo local:",error);return false;}
+}
+
+async function obtenerArchivoBorradorLocal(id){
+  if(!id)return null;
+  try{
+    const db=await abrirBaseBorrador();
+    if(!db)return null;
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction(QA_DRAFT_STORE,"readonly");
+      const req=tx.objectStore(QA_DRAFT_STORE).get(id);
+      req.onsuccess=()=>resolve(req.result||null);
+      req.onerror=()=>reject(req.error);
+    });
+  }catch(error){console.error("Error leyendo archivo local:",error);return null;}
+}
+
+async function eliminarArchivoBorradorLocal(id){
+  if(!id)return;
+  try{
+    const db=await abrirBaseBorrador();
+    if(!db)return;
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(QA_DRAFT_STORE,"readwrite");
+      tx.objectStore(QA_DRAFT_STORE).delete(id);
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+      tx.onabort=()=>reject(tx.error);
+    });
+  }catch(error){console.error("Error eliminando archivo local:",error);}
+}
+
+function prepararAuditoriaParaBorrador(items){
+  return (items||[]).map(item=>{
+    const copia={...item};
+    delete copia._excelTimer;
+    const evidencias={};
+    ["generales","inventario","pallet","granel"].forEach(categoria=>{
+      evidencias[categoria]={};
+      Object.entries(item?.evidencia_campos?.[categoria]||{}).forEach(([campo,archivos])=>{
+        evidencias[categoria][campo]=(archivos||[]).map(archivo=>{
+          if(typeof archivo==="string")return {tipo:"url",url:archivo};
+          const localId=archivo?.__qaEvidenceId||`evidencia:${auditoriaId}:${crypto.randomUUID()}`;
+          try{archivo.__qaEvidenceId=localId;}catch(e){}
+          return {tipo:"local",localId,name:archivo?.name||"evidencia.jpg",type:archivo?.type||"image/jpeg",lastModified:archivo?.lastModified||Date.now()};
+        });
+      });
+    });
+    copia.evidencia_campos=evidencias;
+    return copia;
+  });
+}
+
+async function obtenerAuditoriasEnProceso(){
+  try{
+    const lista=JSON.parse(localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]");
+    return Array.isArray(lista)?lista:[];
+  }catch(error){console.error("Error leyendo auditorías en proceso:",error);return [];}
+}
+
+async function guardarBorradorLocal(){
+  try{
+    const auditoriaSerializada=prepararAuditoriaParaBorrador(auditoriaActual);
+    for(const item of auditoriaActual){
+      for(const categoria of ["generales","inventario","pallet","granel"]){
+        for(const archivos of Object.values(item?.evidencia_campos?.[categoria]||{})){
+          for(const archivo of archivos||[]){
+            if(typeof archivo!=="string"&&archivo?.__qaEvidenceId) await guardarArchivoBorradorLocal(archivo.__qaEvidenceId,archivo);
+          }
+        }
+      }
+    }
+    const estado={
       auditoriaId,
-      tipoAuditoria: obtenerTipoAuditoria(),
-      tipoRecibo: obtenerTipoRecibo(),
-
-      cortina: document.getElementById("cortina")?.value || "",
-      sto: document.getElementById("sto")?.value || "",
-      origen: document.getElementById("origen")?.value || "",
-      turno: document.getElementById("turno")?.value || "",
-      cuadrilla: document.getElementById("cuadrilla")?.value || "",
-      coordinador: document.getElementById("coordinador")?.value || "",
-      observaciones: document.getElementById("observaciones")?.value || "",
-
+      tipoAuditoria:obtenerTipoAuditoria(),
+      tipoRecibo:obtenerTipoRecibo(),
+      cortina:document.getElementById("cortina")?.value||"",
+      sto:document.getElementById("sto")?.value||"",
+      origen:document.getElementById("origen")?.value||"",
+      turno:document.getElementById("turno")?.value||"",
+      cuadrilla:document.getElementById("cuadrilla")?.value||"",
+      coordinador:document.getElementById("coordinador")?.value||"",
+      observaciones:document.getElementById("observaciones")?.value||"",
       muestraCalculada,
       codigoLetraMuestra,
       excelStoragePath,
-excelArchivoNombre,
-
-      auditoriaActual
+      excelArchivoNombre,
+      excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
+      auditoriaActual:auditoriaSerializada,
+      actualizado:new Date().toISOString()
     };
+    const lista=await obtenerAuditoriasEnProceso();
+    const indice=lista.findIndex(x=>x?.auditoriaId===estado.auditoriaId);
+    if(indice>=0) lista[indice]=estado; else lista.push(estado);
+    localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(lista));
+    localStorage.setItem(QA_DRAFT_STATE_KEY,JSON.stringify(estado));
+    return estado;
+  }catch(error){console.error("Error guardando borrador local:",error);return null;}
+}
 
-    const { error } = await supabaseClient
-      .from("Auditoria_Recibo_Borrador")
-      .upsert(
-        {
-          auditoria_id: auditoriaId,
-          usuario: usuarioQA?.nombre || "",
-          estado,
-          actualizado: new Date().toISOString()
-        },
-        {
-          onConflict: "usuario"
+async function guardarBorradorRemoto(estado){
+  if(qaDraftRestoring||!usuarioQA?.nombre||!estado)return;
+  try{
+    await supabaseClient.from("Auditoria_Recibo_Borrador").delete().eq("auditoria_id",estado.auditoriaId).eq("usuario",usuarioQA.nombre);
+    const {error}=await supabaseClient.from("Auditoria_Recibo_Borrador").insert({
+      auditoria_id:estado.auditoriaId,
+      usuario:usuarioQA.nombre,
+      estado,
+      actualizado:estado.actualizado
+    });
+    if(error)console.error("Error guardando borrador remoto:",error);
+  }catch(error){console.error("Error guardando borrador remoto:",error);}
+}
+
+async function guardarBorrador(){
+  if(!auditoriaEnEdicion)return null;
+  const estado=await guardarBorradorLocal();
+  if(!estado||qaDraftRestoring)return;
+  clearTimeout(qaDraftRemoteTimer);
+  qaDraftRemoteTimer=setTimeout(()=>guardarBorradorRemoto(estado),500);
+}
+
+async function restaurarEstadoBorrador(estado){
+  if(!estado)return;
+  auditoriaEnEdicion=true;
+  auditoriaId=estado.auditoriaId||crypto.randomUUID();
+
+  const tipoAuditoria=estado.tipoAuditoria||"TIEMPO_REAL";
+  const radioAuditoria=document.querySelector(`input[name="tipoAuditoria"][value="${tipoAuditoria}"]`);
+  if(radioAuditoria)radioAuditoria.checked=true;
+  const tipoRecibo=estado.tipoRecibo||"PALLET";
+  const radioRecibo=document.querySelector(`input[name="tipoRecibo"][value="${tipoRecibo}"]`);
+  if(radioRecibo)radioRecibo.checked=true;
+
+  document.getElementById("cortina").value=estado.cortina||"";
+  document.getElementById("sto").value=estado.sto||"";
+  document.getElementById("origen").value=estado.origen||"";
+  document.getElementById("turno").value=estado.turno||"";
+  document.getElementById("cuadrilla").value=estado.cuadrilla||"";
+  document.getElementById("coordinador").value=estado.coordinador||"";
+  document.getElementById("observaciones").value=estado.observaciones||"";
+
+  muestraCalculada=Number(estado.muestraCalculada||0);
+  codigoLetraMuestra=estado.codigoLetraMuestra||"";
+  excelStoragePath=estado.excelStoragePath||"";
+  excelArchivoNombre=estado.excelArchivoNombre||"";
+  auditoriaActual=Array.isArray(estado.auditoriaActual)?estado.auditoriaActual:[];
+
+  for(const item of auditoriaActual){
+    item.evidencia_campos=item.evidencia_campos||{};
+    for(const categoria of ["generales","inventario","pallet","granel"]){
+      item.evidencia_campos[categoria]=item.evidencia_campos[categoria]||{};
+      for(const [campo,archivos] of Object.entries(item.evidencia_campos[categoria])){
+        const restaurados=[];
+        for(const archivo of archivos||[]){
+          if(typeof archivo==="string"){restaurados.push(archivo);continue;}
+          if(archivo?.tipo==="url"&&archivo.url){restaurados.push(archivo.url);continue;}
+          if(archivo?.tipo==="local"&&archivo.localId){
+            const registro=await obtenerArchivoBorradorLocal(archivo.localId);
+            if(registro?.blob){
+              try{
+                const file=new File([registro.blob],registro.name||archivo.name||"evidencia.jpg",{type:registro.type||archivo.type||"image/jpeg",lastModified:registro.lastModified||archivo.lastModified||Date.now()});
+                file.__qaEvidenceId=archivo.localId;
+                restaurados.push(file);
+              }catch(error){console.error("No fue posible restaurar evidencia:",error);}
+            }
+          }
         }
-      );
-
-      console.log("Resultado:", error);
-
-
-    if (error) {
-      console.error(error);
+        item.evidencia_campos[categoria][campo]=restaurados;
+      }
     }
-
-  } catch (err) {
-    console.error(err);
   }
+
+  cambiarTipoAuditoria();
+  if(muestraCalculada){
+    document.getElementById("kpiMuestra").textContent=muestraCalculada;
+    document.getElementById("kpiCodigo").textContent=codigoLetraMuestra;
+    document.getElementById("sampleResult").classList.remove("hidden");
+  }
+  if(auditoriaActual.length){
+    renderizarAuditoria();
+    auditoriaActual.forEach((item,index)=>{actualizarVistaLpn(index);actualizarEstadoLpn(index);evaluarLpn(index);});
+    actualizarResultadoGeneral();
+  }
+}
+
+async function restaurarExcelBorradorLocal(estado){
+  if(!estado?.excelLocalId)return false;
+  const registro=await obtenerArchivoBorradorLocal(estado.excelLocalId);
+  if(!registro?.blob)return false;
+  try{
+    const archivo=new File([registro.blob],registro.name||estado.excelArchivoNombre||"recibo.xlsx",{type:registro.type||"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",lastModified:registro.lastModified||Date.now()});
+    await procesarArchivoExcel(archivo,{guardar:false,subir:false});
+    return true;
+  }catch(error){console.error("Error restaurando Excel local:",error);return false;}
 }
 
 async function cargarBorrador(){
+  return obtenerAuditoriasEnProceso();
+}
 
+async function cargarAuditoriaEnProceso(id){
+  const lista=await obtenerAuditoriasEnProceso();
+  const estado=lista.find(x=>x?.auditoriaId===id);
+  if(!estado)return;
+  qaDraftRestoring=true;
   try{
-
-    if(!usuarioQA?.nombre){
-      return;
+    await restaurarEstadoBorrador(estado);
+    const excelLocalRestaurado=await restaurarExcelBorradorLocal(estado);
+    if(!excelLocalRestaurado&&estado.excelStoragePath){
+      try{
+        const {data,error}=await supabaseClient.storage.from("excel-recibos").download(estado.excelStoragePath);
+        if(!error&&data){
+          const archivo=new File([data],estado.excelArchivoNombre||"recibo.xlsx",{type:data.type});
+          await procesarArchivoExcel(archivo,{guardar:false,subir:false});
+        }
+      }catch(error){console.error("Error restaurando Excel remoto:",error);}
     }
+    auditoriaEnEdicion=true;
+    mostrarSistemaAuditoria();
+    await guardarBorradorLocal();
+  }finally{qaDraftRestoring=false;}
+}
 
-    const { data, error } = await supabaseClient
-      .from("Auditoria_Recibo_Borrador")
-      .select("*")
-      .eq("usuario", usuarioQA.nombre)
-      .single();
+async function eliminarAuditoriaEnProceso(id){
+  const lista=await obtenerAuditoriasEnProceso();
+  const estado=lista.find(x=>x?.auditoriaId===id);
+  if(!estado)return;
+  const nueva=lista.filter(x=>x?.auditoriaId!==id);
+  localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(nueva));
+  if(localStorage.getItem(QA_DRAFT_STATE_KEY)){
+    try{const actual=JSON.parse(localStorage.getItem(QA_DRAFT_STATE_KEY));if(actual?.auditoriaId===id)localStorage.removeItem(QA_DRAFT_STATE_KEY);}catch(e){}
+  }
+  const archivos=[];
+  (estado.auditoriaActual||[]).forEach(item=>{
+    Object.values(item?.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(x=>{if(x?.localId)archivos.push(x.localId);})));
+  });
+  if(estado.excelLocalId)archivos.push(estado.excelLocalId);
+  for(const idArchivo of archivos) await eliminarArchivoBorradorLocal(idArchivo);
+  mostrarAuditoriasEnProceso();
+}
 
-    if(error || !data){
-      console.log("Sin borrador");
-      return;
-    }
+async function mostrarAuditoriasEnProceso(){
+  const panel=document.getElementById("auditoriasEnProcesoPanel");
+  const listaEl=document.getElementById("auditoriasEnProcesoLista");
+  if(!panel||!listaEl)return;
+  panel.classList.remove("hidden");
+  const lista=await obtenerAuditoriasEnProceso();
+  lista.sort((a,b)=>new Date(b.actualizado||0)-new Date(a.actualizado||0));
+  if(!lista.length){
+    listaEl.innerHTML='<div class="alert alert-info">No hay auditorías en proceso.</div>';
+    return;
+  }
+  listaEl.innerHTML=lista.map((x)=>{
+    const fecha=x.actualizado?new Date(x.actualizado).toLocaleString("es-MX"):"";
+    const lpn=Array.isArray(x.auditoriaActual)?x.auditoriaActual.length:0;
+    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small" onclick="cargarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">CONTINUAR</button><button type="button" class="btn btn-secondary btn-small" onclick="eliminarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">ELIMINAR</button></div></div>`;
+  }).join("");
+}
 
-    const estado = data.estado || {};
-
-    excelStoragePath =
-  estado.excelStoragePath || "";
-
-excelArchivoNombre =
-  estado.excelArchivoNombre || "";
-
-  if (excelStoragePath) {
-  try {
-    const { data, error } = await supabaseClient
-      .storage
-      .from("excel-recibos")
-      .download(excelStoragePath);
-
-    if (error) throw error;
-
-    const archivoExcel = new File(
-      [data],
-      excelArchivoNombre || "recibo.xlsx",
-      {
-        type: data.type
-      }
-    );
-
-    await procesarArchivoExcel(archivoExcel);
-
-    console.log("Excel restaurado desde borrador");
-  } catch (err) {
-    console.error(
-      "Error restaurando Excel:",
-      err
-    );
+function mostrarSistemaAuditoria(){
+  const overlay=document.getElementById("auditoriasInicioOverlay");
+  if(overlay){
+    overlay.classList.add("hidden");
+    overlay.setAttribute("aria-hidden","true");
   }
 }
 
-    auditoriaId =
-      estado.auditoriaId ||
-      crypto.randomUUID();
+function mostrarInicioAuditorias(){
+  const overlay=document.getElementById("auditoriasInicioOverlay");
+  if(overlay){
+    overlay.classList.remove("hidden");
+    overlay.setAttribute("aria-hidden","false");
+  }
+}
 
-    document.getElementById("cortina").value =
-      estado.cortina || "";
+function iniciarAuditoriaNueva(){
+  const panel=document.getElementById("auditoriasEnProcesoPanel");
+  if(panel)panel.classList.add("hidden");
 
-    document.getElementById("sto").value =
-      estado.sto || "";
-
-    document.getElementById("origen").value =
-      estado.origen || "";
-
-    document.getElementById("turno").value =
-      estado.turno || "";
-
-    document.getElementById("cuadrilla").value =
-      estado.cuadrilla || "";
-
-    document.getElementById("coordinador").value =
-      estado.coordinador || "";
-
-    document.getElementById("observaciones").value =
-      estado.observaciones || "";
-
-    muestraCalculada =
-      estado.muestraCalculada || 0;
-
-    codigoLetraMuestra =
-      estado.codigoLetraMuestra || "";
-
-    auditoriaActual =
-      estado.auditoriaActual || [];
-
-    if(muestraCalculada){
-
-      document.getElementById("kpiMuestra").textContent =
-        muestraCalculada;
-
-      document.getElementById("kpiCodigo").textContent =
-        codigoLetraMuestra;
-
-      document.getElementById("sampleResult")
-        .classList.remove("hidden");
-    }
-
-    if(auditoriaActual.length){
-
-      renderizarAuditoria();
-
-      auditoriaActual.forEach((item,index)=>{
-        actualizarVistaLpn(index);
-        actualizarEstadoLpn(index);
-        evaluarLpn(index);
-      });
-
-      actualizarResultadoGeneral();
-    }
-
-    console.log("Borrador restaurado");
-
-  }catch(err){
-
-    console.error(
-      "Error cargando borrador",
-      err
-    );
-
+  qaDraftRestoring=true;
+  try{
+    limpiarFormulario();
+  }catch(error){
+    console.error("Error limpiando auditoría nueva:",error);
+  }finally{
+    auditoriaId=crypto.randomUUID();
+    auditoriaEnEdicion=true;
+    qaDraftRestoring=false;
+    localStorage.removeItem(QA_DRAFT_STATE_KEY);
   }
 
+  mostrarSistemaAuditoria();
 }
+
+
+async function guardarAvance(){
+  auditoriaEnEdicion=true;
+  const estado=await guardarBorradorLocal();
+  if(estado){
+    await guardarBorradorRemoto(estado);
+    mostrarAlertaQA("La auditoría quedó guardada en avance.","success","Avance guardado");
+  }
+}
+
 
 /* =========================================================
    SESIÓN
@@ -3926,7 +4152,7 @@ function crearLpnCard(item,index){
                 type="text"
                 placeholder="Describe claramente el hallazgo"
                 value="${escapeHtml(item.error_detalle)}"
-                onchange="actualizarLpn(${index},'error_detalle',this.value)">
+                oninput="actualizarLpn(${index},'error_detalle',this.value)">
 
             </div>
 
@@ -4574,19 +4800,54 @@ async function subirExcelStorage(file){
 
 }
 
-async function procesarArchivoExcel(file){
+function limpiarExcel(){
+  const input=document.getElementById("archivoExcel");
+  const excelLocalId=excelArchivoNombre ? `excel:${auditoriaId}` : "";
+  if(input)input.value="";
+
+  if(excelLocalId) eliminarArchivoBorradorLocal(excelLocalId);
+
+  excelRecibo=[];
+  excelIndexLpn=new Map();
+  excelArchivoNombre="";
+  excelStoragePath="";
+  excelCargado=false;
+
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set("excelFileName","—");
+  set("excelRecordCount","0");
+  set("excelLpnCount","0");
+  set("excelHeaderStatus","Sin archivo");
+  actualizarEstadoExcel("empty","No se ha cargado ningún archivo.");
+
+  const lote=document.getElementById("tamanoLote");
+  if(lote){lote.readOnly=false;lote.classList.remove("readonly-excel");}
+
+  auditoriaActual.forEach((item,index)=>{
+    item.excel_encontrada=false;
+    actualizarEstadoLpn(index);
+  });
+
+  actualizarResultadoGeneral();
+  guardarBorrador();
+}
+
+async function procesarArchivoExcel(file,opciones={}){
+  const guardar=opciones.guardar!==false;
+  const subir=opciones.subir!==false;
   if(!file) return;
 
   const nombre=String(file.name||"").trim();
 
   excelArchivoNombre = nombre;
 
-  const rutaStorage =
-    await subirExcelStorage(file);
+  if(guardar){
+    await guardarArchivoBorradorLocal(`excel:${auditoriaId}`,file);
+  }
 
-  if(rutaStorage){
-    excelStoragePath = rutaStorage;
-    guardarBorrador();
+  if(guardar&&subir){
+    const rutaStorage=await subirExcelStorage(file);
+    if(rutaStorage)excelStoragePath=rutaStorage;
   }
   const extension=(nombre.split(".").pop()||"").toLowerCase();
 
@@ -4698,6 +4959,8 @@ async function procesarArchivoExcel(file){
     );
 
     calcularMuestra();
+
+    if(guardar) await guardarBorrador();
 
     if(Array.isArray(auditoriaActual) && auditoriaActual.length){
 auditoriaActual.forEach((item,index)=>{
@@ -4823,6 +5086,7 @@ function marcarQA(
   }
 
   evaluarLpn(index);
+  guardarBorrador();
 
 }
 
@@ -4972,13 +5236,9 @@ function evaluarLpn(
     );
 
   if(panel){
-
-    panel.classList.toggle(
-      "hidden",
-      item.error_tipo ===
-      "NINGUNO"
-    );
-
+    const tieneHallazgo=hallazgos.length>0;
+    panel.classList.toggle("hidden",!tieneHallazgo&&item.error_tipo==="NINGUNO");
+    if(tieneHallazgo) panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
 
   actualizarVisibilidadEvidencias(index);
@@ -5125,6 +5385,7 @@ function actualizarError(index){
   }
 
   evaluarLpn(index);
+  guardarBorrador();
 }
 
 function actualizarKPIs(){
@@ -5288,6 +5549,10 @@ function manejarEvidenciaCampo(
   item.evidencia_campos[categoria][campo] =
     item.evidencia_campos[categoria][campo] || [];
 
+  archivos.forEach(archivo=>{
+    try{archivo.__qaEvidenceId=`evidencia:${auditoriaId}:${crypto.randomUUID()}`;}catch(e){}
+  });
+
   item.evidencia_campos[categoria][campo]
     .push(...archivos);
 
@@ -5302,6 +5567,7 @@ function manejarEvidenciaCampo(
   );
 
   actualizarResultadoGeneral();
+  guardarBorrador();
 
 }
 
@@ -5414,6 +5680,7 @@ function eliminarEvidenciaCampo(
     categoria,
     campo
   );
+  guardarBorrador();
 
 }
 
@@ -7848,7 +8115,7 @@ async function cargarImagenDataURL(url){
 async function generarPDFdesdeReporte(indice){
   const r=reportesDatos[indice];
   if(!r){
-    mostrarAlertaQA("El registro seleccionado ya no está disponible.","warning","Reporte no disponible");
+    mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");
     return;
   }
   try{
@@ -7859,88 +8126,92 @@ async function generarPDFdesdeReporte(indice){
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF();
     const valor=v=>(v===undefined||v===null||String(v).trim()==="")?"NO APLICA":String(v);
-    const parseArray=v=>{if(Array.isArray(v))return v;if(typeof v==="string"){try{const x=JSON.parse(v);return Array.isArray(x)?x:[];}catch(e){return[];}}return[];};
-    const codigos=parseArray(r.codigos);
-    const primero=codigos[0]||{};
-    const fecha=r.fecha||fechaRegistroReporte(r);
-    const hallazgos=[];
-    codigos.forEach(x=>{
-      if(!x)return;
-      if(Array.isArray(x.hallazgos))x.hallazgos.forEach(h=>{if(h)hallazgos.push(String(h));});
-      if(x.error_tipo&&x.error_tipo!=="NINGUNO")hallazgos.push(String(x.error_tipo));
-      if(x.error_detalle)hallazgos.push(String(x.error_detalle));
-    });
-    const hallazgoTexto=[...new Set(hallazgos)].join(", ")||"AUDITORÍA EN RECIBO";
-    const clasificacion=codigos.some(x=>x?.error_tipo==="PLANTA")?"PLANTA":codigos.some(x=>x?.error_tipo==="OPERACION")?"OPERACION":"PRODUCTO";
-    const ubicacion=r.ubicacion||r.cortina||r.origen||"RECIBO";
-    const cantidad=primero.sistema_cantidad??primero.cantidad??"";
-    const codigo=primero.gcas||primero.codigo||"";
-    const lote=primero.lote||"";
-    const sto=r.sto||primero.sto||"";
-    const proceso="AUDITORÍA EN RECIBO";
-    const resultado=codigos.map(x=>{
-      const p=[];
-      if(x?.lpn)p.push("LPN: "+x.lpn);
-      if(x?.gcas)p.push("Código: "+x.gcas);
-      if(x?.lote)p.push("Lote: "+x.lote);
-      if(x?.sistema_cantidad!==undefined&&x?.sistema_cantidad!==null&&x?.sistema_cantidad!=="")p.push("Cantidad: "+x.sistema_cantidad);
-      if(x?.error_tipo&&x.error_tipo!=="NINGUNO")p.push("Tipo: "+x.error_tipo);
-      if(x?.error_detalle)p.push(x.error_detalle);
-      if(Array.isArray(x?.hallazgos)&&x.hallazgos.length)p.push(x.hallazgos.join(", "));
-      return p.join(" · ");
-    }).filter(Boolean).join(" | ")||"Sin hallazgos registrados.";
+    const codigos=obtenerCodigosRegistro(r);
+    const fecha=fechaRegistroReporte(r);
+    const tipoAuditoria=r.etapa_auditoria||r.tipoAuditoria||"TIEMPO_REAL";
+    const tipoRecibo=r.etiqueta||"";
+    const desviacion=r.desviacion||"";
 
     function bloque(titulo,y){
       doc.setFillColor(253,208,0);doc.rect(10,y,190,8,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0);doc.text(titulo,12,y+5);return y+10;
+      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0);doc.text(titulo,12,y+5);
+      return y+10;
     }
     function campo(x,y,w,label,valCampo){
       const labelH=3,gap=1,boxH=9;
       doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(110);doc.text(String(label).toUpperCase(),x,y+labelH);
       const boxY=y+4;doc.setFillColor(245,245,245);doc.roundedRect(x,boxY,w,boxH,2,2,"F");doc.setDrawColor(220);doc.roundedRect(x,boxY,w,boxH,2,2);
       const texto=valor(valCampo);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(texto==="NO APLICA"?140:30);
-      const lineas=doc.splitTextToSize(texto,w-6);doc.text(String(lineas[0]||texto),x+w/2,boxY+(boxH/2)+1.5,{align:"center"});return labelH+gap+boxH+4;
+      const lineas=doc.splitTextToSize(texto,w-6);
+      doc.text(String(lineas[0]||texto),x+w/2,boxY+(boxH/2)+1.5,{align:"center"});
+      return labelH+gap+boxH+4;
     }
     function header(){
       doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(100);doc.text("BUSINESS USE",10,10);
       doc.setFontSize(6);doc.setTextColor(120);doc.text("SISTEMA DE GESTION DE CALIDAD",10,14);doc.text("FY2627",10,17);
       if(typeof imgLogoBase64!=="undefined"&&imgLogoBase64){try{doc.addImage(imgLogoBase64,"JPEG",160,7,38,14);}catch(e){try{doc.addImage(imgLogoBase64,"PNG",160,7,38,14);}catch(e2){}}}
-      doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(0);doc.text("REPORTE ALERTA DE CALIDAD",105,18,null,null,"center");
+      doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(0);doc.text("AUDITORÍA EN RECIBO",105,18,null,null,"center");
       doc.setFillColor(253,208,0);doc.rect(0,22,210,1,"F");
     }
-    function footer(page){
-      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(100);doc.text("ESTA ALERTA FUE ELABORADA POR: "+valor(r.nombre),105,290,{align:"center"});
-      doc.setFontSize(8);doc.setTextColor(120);doc.text(valor(r.folio)+" | "+page+"/1",195,290,{align:"right"});
+    function footer(page,total){
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(100);
+      doc.text("AUDITORÍA EN RECIBO",10,290);
+      doc.text(valor(r.folio)+" | "+page+"/"+total,195,290,{align:"right"});
+    }
+    async function agregarEvidencias(urls,y){
+      if(!urls.length){doc.setTextColor(120);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Sin evidencia",105,y+35,{align:"center"});return y+70;}
+      const imgW=58,imgH=42;let pos=0,rowY=y+2;
+      for(let i=0;i<Math.min(urls.length,6);i++){
+        try{
+          const dataUrl=await cargarImagenDataURL(urls[i]); if(!dataUrl)continue;
+          const x=10+(pos%3)*64;
+          if(pos>0&&pos%3===0)rowY+=46;
+          doc.setFillColor(245,245,245);doc.roundedRect(x,rowY,imgW,imgH,3,3,"F");doc.setDrawColor(220);doc.roundedRect(x,rowY,imgW,imgH,3,3);
+          try{doc.addImage(dataUrl,"JPEG",x+2,rowY+2,imgW-4,imgH-4);}catch(e){try{doc.addImage(dataUrl,"PNG",x+2,rowY+2,imgW-4,imgH-4);}catch(e2){}}
+          pos++;
+        }catch(e){}
+      }
+      return y+Math.max(70,Math.ceil(Math.max(pos,1)/3)*46+8);
     }
 
     header();
-    let y=28;const GAP=19;
-    y=bloque("DATOS GENERALES",y);
-    campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Fecha",fecha);campo(140,y,60,"Turno",r.turno);y+=GAP;
-    campo(10,y,60,"Nombre",r.nombre);campo(75,y,60,"Área","RECIBO");campo(140,y,60,"Cuadrilla",r.cuadrilla);y+=GAP;
-    y=bloque("HALLAZGO",y);
-    campo(10,y,60,"Clasificación",clasificacion);campo(75,y,125,"Hallazgo",hallazgoTexto);y+=GAP;
-    campo(10,y,190,"Ubicación",ubicacion);y+=GAP;
-    y=bloque("DETALLE",y);
-    campo(10,y,190,"Proceso",proceso);y+=GAP;
-    campo(10,y,60,"Código",codigo);campo(75,y,60,"Lote",lote);campo(140,y,60,"Cantidad",cantidad);y+=GAP;
-    campo(10,y,190,"STO",sto);y+=GAP;
-    campo(10,y,190,"Resultado",resultado);y+=GAP;
-    y=bloque("EVIDENCIA FOTOGRÁFICA",y);
-    const contX=10,contY=y,contW=190,contH=110;doc.setFillColor(245,245,245);doc.roundedRect(contX,contY,contW,contH,4,4,"F");doc.setDrawColor(220);doc.roundedRect(contX,contY,contW,contH,4,4);
-    let yImg=contY+2;const urls=obtenerImagenesRegistro(r);
-    if(urls.length){
-      const imgW=68,imgH=48;let colocadas=0;
-      for(let i=0;i<Math.min(urls.length,4);i++){
-        try{const response=await fetch(urls[i]);if(!response.ok)continue;const blob=await response.blob();const dataUrl=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>resolve(null);reader.readAsDataURL(blob);});if(!dataUrl)continue;
-          const x=urls.length===1?contX+(contW/2)-(imgW/2):(i%2===0?contX+10:contX+contW-imgW-10);if(i>0&&i%2===0)yImg+=imgH+3;
-          doc.setFillColor(235,235,235);doc.roundedRect(x,yImg,imgW,imgH,3,3,"F");doc.setDrawColor(200);doc.roundedRect(x,yImg,imgW,imgH,3,3);try{doc.addImage(dataUrl,"JPEG",x+2,yImg+2,imgW-4,imgH-4);}catch(e){try{doc.addImage(dataUrl,"PNG",x+2,yImg+2,imgW-4,imgH-4);}catch(e2){}}colocadas++;
-        }catch(e){console.warn("No se pudo cargar evidencia:",e);}
+    let y=28;
+    y=bloque("DATOS DE AUDITORÍA",y);
+    campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Turno",r.turno);campo(140,y,60,"Cuadrilla",r.cuadrilla);y+=19;
+    campo(10,y,60,"STO",r.sto);campo(75,y,60,"Origen",r.origen);campo(140,y,60,"Cortina",r.cortina);y+=19;
+    campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
+    campo(10,y,190,"Observaciones",r.observaciones);y+=19;
+
+    for(let i=0;i<codigos.length;i++){
+      const item=codigos[i]||{};
+      if(y>250){doc.addPage();header();y=28;}
+      y=bloque("LPN",y);
+      campo(10,y,60,"LPN",item.lpn);campo(75,y,60,"GCAS",item.gcas);campo(140,y,60,"Lote",item.lote);y+=19;
+      campo(10,y,60,"STO",item.sto||r.sto);campo(75,y,60,"Cantidad",item.sistema_cantidad);campo(140,y,60,"Descripción",item.descripcion);y+=19;
+      campo(10,y,60,"Cliente",item.cliente);campo(75,y,60,"Inventory status",item.inventory_status);campo(140,y,60,"Storage location",item.storage_location);y+=19;
+      campo(10,y,190,"Resultado",item.error_tipo&&item.error_tipo!=="NINGUNO"?"ERROR":"OK");y+=19;
+      if(item.error_tipo&&item.error_tipo!=="NINGUNO"){
+        campo(10,y,60,"Error tipo",item.error_tipo);campo(75,y,125,"Error detalle",item.error_detalle);y+=19;
+        if(item.responsable_usuario||item.responsable_cuadrilla||item.responsable_coordinador){
+          campo(10,y,60,"Responsable usuario",item.responsable_usuario);campo(75,y,60,"Responsable cuadrilla",item.responsable_cuadrilla);campo(140,y,60,"Responsable coordinador",item.responsable_coordinador);y+=19;
+        }
       }
-      if(!colocadas){doc.setTextColor(120);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("La evidencia está registrada, pero no pudo cargarse en el PDF.",105,contY+60,{align:"center"});}
-    }else{doc.setTextColor(120);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Sin evidencia",105,contY+60,{align:"center"});}
-    footer(1);doc.save((r.folio||"Auditoria_Recibo")+".pdf");
-  }catch(e){console.error("Error PDF reporte:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");}
+      const urls=[];
+      if(Array.isArray(item.evidencia_campos_urls)){urls.push(...item.evidencia_campos_urls.filter(Boolean));}
+      if(item.evidencia_campos_urls&&typeof item.evidencia_campos_urls==="object"){Object.values(item.evidencia_campos_urls).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(u=>{if(u)urls.push(typeof u==="string"?u:u.url);})));}
+      if(i===0 && urls.length===0){const generales=obtenerImagenesRegistro(r);urls.push(...generales);}
+      y=bloque("EVIDENCIA FOTOGRÁFICA",y);
+      y=await agregarEvidencias([...new Set(urls)],y);
+      if(i<codigos.length-1){doc.addPage();header();y=28;}
+    }
+    if(!codigos.length){
+      y=bloque("EVIDENCIA FOTOGRÁFICA",y);
+      y=await agregarEvidencias(obtenerImagenesRegistro(r),y);
+    }
+    const total=doc.getNumberOfPages();
+    for(let page=1;page<=total;page++){doc.setPage(page);footer(page,total);}
+    doc.save((r.folio||"Auditoria_Recibo")+".pdf");
+  }catch(e){console.error("Error PDF auditoría:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");}
 }
 
 /* =========================================================
@@ -7957,6 +8228,9 @@ function generarPDF(){
 ========================================================= */
 
 function limpiarFormulario(){
+
+  auditoriaEnEdicion=false;
+  auditoriaId=crypto.randomUUID();
 
   document
     .getElementById(
@@ -8040,6 +8314,9 @@ function limpiarFormulario(){
   auditoriaActual =
     [];
 
+  localStorage.removeItem(QA_DRAFT_STATE_KEY);
+  clearTimeout(qaDraftRemoteTimer);
+
   muestraCalculada =
     0;
 
@@ -8096,14 +8373,30 @@ document.addEventListener(
 
     cargarSesion();
 
-await cargarBorrador();
+auditoriaEnEdicion=false;
+mostrarInicioAuditorias();
+
+    const btnAuditoriaNueva=document.getElementById("btnAuditoriaNueva");
+    const btnAuditoriasEnProceso=document.getElementById("btnAuditoriasEnProceso");
+
+    if(btnAuditoriaNueva){
+      btnAuditoriaNueva.addEventListener("click",e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        iniciarAuditoriaNueva();
+      });
+    }
+
+    if(btnAuditoriasEnProceso){
+      btnAuditoriasEnProceso.addEventListener("click",async e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        await mostrarAuditoriasEnProceso();
+      });
+    }
 
 setInterval(() => {
-
-  if (auditoriaActual.length) {
-    guardarBorrador();
-  }
-
+  if (auditoriaEnEdicion) guardarBorrador();
 }, 30000);
 
 
@@ -8118,9 +8411,6 @@ setInterval(() => {
       );
 
     if(excelInput){
-      excelInput.addEventListener("click",()=>{
-        excelInput.value="";
-      });
       excelInput.addEventListener("change",e=>{
         const file=e.target.files && e.target.files[0];
         if(file){
@@ -8205,6 +8495,14 @@ setInterval(() => {
 
     cambiarTipoAuditoria();
 
+    ["cortina","sto","origen","turno","cuadrilla","coordinador","observaciones"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){
+        el.addEventListener("input",()=>guardarBorrador());
+        el.addEventListener("change",()=>guardarBorrador());
+      }
+    });
+
     renderizarTareasPendientes();
 
     actualizarKPIs();
@@ -8219,6 +8517,13 @@ setInterval(() => {
         if(e.target===reportesOverlay) cerrarReportes();
       });
     }
+
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState==="hidden") guardarBorradorLocal();
+    });
+    window.addEventListener("pagehide",()=>{
+      guardarBorradorLocal();
+    });
 
   }
 );
