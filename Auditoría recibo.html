@@ -2065,33 +2065,8 @@ button{
             placeholder="Origen">
 
           <datalist id="origenListado">
-  <option>AEROBAL</option>
-  <option>ALCE BLANCO</option>
-  <option>ANDOVER PLANT GILLET</option>
-  <option>COLEP</option>
-  <option>DETERGENTES Y JABONES</option>
-  <option>DLMC DALLAS MIX CENT</option>
-  <option>EVSA</option>
-  <option>FIURI</option>
-  <option>GELCAPS</option>
-  <option>GERMANY IMP</option>
-  <option>GREENSBORO</option>
-  <option>IMPORTADO</option>
-  <option>IRAPUATO (CHRONOS)</option>
-  <option>MARISCALA</option>
-  <option>MILENIO</option>
-  <option>NAUCALPAN</option>
-  <option>P&G BROWNS SUMMIT SW</option>
-  <option>PHOENIX PLANT V1725Z</option>
-  <option>QUIFA</option>
-  <option>QUIMICA & FARMACIA S</option>
-  <option>SMO MASTER DC-PG MFG</option>
-  <option>SMOMASTERDC-PGMFG</option>
-  <option>TABLER STATION PLANT</option>
-  <option>TEPEJI</option>
-  <option>THE PROCTER & GAMBLE</option>
-  <option>USA TABLER STATION PLANT</option>
-  <option>VALLEJO</option>
+            <option value="Origen 1">
+            <option value="Origen 2">
           </datalist>
 
         </div>
@@ -2298,7 +2273,7 @@ button{
        06 · RESULTADO
   ====================================================== -->
 
-<section class="card">
+<section class="card" id="resultadoSection">
 
     <div class="card-head">
 
@@ -3070,17 +3045,14 @@ function cambiarTipoAuditoria(){
       tiempoReal
     );
 
+  const resultadoSection =
+    document.getElementById("resultadoSection");
+
+  if(resultadoSection){
+    resultadoSection.classList.toggle("hidden", !tiempoReal);
+  }
+
   if(!tiempoReal){
-
-    document
-      .getElementById("resultadoGeneral")
-      .className =
-      "alert alert-info";
-
-    document
-      .getElementById("resultadoGeneral")
-      .textContent =
-      "Busca una LPN para revisar el error registrado y su corrección.";
 
     window.scrollTo({
       top:0,
@@ -5772,6 +5744,11 @@ function comprimirImagen(
       reject
     ) => {
 
+      if(!file){
+        reject(new Error("Archivo de evidencia inválido."));
+        return;
+      }
+
       const reader =
         new FileReader();
 
@@ -5784,84 +5761,99 @@ function comprimirImagen(
           img.onload =
             () => {
 
-              let width =
-                img.width;
+              try{
 
-              let height =
-                img.height;
+                let width =
+                  img.width;
 
-              if(
-                width >
-                maxWidth
-              ){
+                let height =
+                  img.height;
 
-                const ratio =
-                  maxWidth /
-                  width;
+                if(
+                  width >
+                  maxWidth
+                ){
 
-                width =
-                  maxWidth;
+                  const ratio =
+                    maxWidth /
+                    width;
 
-                height =
-                  Math.round(
-                    height *
-                    ratio
+                  width =
+                    maxWidth;
+
+                  height =
+                    Math.round(
+                      height *
+                      ratio
+                    );
+
+                }
+
+                const canvas =
+                  document.createElement(
+                    "canvas"
                   );
 
+                canvas.width =
+                  width;
+
+                canvas.height =
+                  height;
+
+                const ctx =
+                  canvas.getContext(
+                    "2d"
+                  );
+
+                if(!ctx){
+                  reject(new Error("No fue posible preparar la imagen."));
+                  return;
+                }
+
+                ctx.drawImage(
+                  img,
+                  0,
+                  0,
+                  width,
+                  height
+                );
+
+                canvas.toBlob(
+                  blob => {
+
+                    if(blob){
+
+                      resolve(
+                        blob
+                      );
+
+                    }else{
+
+                      reject(
+                        new Error(
+                          "No fue posible optimizar la imagen."
+                        )
+                      );
+
+                    }
+
+                  },
+                  "image/jpeg",
+                  quality
+                );
+
+              }catch(error){
+                reject(error);
               }
-
-              const canvas =
-                document.createElement(
-                  "canvas"
-                );
-
-              canvas.width =
-                width;
-
-              canvas.height =
-                height;
-
-              const ctx =
-                canvas.getContext(
-                  "2d"
-                );
-
-              ctx.drawImage(
-                img,
-                0,
-                0,
-                width,
-                height
-              );
-
-              canvas.toBlob(
-                blob => {
-
-                  if(blob){
-
-                    resolve(
-                      blob
-                    );
-
-                  }else{
-
-                    reject(
-                      new Error(
-                        "No fue posible optimizar la imagen."
-                      )
-                    );
-
-                  }
-
-                },
-                "image/jpeg",
-                quality
-              );
 
             };
 
           img.onerror =
-            reject;
+            () => reject(
+              new Error(
+                "El navegador no pudo leer esta imagen."
+              )
+            );
 
           img.src =
             event.target.result;
@@ -5869,7 +5861,10 @@ function comprimirImagen(
         };
 
       reader.onerror =
-        reject;
+        () => reject(
+          reader.error ||
+          new Error("No fue posible leer el archivo de evidencia.")
+        );
 
       reader.readAsDataURL(
         file
@@ -5890,6 +5885,7 @@ async function subirEvidencias(
 ){
 
   const urls = [];
+  const fallas = [];
 
   const subirArchivo = async (
     archivo,
@@ -5897,60 +5893,122 @@ async function subirEvidencias(
     rutaExtra = ""
   ) => {
 
+    if(!archivo){
+      throw new Error("Archivo de evidencia inválido.");
+    }
+
+    let blob = archivo;
+    let contentType = archivo.type || "image/jpeg";
+    let extension = "jpg";
+
     try{
 
-      const blob =
+      blob =
         await comprimirImagen(
           archivo
         );
 
-      const nombre =
-        `${folio}/${tipo}/${rutaExtra ? rutaExtra + "/" : ""}${Date.now()}_${Math.random().toString(36).slice(2,9)}.jpg`;
+      contentType =
+        "image/jpeg";
 
-      const {
-        error
-      } =
-        await supabaseClient
-          .storage
-          .from(BUCKET)
-          .upload(
-            nombre,
-            blob,
-            {
-              contentType:"image/jpeg",
-              upsert:true
-            }
-          );
+      extension =
+        "jpg";
 
-      if(error){
-        console.error(error);
-        return null;
-      }
+    }catch(errorCompresion){
 
-      const {
-        data
-      } =
-        supabaseClient
-          .storage
-          .from(BUCKET)
-          .getPublicUrl(
-            nombre
-          );
-
-      return data?.publicUrl
-        ? data.publicUrl
-        : null;
-
-    }catch(error){
-
-      console.error(
-        "Error de evidencia:",
-        error
+      console.warn(
+        "No fue posible comprimir la evidencia; se intentará subir el archivo original.",
+        errorCompresion
       );
 
-      return null;
+      blob =
+        archivo;
+
+      contentType =
+        archivo.type ||
+        "application/octet-stream";
+
+      const tipoArchivo =
+        String(contentType).split("/")[1] ||
+        String(archivo.name || "jpg").split(".").pop() ||
+        "jpg";
+
+      extension =
+        tipoArchivo.toLowerCase().replace(/[^a-z0-9]/g,"") ||
+        "jpg";
 
     }
+
+    let ultimoError = null;
+
+    for(let intento = 1; intento <= 3; intento++){
+
+      try{
+
+        const nombre =
+          `${folio}/${tipo}/${rutaExtra ? rutaExtra + "/" : ""}${Date.now()}_${Math.random().toString(36).slice(2,9)}.${extension}`;
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .storage
+            .from(BUCKET)
+            .upload(
+              nombre,
+              blob,
+              {
+                contentType,
+                upsert:false
+              }
+            );
+
+        if(error){
+          ultimoError = error;
+          console.error(
+            `Error al subir evidencia (intento ${intento}/3):`,
+            error
+          );
+          continue;
+        }
+
+        const {
+          data
+        } =
+          supabaseClient
+            .storage
+            .from(BUCKET)
+            .getPublicUrl(
+              nombre
+            );
+
+        if(!data?.publicUrl){
+          ultimoError = new Error(
+            "Supabase no devolvió la URL pública de la evidencia."
+          );
+          continue;
+        }
+
+        return data.publicUrl;
+
+      }catch(error){
+
+        ultimoError =
+          error;
+
+        console.error(
+          `Error de evidencia (intento ${intento}/3):`,
+          error
+        );
+
+      }
+
+    }
+
+    throw (
+      ultimoError ||
+      new Error("No fue posible guardar la evidencia.")
+    );
 
   };
 
@@ -6001,14 +6059,14 @@ async function subirEvidencias(
 
           }
 
-          const url =
-            await subirArchivo(
-              archivo,
-              "lpn",
-              `${index+1}_${normalizarLpn(item.lpn)}_${categoria}_${campo}`
-            );
+          try{
 
-          if(url){
+            const url =
+              await subirArchivo(
+                archivo,
+                "lpn",
+                `${index+1}_${normalizarLpn(item.lpn)}_${categoria}_${campo}`
+              );
 
             urls.push({
               tipo:"campo",
@@ -6018,6 +6076,22 @@ async function subirEvidencias(
               categoria,
               campo
             });
+
+          }catch(error){
+
+            const detalle =
+              `LPN ${item.lpn || index+1} · ${categoria} · ${campo}`;
+
+            fallas.push({
+              detalle,
+              error
+            });
+
+            console.error(
+              "No fue posible guardar la evidencia:",
+              detalle,
+              error
+            );
 
           }
 
@@ -6029,10 +6103,24 @@ async function subirEvidencias(
 
   }
 
+  if(fallas.length){
+
+    const detalle =
+      fallas
+        .map(x => x.detalle)
+        .join("\n");
+
+    throw new Error(
+      "No se pudieron guardar todas las evidencias.\n\n" +
+      detalle +
+      "\n\nLa auditoría no se guardó para evitar que quede sin sus evidencias."
+    );
+
+  }
+
   return urls;
 
 }
-
 
 /* =========================================================
    FOLIO
@@ -6942,7 +7030,12 @@ function guardarTareaAuditoriaLpn(
     fecha_creacion:
       existente?.fecha_creacion ||
       new Date().toISOString(),
-    estado:"PENDIENTE"
+    estado:"PENDIENTE",
+    item:{
+      ...item,
+      evidencia_campos:undefined,
+      _excelTimer:undefined
+    }
   };
 
   if(existente){
@@ -7042,16 +7135,53 @@ function renderizarTareasPendientes(){
             ${escapeHtml(tarea.detalle || "Revisar LPN")}
           </div>
 
-          <button
-            type="button"
-            class="btn btn-primary btn-small"
-            onclick="abrirTareaPendiente(${index})">
-            Auditar esta LPN
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button
+              type="button"
+              class="btn btn-primary btn-small"
+              onclick="abrirTareaPendiente(${index})">
+              Auditar esta LPN
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-secondary btn-small"
+              onclick="eliminarTareaPendiente(${index})">
+              Eliminar
+            </button>
+          </div>
         </div>
       `
     ).join("")}
   `;
+
+}
+
+
+function eliminarTareaPendiente(index){
+
+  const tarea=tareasAuditoriaLpn[index];
+
+  if(!tarea){
+    return;
+  }
+
+  const confirmar=window.confirm(
+    `¿Deseas eliminar la LPN ${tarea.lpn} de las tareas pendientes?`
+  );
+
+  if(!confirmar){
+    return;
+  }
+
+  tareasAuditoriaLpn.splice(index,1);
+
+  localStorage.setItem(
+    "tareasAuditoriaLpn",
+    JSON.stringify(tareasAuditoriaLpn)
+  );
+
+  renderizarTareasPendientes();
 
 }
 
@@ -7251,24 +7381,41 @@ async function buscarLPNAlmacenaje(){
 
     if(!encontrado){
 
-      contenedor.innerHTML =
-        `
+      const tarea=tareasAuditoriaLpn.find(
+        x=>normalizarLpn(x.lpn)===normalizarLpn(lpn)
+      );
 
-          <div
-            class="alert alert-warning"
-            style="margin-top:12px">
+      if(tarea?.item){
 
-            No se encontró la LPN
-            <strong>
-              ${escapeHtml(lpn)}
-            </strong>
-            en las auditorías registradas.
+        const itemLocal={...tarea.item};
+        delete itemLocal.evidencia_campos;
 
-          </div>
+        encontrado={
+          registro:{
+            folio:tarea.folio||"",
+            etiqueta:tarea.item.tipo_recibo||"",
+            cortina:tarea.item.cortina||"",
+            sto:tarea.item.sto||"",
+            origen:tarea.item.origen||"",
+            turno:tarea.item.turno||"",
+            cuadrilla:tarea.item.cuadrilla||"",
+            coordinador:tarea.item.responsable_coordinador||tarea.coordinador||""
+          },
+          codigo:itemLocal
+        };
 
-        `;
+      }else{
 
-      return;
+        contenedor.innerHTML =
+          `
+            <div class="alert alert-warning" style="margin-top:12px">
+              No se encontró la LPN <strong>${escapeHtml(lpn)}</strong> en las auditorías registradas y esta tarea no contiene información guardada para cargarla.
+            </div>
+          `;
+
+        return;
+
+      }
 
     }
 
