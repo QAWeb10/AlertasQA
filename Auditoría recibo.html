@@ -2665,10 +2665,49 @@ function prepararAuditoriaParaBorrador(items){
 }
 
 async function obtenerAuditoriasEnProceso(){
+  let locales=[];
   try{
-    const lista=JSON.parse(localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]");
-    return Array.isArray(lista)?lista:[];
-  }catch(error){console.error("Error leyendo auditorías en proceso:",error);return [];}
+    const guardadas=JSON.parse(localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]");
+    locales=Array.isArray(guardadas)?guardadas:[];
+  }catch(error){
+    console.error("Error leyendo auditorías locales:",error);
+  }
+
+  let remotas=[];
+  try{
+    const {data,error}=await supabaseClient
+      .from("Auditoria_Recibo_Borrador")
+      .select("auditoria_id,usuario,estado,actualizado")
+      .order("actualizado",{ascending:false});
+
+    if(error){
+      console.error("Error consultando auditorías compartidas:",error);
+    }else if(Array.isArray(data)){
+      remotas=data.map(row=>({
+        ...(row.estado||{}),
+        auditoriaId:row.auditoria_id || row.estado?.auditoriaId,
+        propietario:row.estado?.propietario || row.usuario || "",
+        usuario:row.usuario || row.estado?.propietario || "",
+        actualizado:row.actualizado || row.estado?.actualizado || ""
+      })).filter(x=>x.auditoriaId);
+    }
+  }catch(error){
+    console.error("Error leyendo auditorías compartidas:",error);
+  }
+
+  const combinadas=[...locales];
+  for(const remota of remotas){
+    const indice=combinadas.findIndex(x=>x?.auditoriaId===remota.auditoriaId);
+    if(indice<0){
+      combinadas.push(remota);
+    }else{
+      const localFecha=new Date(combinadas[indice]?.actualizado||0).getTime();
+      const remotaFecha=new Date(remota.actualizado||0).getTime();
+      if(remotaFecha>=localFecha) combinadas[indice]=remota;
+    }
+  }
+
+  return combinadas;
 }
 
 async function guardarBorradorLocal(){
@@ -2685,6 +2724,7 @@ async function guardarBorradorLocal(){
     }
     const estado={
       auditoriaId,
+      propietario:window.qaBorradorPropietario || usuarioQA?.nombre || "",
       tipoAuditoria:obtenerTipoAuditoria(),
       tipoRecibo:obtenerTipoRecibo(),
       cortina:document.getElementById("cortina")?.value||"",
@@ -2711,16 +2751,82 @@ async function guardarBorradorLocal(){
   }catch(error){console.error("Error guardando borrador local:",error);return null;}
 }
 
+async function prepararBorradorCompartido(estado){
+  const copia=JSON.parse(JSON.stringify(estado));
+  const ahora=Date.now();
+
+  for(const item of copia.auditoriaActual||[]){
+    for(const categoria of ["generales","inventario","pallet","granel"]){
+      for(const [campo,archivos] of Object.entries(item?.evidencia_campos?.[categoria]||{})){
+        const resultado=[];
+        for(const archivo of archivos||[]){
+          if(archivo?.tipo!=="local" || !archivo.localId){
+            resultado.push(archivo);
+            continue;
+          }
+
+          try{
+            const registro=await obtenerArchivoBorradorLocal(archivo.localId);
+            if(!registro?.blob){
+              console.warn("No se encontró evidencia local para compartir:",archivo.localId);
+              continue;
+            }
+
+            const extension=(registro.type||archivo.type||"image/jpeg").split("/")[1]||"jpg";
+            const ruta=`borradores/${estado.auditoriaId}/${item.lpn||"sin_lpn"}/${categoria}_${campo}/${ahora}_${Math.random().toString(36).slice(2,8)}.${extension}`;
+            const {error}=await supabaseClient.storage.from(BUCKET).upload(
+              ruta,
+              registro.blob,
+              {contentType:registro.type||archivo.type||"image/jpeg",upsert:true}
+            );
+
+            if(error){
+              console.error("Error compartiendo evidencia:",error);
+              continue;
+            }
+
+            const {data}=supabaseClient.storage.from(BUCKET).getPublicUrl(ruta);
+            if(data?.publicUrl){
+              resultado.push({tipo:"url",url:data.publicUrl});
+            }
+          }catch(error){
+            console.error("Error procesando evidencia compartida:",error);
+          }
+        }
+        copia.auditoriaActual[copia.auditoriaActual.indexOf(item)].evidencia_campos[categoria][campo]=resultado;
+      }
+    }
+  }
+
+  return copia;
+}
+
 async function guardarBorradorRemoto(estado){
   if(qaDraftRestoring||!usuarioQA?.nombre||!estado)return;
   try{
-    await supabaseClient.from("Auditoria_Recibo_Borrador").delete().eq("auditoria_id",estado.auditoriaId).eq("usuario",usuarioQA.nombre);
+    const propietario=estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre;
+    const estadoCompartido=await prepararBorradorCompartido({...estado,propietario});
+    estadoCompartido.ultimaEdicionPor=usuarioQA.nombre;
+    estadoCompartido.actualizado=new Date().toISOString();
+
+    const {error:deleteError}=await supabaseClient
+      .from("Auditoria_Recibo_Borrador")
+      .delete()
+      .eq("auditoria_id",estadoCompartido.auditoriaId)
+      .eq("usuario",propietario);
+
+    if(deleteError){
+      console.error("Error reemplazando borrador compartido:",deleteError);
+      return;
+    }
+
     const {error}=await supabaseClient.from("Auditoria_Recibo_Borrador").insert({
-      auditoria_id:estado.auditoriaId,
-      usuario:usuarioQA.nombre,
-      estado,
-      actualizado:estado.actualizado
+      auditoria_id:estadoCompartido.auditoriaId,
+      usuario:propietario,
+      estado:estadoCompartido,
+      actualizado:estadoCompartido.actualizado
     });
+
     if(error)console.error("Error guardando borrador remoto:",error);
   }catch(error){console.error("Error guardando borrador remoto:",error);}
 }
@@ -2736,6 +2842,7 @@ async function guardarBorrador(){
 async function restaurarEstadoBorrador(estado){
   if(!estado)return;
   auditoriaEnEdicion=true;
+  window.qaBorradorPropietario=estado.propietario || estado.usuario || usuarioQA?.nombre || "";
   auditoriaId=estado.auditoriaId||crypto.randomUUID();
 
   const tipoAuditoria=estado.tipoAuditoria||"TIEMPO_REAL";
@@ -2839,11 +2946,28 @@ async function eliminarAuditoriaEnProceso(id){
   const lista=await obtenerAuditoriasEnProceso();
   const estado=lista.find(x=>x?.auditoriaId===id);
   if(!estado)return;
+
+  const propietario=estado.propietario || estado.usuario || usuarioQA?.nombre || "";
+  if(propietario!==usuarioQA?.nombre){
+    mostrarAlertaQA("Solo el usuario que inició la auditoría puede eliminar su avance compartido.","warning","Auditoría compartida");
+    return;
+  }
+
   const nueva=lista.filter(x=>x?.auditoriaId!==id);
   localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(nueva));
   if(localStorage.getItem(QA_DRAFT_STATE_KEY)){
     try{const actual=JSON.parse(localStorage.getItem(QA_DRAFT_STATE_KEY));if(actual?.auditoriaId===id)localStorage.removeItem(QA_DRAFT_STATE_KEY);}catch(e){}
   }
+
+  try{
+    const {error}=await supabaseClient
+      .from("Auditoria_Recibo_Borrador")
+      .delete()
+      .eq("auditoria_id",id)
+      .eq("usuario",propietario);
+    if(error)console.error("Error eliminando borrador remoto:",error);
+  }catch(error){console.error("Error eliminando borrador remoto:",error);}
+
   const archivos=[];
   (estado.auditoriaActual||[]).forEach(item=>{
     Object.values(item?.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(x=>{if(x?.localId)archivos.push(x.localId);})));
@@ -2867,7 +2991,7 @@ async function mostrarAuditoriasEnProceso(){
   listaEl.innerHTML=lista.map((x)=>{
     const fecha=x.actualizado?new Date(x.actualizado).toLocaleString("es-MX"):"";
     const lpn=Array.isArray(x.auditoriaActual)?x.auditoriaActual.length:0;
-    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small" onclick="cargarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">CONTINUAR</button><button type="button" class="btn btn-secondary btn-small" onclick="eliminarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">ELIMINAR</button></div></div>`;
+    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">Iniciada por: ${escapeHtml(x.propietario||x.usuario||"—")}<br>Última edición: ${escapeHtml(x.ultimaEdicionPor||x.propietario||"—")}<br>STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small" onclick="cargarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">CONTINUAR</button>${(x.propietario||x.usuario)===usuarioQA?.nombre?`<button type="button" class="btn btn-secondary btn-small" onclick="eliminarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">ELIMINAR</button>`:""}</div></div>`;
   }).join("");
 }
 
@@ -2899,6 +3023,7 @@ function iniciarAuditoriaNueva(){
   }finally{
     auditoriaId=crypto.randomUUID();
     auditoriaEnEdicion=true;
+    window.qaBorradorPropietario=usuarioQA?.nombre||"";
     qaDraftRestoring=false;
     localStorage.removeItem(QA_DRAFT_STATE_KEY);
   }
