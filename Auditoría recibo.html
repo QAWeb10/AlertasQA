@@ -9,7 +9,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 :root{
@@ -424,6 +424,36 @@ button{
   color:#8b001f;
   border:1px solid #f2ccd4;
 }
+ .file-status.loading{
+  background:#fff8e6;
+  color:#7a5200;
+  border:1px solid #f1d58a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+.qa-spinner{
+  width:16px;
+  height:16px;
+  border:3px solid #eadfbf;
+  border-top-color:#CF002E;
+  border-radius:50%;
+  animation:qaSpin .8s linear infinite;
+  flex:0 0 auto;
+}
+@keyframes qaSpin{to{transform:rotate(360deg)}}
+.reportes-loading{
+  min-height:160px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  color:#666;
+  font-weight:800;
+}
+.reportes-loading .qa-spinner{width:28px;height:28px;border-width:4px;}
 
 .excel-kpis{
   display:grid;
@@ -1422,6 +1452,72 @@ button{
 .inventory-compare-error{border:1px solid #ef4444}
 .inventory-compare-pending{border:1px solid #d1d5db}
 @media(max-width:760px){.inventory-compare-grid{grid-template-columns:1fr}}
+
+/* =========================================================
+   PANEL REPORTES · 20 REGISTROS POR PÁGINA
+========================================================= */
+.reportes-overlay{
+  position:fixed;
+  inset:0;
+  z-index:8000;
+  display:none;
+  background:rgba(20,20,20,.68);
+  backdrop-filter:blur(4px);
+  padding:12px;
+  overflow:auto;
+}
+.reportes-overlay.show{display:block;}
+.reportes-shell{
+  width:min(100%,1100px);
+  margin:0 auto;
+  background:#fff;
+  border-radius:18px;
+  box-shadow:var(--shadow-3);
+  overflow:hidden;
+}
+.reportes-head{
+  padding:14px 16px;
+  background:linear-gradient(135deg,var(--brand-deep),var(--brand));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.reportes-head h2{margin:0;font-size:16px;line-height:1.2;}
+.reportes-head small{display:block;margin-top:3px;opacity:.82;font-size:10px;}
+.reportes-head-spacer{flex:1;}
+.reportes-close{
+  width:36px;height:36px;border:1px solid rgba(255,255,255,.35);
+  border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:20px;
+}
+.reportes-body{padding:14px;}
+.reportes-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.reportes-kpi{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafafa;}
+.reportes-kpi span{display:block;color:var(--ink-muted);font-size:8px;font-weight:900;text-transform:uppercase;}
+.reportes-kpi strong{display:block;margin-top:3px;font-size:18px;}
+.reportes-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.reporte-card{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;box-shadow:var(--shadow-1);}
+.reporte-card-head{padding:10px 12px;background:#fafafa;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:8px;}
+.reporte-card-head .folio{font-size:12px;font-weight:900;color:var(--brand);font-family:monospace;}
+.reporte-card-head .fecha{margin-left:auto;font-size:9px;color:var(--ink-muted);}
+.reporte-card-body{padding:10px 12px;}
+.reporte-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.reporte-dato{border:1px solid var(--line-soft);border-radius:8px;padding:7px 8px;background:#fff;}
+.reporte-dato span{display:block;color:var(--ink-muted);font-size:7px;font-weight:900;text-transform:uppercase;}
+.reporte-dato strong{display:block;margin-top:3px;font-size:10px;word-break:break-word;}
+.reporte-card-actions{display:flex;gap:7px;margin-top:9px;}
+.reporte-card-actions .btn{flex:1;}
+.reportes-paginacion{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;}
+.reportes-paginacion .pagina{font-size:10px;font-weight:900;color:var(--ink-soft);min-width:90px;text-align:center;}
+.reportes-empty{padding:35px 12px;text-align:center;color:var(--ink-muted);font-size:11px;border:1px dashed var(--line);border-radius:12px;}
+@media(max-width:700px){
+  .reportes-list{grid-template-columns:1fr;}
+}
+@media(max-width:500px){
+  .reportes-kpis{grid-template-columns:1fr 1fr;}
+  .reportes-kpi:last-child{grid-column:1/-1;}
+}
+
 </style>
 
 <style>
@@ -1813,11 +1909,13 @@ button{
 
         <div class="file-actions">
 
-          <label
+          <button
             class="photo-button"
-            for="archivoExcel">
+            type="button"
+            id="btnSeleccionarExcel"
+            onclick="seleccionarArchivoExcel()">
             Seleccionar Excel
-          </label>
+          </button>
 
           <button
             class="btn btn-secondary btn-small"
@@ -2269,9 +2367,9 @@ button{
         <button
           class="btn btn-secondary"
           type="button"
-          onclick="generarPDF()">
+          onclick="abrirReportes()">
 
-          PDF
+          REPORTES
 
         </button>
 
@@ -2300,6 +2398,41 @@ button{
   </section>
 
 </main>
+
+
+<!-- =========================================================
+     PANEL REPORTES
+========================================================= -->
+<div id="reportesOverlay" class="reportes-overlay" aria-hidden="true">
+  <div class="reportes-shell">
+    <div class="reportes-head">
+      <div>
+        <h2>Reportes de Auditoría en Recibo</h2>
+        <small>Registros almacenados en Auditoria_Recibo · 20 registros por página</small>
+      </div>
+      <div class="reportes-head-spacer"></div>
+      <button type="button" class="reportes-close" onclick="cerrarReportes()" aria-label="Cerrar">×</button>
+    </div>
+    <div class="reportes-body">
+      <div class="reportes-kpis">
+        <div class="reportes-kpi"><span>Total registros</span><strong id="reportesTotal">0</strong></div>
+        <div class="reportes-kpi"><span>Página</span><strong id="reportesPagina">1 / 1</strong></div>
+        <div class="reportes-kpi"><span>Mostrando</span><strong id="reportesMostrando">0</strong></div>
+      </div>
+      <div id="reportesLista" class="reportes-list">
+        <div class="reportes-loading">
+          <span class="qa-spinner"></span>
+          <span>Consultando auditorías guardadas…</span>
+        </div>
+      </div>
+      <div class="reportes-paginacion">
+        <button id="reportesAnterior" type="button" class="btn btn-secondary btn-small" onclick="paginaReportes(-1)">‹ Anterior</button>
+        <div id="reportesPaginaTexto" class="pagina">Página 1 de 1</div>
+        <button id="reportesSiguiente" type="button" class="btn btn-primary btn-small" onclick="paginaReportes(1)">Siguiente ›</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <footer class="footer">
   © Sistema QA · Desarrollado por Félix Montoya
@@ -2340,6 +2473,7 @@ try{
 let excelRecibo = [];
 let excelIndexLpn = new Map();
 let excelArchivoNombre = "";
+let excelStoragePath = "";
 let excelCargado = false;
 
 let muestraCalculada = 0;
@@ -2356,6 +2490,23 @@ async function guardarBorrador() {
   try {
 
     const estado = {
+      auditoriaId,
+      tipoAuditoria: obtenerTipoAuditoria(),
+      tipoRecibo: obtenerTipoRecibo(),
+
+      cortina: document.getElementById("cortina")?.value || "",
+      sto: document.getElementById("sto")?.value || "",
+      origen: document.getElementById("origen")?.value || "",
+      turno: document.getElementById("turno")?.value || "",
+      cuadrilla: document.getElementById("cuadrilla")?.value || "",
+      coordinador: document.getElementById("coordinador")?.value || "",
+      observaciones: document.getElementById("observaciones")?.value || "",
+
+      muestraCalculada,
+      codigoLetraMuestra,
+      excelStoragePath,
+excelArchivoNombre,
+
       auditoriaActual
     };
 
@@ -2369,17 +2520,147 @@ async function guardarBorrador() {
           actualizado: new Date().toISOString()
         },
         {
-          onConflict: "auditoria_id"
+          onConflict: "usuario"
         }
       );
 
+      console.log("Resultado:", error);
+
+
     if (error) {
-      console.error("Error guardando borrador:", error);
+      console.error(error);
     }
 
   } catch (err) {
-    console.error("Error guardando borrador:", err);
+    console.error(err);
   }
+}
+
+async function cargarBorrador(){
+
+  try{
+
+    if(!usuarioQA?.nombre){
+      return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("Auditoria_Recibo_Borrador")
+      .select("*")
+      .eq("usuario", usuarioQA.nombre)
+      .single();
+
+    if(error || !data){
+      console.log("Sin borrador");
+      return;
+    }
+
+    const estado = data.estado || {};
+
+    excelStoragePath =
+  estado.excelStoragePath || "";
+
+excelArchivoNombre =
+  estado.excelArchivoNombre || "";
+
+  if (excelStoragePath) {
+  try {
+    const { data, error } = await supabaseClient
+      .storage
+      .from("excel-recibos")
+      .download(excelStoragePath);
+
+    if (error) throw error;
+
+    const archivoExcel = new File(
+      [data],
+      excelArchivoNombre || "recibo.xlsx",
+      {
+        type: data.type
+      }
+    );
+
+    await procesarArchivoExcel(archivoExcel);
+
+    console.log("Excel restaurado desde borrador");
+  } catch (err) {
+    console.error(
+      "Error restaurando Excel:",
+      err
+    );
+  }
+}
+
+    auditoriaId =
+      estado.auditoriaId ||
+      crypto.randomUUID();
+
+    document.getElementById("cortina").value =
+      estado.cortina || "";
+
+    document.getElementById("sto").value =
+      estado.sto || "";
+
+    document.getElementById("origen").value =
+      estado.origen || "";
+
+    document.getElementById("turno").value =
+      estado.turno || "";
+
+    document.getElementById("cuadrilla").value =
+      estado.cuadrilla || "";
+
+    document.getElementById("coordinador").value =
+      estado.coordinador || "";
+
+    document.getElementById("observaciones").value =
+      estado.observaciones || "";
+
+    muestraCalculada =
+      estado.muestraCalculada || 0;
+
+    codigoLetraMuestra =
+      estado.codigoLetraMuestra || "";
+
+    auditoriaActual =
+      estado.auditoriaActual || [];
+
+    if(muestraCalculada){
+
+      document.getElementById("kpiMuestra").textContent =
+        muestraCalculada;
+
+      document.getElementById("kpiCodigo").textContent =
+        codigoLetraMuestra;
+
+      document.getElementById("sampleResult")
+        .classList.remove("hidden");
+    }
+
+    if(auditoriaActual.length){
+
+      renderizarAuditoria();
+
+      auditoriaActual.forEach((item,index)=>{
+        actualizarVistaLpn(index);
+        actualizarEstadoLpn(index);
+        evaluarLpn(index);
+      });
+
+      actualizarResultadoGeneral();
+    }
+
+    console.log("Borrador restaurado");
+
+  }catch(err){
+
+    console.error(
+      "Error cargando borrador",
+      err
+    );
+
+  }
+
 }
 
 /* =========================================================
@@ -2883,6 +3164,331 @@ function generarMuestra(){
   renderizarAuditoria();
 
 }
+
+
+function actualizarLpn(index,campo,valor){
+  const item=auditoriaActual[index];
+  if(!item) return;
+
+  item[campo]=valor ?? "";
+
+  if(campo==="lpn"){
+    item.lpn=String(valor ?? "").trim();
+  }
+
+  if(typeof actualizarEstadoLpn === "function"){
+    actualizarEstadoLpn(index);
+  }
+
+  if(typeof actualizarResultadoGeneral === "function"){
+    actualizarResultadoGeneral();
+  }
+
+  guardarBorrador();
+}
+
+function actualizarLpnEntrada(
+  index,
+  valor
+){
+
+  actualizarLpn(
+    index,
+    "lpn",
+    valor
+  );
+
+  if(
+    auditoriaActual[index]
+  ){
+
+    clearTimeout(
+      auditoriaActual[index]
+        ._excelTimer
+    );
+
+    auditoriaActual[index]
+      ._excelTimer =
+      setTimeout(
+        () =>
+          buscarLpnExcel(
+            index,
+            false
+          ),
+        250
+      );
+
+  }
+
+}
+
+
+function buscarLpnExcel(index,mostrarAviso=true){
+  const item=auditoriaActual[index];
+  if(!item) return;
+
+  const input=document.getElementById(`lpn_${index}`);
+
+  item.lpn=normalizarLpn(input?.value ?? item.lpn ?? "");
+
+  if(input && input.value!==item.lpn){
+    input.value=item.lpn;
+  }
+
+  const status=document.getElementById(`excelStatus_${index}`);
+  const notFound=document.getElementById(`excelNotFound_${index}`);
+
+  if(!item.lpn){
+    item.excel_encontrada=false;
+    status?.classList.add("hidden");
+    notFound?.classList.add("hidden");
+    actualizarEstadoLpn(index);
+    return;
+  }
+
+  if(!excelCargado || !excelIndexLpn.size){
+    status?.classList.add("hidden");
+    notFound?.classList.add("hidden");
+    actualizarEstadoLpn(index);
+    return;
+  }
+
+  let encontrado=null;
+
+  for(const key of clavesLpn(item.lpn)){
+    const registro=excelIndexLpn.get(key);
+    if(registro){
+      encontrado=registro;
+      break;
+    }
+  }
+
+  if(encontrado){
+    item.excel_encontrada=true;
+
+    item.sto=encontrado.sto || "";
+    item.gcas=encontrado.gcas || "";
+    item.lote=encontrado.lote || "";
+    item.sistema_cantidad=encontrado.sistema_cantidad ?? "";
+    item.descripcion=encontrado.descripcion || "";
+    item.cliente=encontrado.cliente || "";
+    item.inventory_status=encontrado.inventory_status || "";
+    item.storage_location=encontrado.storage_location || "";
+
+    if(index===0 && encontrado.sto){
+      const sto=document.getElementById("sto");
+      if(sto) sto.value=encontrado.sto;
+    }
+
+    actualizarVistaLpn(index);
+
+    if(status) status.className="lpn-found";
+    if(notFound) notFound.className="hidden";
+
+    actualizarEstadoLpn(index);
+    actualizarResultadoGeneral();
+
+  }else{
+    item.excel_encontrada=false;
+
+    if(status) status.className="hidden";
+
+    if(notFound){
+      notFound.className="lpn-not-found";
+      notFound.textContent="⚠ LPN no encontrada en el archivo cargado";
+    }
+
+    actualizarEstadoLpn(index);
+
+    if(mostrarAviso){
+      actualizarResultadoGeneral();
+    }
+  }
+}
+
+function actualizarVistaLpn(
+  index
+){
+
+  const item =
+    auditoriaActual[index];
+
+  if(!item){
+    return;
+  }
+
+  const set = (
+    id,
+    val
+  ) => {
+
+    const el =
+      document.getElementById(
+        id
+      );
+
+    if(el){
+      el.value =
+        val ?? "";
+    }
+
+  };
+
+  set(
+    `stoLpn_${index}`,
+    item.sto
+  );
+
+  set(
+    `gcas_${index}`,
+    item.gcas
+  );
+
+  set(
+    `lote_${index}`,
+    item.lote
+  );
+
+  set(
+    `cantidad_${index}`,
+    item.sistema_cantidad
+  );
+
+  const put = (
+    id,
+    val
+  ) => {
+
+    const el =
+      document.getElementById(
+        id
+      );
+
+    if(el){
+
+      el.textContent =
+        val || "—";
+
+    }
+
+  };
+
+  put(
+    `descripcion_${index}`,
+    item.descripcion
+  );
+
+  put(
+    `cliente_${index}`,
+    item.cliente
+  );
+
+  put(
+    `ubicacion_${index}`,
+    item.storage_location
+  );
+
+  const status =
+    document.getElementById(
+      `excelStatus_${index}`
+    );
+
+  const nf =
+    document.getElementById(
+      `excelNotFound_${index}`
+    );
+
+  if(item.excel_encontrada){
+
+    status?.classList.remove(
+      "hidden"
+    );
+
+    if(nf){
+      nf.className =
+        "hidden";
+    }
+
+  }else if(
+    item.lpn &&
+    excelCargado
+  ){
+
+    status?.classList.add(
+      "hidden"
+    );
+
+    if(nf){
+
+      nf.className =
+        "lpn-not-found";
+
+    }
+
+  }
+
+}
+
+
+function actualizarEstadoLpn(
+  index
+){
+
+  const item =
+    auditoriaActual[index];
+
+  if(!item){
+    return;
+  }
+
+  const status =
+    document.getElementById(
+      `status_${index}`
+    );
+
+  if(!status){
+    return;
+  }
+
+  if(!item.lpn){
+
+    status.className =
+      "status-pill status-pending";
+
+    status.textContent =
+      "PENDIENTE";
+
+  }else if(!excelCargado){
+
+    status.className =
+      "status-pill status-pending";
+
+    status.textContent =
+      "LPN CAPTURADA";
+
+  }else if(
+    item.excel_encontrada
+  ){
+
+    status.className =
+      "status-pill status-ok";
+
+    status.textContent =
+      "✓ ENCONTRADA";
+
+  }else{
+
+    status.className =
+      "status-pill status-error";
+
+    status.textContent =
+      "NO ENCONTRADA";
+
+  }
+
+}
+
+
 
 
 function renderizarAuditoria(){
@@ -3841,7 +4447,7 @@ function construirIndiceExcel(){
 }
 
 function detectarFilaEncabezados(sheet){
-  const matriz=XLSX.utils.sheet_to_json(sheet,{
+  const matriz=window.XLSX.utils.sheet_to_json(sheet,{
     header:1,
     defval:"",
     raw:false,
@@ -3870,58 +4476,137 @@ function detectarFilaEncabezados(sheet){
   return -1;
 }
 
+function actualizarEstadoExcel(tipo, mensaje){
+  const el=document.getElementById("excelStatus");
+  if(!el) return;
+  const clase = tipo==="loading" ? "loading" : (tipo==="ok" ? "ok" : (tipo==="error" ? "error" : "empty"));
+  if(tipo==="loading"){
+    el.innerHTML='<span class="qa-spinner"></span><span>'+String(mensaje||"Cargando archivo…")+'</span>';
+  }else{
+    el.textContent=String(mensaje||"");
+  }
+  el.className="file-status "+clase;
+}
+
 async function asegurarSheetJS(){
-  if(typeof XLSX!=="undefined" && typeof XLSX.read==="function") return true;
+  if(window.XLSX && typeof window.XLSX.read === "function") return true;
 
-  const urls=[
-    "https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js",
-    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-  ];
-
-  for(const url of urls){
-    try{
-      await new Promise((resolve,reject)=>{
-        const script=document.createElement("script");
-        script.src=url;
-        script.async=true;
-        script.onload=()=>typeof XLSX!=="undefined" && typeof XLSX.read==="function"
-          ? resolve()
-          : reject(new Error("SheetJS no quedó disponible."));
-        script.onerror=()=>reject(new Error("No se pudo cargar "+url));
-        document.head.appendChild(script);
-      });
-
-      if(typeof XLSX!=="undefined" && typeof XLSX.read==="function") return true;
-    }catch(e){
-      console.warn("Falló lector Excel:",url,e);
-    }
+  if(window.__sheetJsLoading){
+    await window.__sheetJsLoading;
+    if(window.XLSX && typeof window.XLSX.read === "function") return true;
   }
 
-  throw new Error("No se pudo cargar el lector Excel. Verifica la conexión a Internet o las restricciones de red del navegador.");
+  const urls=[
+    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+    "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js",
+    "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+  ];
+
+  window.__sheetJsLoading=(async()=>{
+    for(const url of urls){
+      try{
+        await new Promise((resolve,reject)=>{
+          const script=document.createElement("script");
+          script.src=url;
+          script.async=true;
+          script.onload=()=>{
+            if(window.XLSX && typeof window.XLSX.read === "function") resolve();
+            else reject(new Error("El archivo se descargó, pero XLSX no quedó disponible."));
+          };
+          script.onerror=()=>reject(new Error("No se pudo cargar el lector Excel."));
+          document.head.appendChild(script);
+        });
+        if(window.XLSX && typeof window.XLSX.read === "function") return true;
+      }catch(e){
+        console.warn("Falló lector Excel:",url,e);
+      }
+    }
+    throw new Error("No se pudo cargar el lector de Excel. Revisa que el navegador tenga acceso a Internet.");
+  })();
+
+  try{
+    await window.__sheetJsLoading;
+    return true;
+  }finally{
+    window.__sheetJsLoading=null;
+  }
+}
+
+function seleccionarArchivoExcel(){
+  const input=document.getElementById("archivoExcel");
+  if(!input) return;
+  input.value="";
+  input.click();
+}
+
+async function subirExcelStorage(file){
+
+  try{
+
+    const ruta =
+      `${usuarioQA.nombre}/${auditoriaId}_${file.name}`;
+
+    const { error } =
+      await supabaseClient.storage
+        .from("excel-recibos")
+        .upload(
+          ruta,
+          file,
+          {
+            upsert:true
+          }
+        );
+
+    if(error){
+      console.error(error);
+      return null;
+    }
+
+    return ruta;
+
+  }catch(err){
+
+    console.error(err);
+    return null;
+
+  }
+
 }
 
 async function procesarArchivoExcel(file){
   if(!file) return;
 
-  const extension=(file.name.split(".").pop()||"").toLowerCase();
+  const nombre=String(file.name||"").trim();
+
+  excelArchivoNombre = nombre;
+
+  const rutaStorage =
+    await subirExcelStorage(file);
+
+  if(rutaStorage){
+    excelStoragePath = rutaStorage;
+    guardarBorrador();
+  }
+  const extension=(nombre.split(".").pop()||"").toLowerCase();
 
   if(!["xls","xlsx"].includes(extension)){
-    actualizarEstadoExcel("error","⚠ Solo se aceptan archivos .xls o .xlsx");
+    actualizarEstadoExcel("error","⚠ El archivo seleccionado no es válido. Debe ser .xls o .xlsx.");
     return;
   }
 
   try{
-    actualizarEstadoExcel("empty","Leyendo archivo Excel…");
-
+    actualizarEstadoExcel("loading",`Cargando y leyendo ${escapeHtml(nombre)}…`);
     await asegurarSheetJS();
 
-    const buffer=await file.arrayBuffer();
-
-    if(!buffer.byteLength){
-      throw new Error("El archivo Excel está vacío.");
+    if(!window.XLSX || typeof window.XLSX.read!=="function"){
+      throw new Error("El lector Excel no está disponible en este navegador.");
     }
 
-    const workbook=XLSX.read(buffer,{
+    const buffer=await file.arrayBuffer();
+    if(!buffer || !buffer.byteLength) throw new Error("El archivo Excel está vacío.");
+
+    const workbook=window.XLSX.read(buffer,{
       type:"array",
       cellDates:false,
       cellNF:false,
@@ -3930,20 +4615,18 @@ async function procesarArchivoExcel(file){
       dense:false
     });
 
-    if(!workbook.SheetNames?.length){
-      throw new Error("El archivo no contiene hojas de cálculo.");
-    }
+    if(!workbook?.SheetNames?.length) throw new Error("El archivo no contiene hojas de cálculo.");
 
     const filas=[];
     const hojas=[];
     const lpnVistas=new Set();
+    let filasLeidas=0;
 
-    for(const nombre of workbook.SheetNames){
-      const sheet=workbook.Sheets[nombre];
-
+    for(const nombreHoja of workbook.SheetNames){
+      const sheet=workbook.Sheets[nombreHoja];
       if(!sheet || !sheet["!ref"]) continue;
 
-      const matriz=XLSX.utils.sheet_to_json(sheet,{
+      const matriz=window.XLSX.utils.sheet_to_json(sheet,{
         header:1,
         defval:"",
         raw:false,
@@ -3951,542 +4634,90 @@ async function procesarArchivoExcel(file){
       });
 
       const headerRow=detectarFilaEncabezados(sheet);
-
       if(headerRow<0){
-        hojas.push(`${nombre}: sin encabezado LPN`);
+        hojas.push(`${nombreHoja}: sin encabezado LPN`);
         continue;
       }
 
       const encabezados=(matriz[headerRow]||[]).map(v=>textoExcel(v));
-
       if(!encontrarCabeceraEnFila(encabezados,MAPEO_EXCEL.lpn)){
-        hojas.push(`${nombre}: sin columna LPN`);
+        hojas.push(`${nombreHoja}: sin columna LPN`);
         continue;
       }
 
       const columnas=encabezados.map((h,i)=>h||`__COL_${i}`);
       let agregadas=0;
-      let duplicadas=0;
 
       for(let r=headerRow+1;r<matriz.length;r++){
         const fila=matriz[r]||[];
-
         if(!fila.some(v=>String(v??"").trim()!=="")) continue;
+        filasLeidas++;
 
         const row={};
         columnas.forEach((col,i)=>row[col]=fila[i]??"");
-
         const item=transformarFilaExcel(row);
-
         if(!item.lpn) continue;
 
-        const claveUnica = clavesLpn(item.lpn)[0] || item.lpn;
-
-        if(lpnVistas.has(claveUnica)){
-          duplicadas++;
-        }else{
-          lpnVistas.add(claveUnica);
-        }
-
+        const claveUnica=clavesLpn(item.lpn)[0]||normalizarLpn(item.lpn)||item.lpn;
+        lpnVistas.add(claveUnica);
         filas.push(item);
         agregadas++;
       }
 
-      hojas.push(
-        `${nombre}: ${agregadas} registros LPN`+
-        (duplicadas ? ` · ${duplicadas} líneas repetidas` : "")
-      );
+      hojas.push(`${nombreHoja}: ${agregadas} registros`);
     }
 
     if(!filas.length){
-      throw new Error(
-        "No se encontró ninguna LPN. Revisa que el Excel tenga una columna como Load Number, LPN, LPN Number, Load No. o Número de carga y que existan datos debajo del encabezado."
-      );
+      throw new Error("No se encontraron LPN en el Excel. Verifica que exista una columna Load Number, LPN o equivalente.");
     }
 
     excelRecibo=filas;
-    excelArchivoNombre=file.name;
+    excelArchivoNombre=nombre;
     excelCargado=true;
-
     construirIndiceExcel();
 
-    const setText=(id,v)=>{
-      const el=document.getElementById(id);
-      if(el) el.textContent=v;
-    };
-
+    const totalRegistros=filas.length;
     const totalLpn=lpnVistas.size;
 
-    setText("excelFileName",file.name);
-    setText("excelRecordCount",excelRecibo.length.toLocaleString("es-MX"));
-    setText("excelLpnCount",totalLpn.toLocaleString("es-MX"));
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
+    set("excelFileName",nombre);
+    set("excelRecordCount",totalRegistros.toLocaleString("es-MX"));
+    set("excelLpnCount",totalLpn.toLocaleString("es-MX"));
+    set("excelHeaderStatus",`✓ Archivo cargado · ${totalLpn.toLocaleString("es-MX")} LPN`);
 
     const lote=document.getElementById("tamanoLote");
-    if(lote) lote.value=String(totalLpn);
-
-    setText("excelHeaderStatus","✓ Cargado");
+    if(lote){
+      lote.value=String(totalLpn);
+      lote.readOnly=true;
+      lote.classList.add("readonly-excel");
+    }
 
     actualizarEstadoExcel(
       "ok",
-      `✓ Excel leído correctamente · ${excelRecibo.length.toLocaleString("es-MX")} registros · ${totalLpn.toLocaleString("es-MX")} LPN únicas · ${hojas.join(" · ")}`
+      `✓ ${nombre} cargado correctamente. ${totalRegistros.toLocaleString("es-MX")} registros encontrados y ${totalLpn.toLocaleString("es-MX")} LPN únicas.`
     );
 
-    if(totalLpn){
-      calcularMuestra();
-    }
+    calcularMuestra();
 
-    auditoriaActual.forEach((_,i)=>buscarLpnExcel(i,false));
-
-  }catch(error){
-    console.error("Error Excel:",error);
-
-    excelRecibo=[];
-    excelIndexLpn.clear();
-    excelCargado=false;
-
-    const setText=(id,v)=>{
-      const el=document.getElementById(id);
-      if(el) el.textContent=v;
-    };
-
-    setText("excelFileName",file.name||"—");
-    setText("excelRecordCount","0");
-    setText("excelLpnCount","0");
-    setText("excelHeaderStatus","Error");
-
-    actualizarEstadoExcel(
-      "error",
-      `⚠ ${error?.message||error}`
-    );
+    if(Array.isArray(auditoriaActual) && auditoriaActual.length){
+auditoriaActual.forEach((item,index)=>{
+  if(typeof buscarLpnExcel==="function"){
+    buscarLpnExcel(index,false);
   }
-}
-
-function actualizarEstadoExcel(
-  tipo,
-  mensaje
-){
-
-  const el =
-    document.getElementById(
-      "excelStatus"
-    );
-
-  if(!el){
-    return;
-  }
-
-  el.className =
-    `file-status ${tipo}`;
-
-  el.textContent =
-    mensaje;
-
-}
-
-
-function limpiarExcel(){
-
-  excelRecibo = [];
-
-  excelIndexLpn.clear();
-
-  excelArchivoNombre = "";
-
-  excelCargado = false;
-
-  document
-    .getElementById(
-      "archivoExcel"
-    )
-    .value = "";
-
-  document
-    .getElementById(
-      "excelFileName"
-    )
-    .textContent = "—";
-
-  document
-    .getElementById(
-      "excelRecordCount"
-    )
-    .textContent = "0";
-
-  const lpnCount = document.getElementById("excelLpnCount");
-  if(lpnCount) lpnCount.textContent = "0";
-
-  const loteInput = document.getElementById("tamanoLote");
-  if(loteInput) loteInput.value = "";
-
-  muestraCalculada = 0;
-  codigoLetraMuestra = "";
-
-  const sampleResult = document.getElementById("sampleResult");
-  if(sampleResult) sampleResult.classList.add("hidden");
-
-  document
-    .getElementById(
-      "excelHeaderStatus"
-    )
-    .textContent =
-    "Sin archivo";
-
-  actualizarEstadoExcel(
-    "empty",
-    "No se ha cargado ningún archivo."
-  );
-
-  auditoriaActual.forEach(
-    (
-      item,
-      index
-    ) => {
-
-      item.excel_encontrada =
-        false;
-
-      item.sto = "";
-      item.gcas = "";
-      item.lote = "";
-      item.sistema_cantidad = "";
-
-      item.descripcion = "";
-      item.cliente = "";
-      item.inventory_status = "";
-      item.storage_location = "";
-
-      actualizarVistaLpn(
-        index
-      );
-
-    }
-  );
-
-}
-
-
-function actualizarLpn(index,campo,valor){
-  const item=auditoriaActual[index];
-  if(!item) return;
-
-  item[campo]=valor ?? "";
-
-  if(campo==="lpn"){
-    item.lpn=String(valor ?? "").trim();
-  }
-
-  if(typeof actualizarEstadoLpn === "function"){
-    actualizarEstadoLpn(index);
-  }
-
-  if(typeof actualizarResultadoGeneral === "function"){
-    actualizarResultadoGeneral();
-  }
-
-  guardarBorrador();
-}
-
-function actualizarLpnEntrada(
-  index,
-  valor
-){
-
-  actualizarLpn(
-    index,
-    "lpn",
-    valor
-  );
-
-  if(
-    auditoriaActual[index]
-  ){
-
-    clearTimeout(
-      auditoriaActual[index]
-        ._excelTimer
-    );
-
-    auditoriaActual[index]
-      ._excelTimer =
-      setTimeout(
-        () =>
-          buscarLpnExcel(
-            index,
-            false
-          ),
-        250
-      );
-
-  }
-
-}
-
-
-function buscarLpnExcel(index,mostrarAviso=true){
-  const item=auditoriaActual[index];
-  if(!item) return;
-
-  const input=document.getElementById(`lpn_${index}`);
-
-  item.lpn=normalizarLpn(input?.value ?? item.lpn ?? "");
-
-  if(input && input.value!==item.lpn){
-    input.value=item.lpn;
-  }
-
-  const status=document.getElementById(`excelStatus_${index}`);
-  const notFound=document.getElementById(`excelNotFound_${index}`);
-
-  if(!item.lpn){
-    item.excel_encontrada=false;
-    status?.classList.add("hidden");
-    notFound?.classList.add("hidden");
-    actualizarEstadoLpn(index);
-    return;
-  }
-
-  if(!excelCargado || !excelIndexLpn.size){
-    status?.classList.add("hidden");
-    notFound?.classList.add("hidden");
-    actualizarEstadoLpn(index);
-    return;
-  }
-
-  let encontrado=null;
-
-  for(const key of clavesLpn(item.lpn)){
-    const registro=excelIndexLpn.get(key);
-    if(registro){
-      encontrado=registro;
-      break;
-    }
-  }
-
-  if(encontrado){
-    item.excel_encontrada=true;
-
-    item.sto=encontrado.sto || "";
-    item.gcas=encontrado.gcas || "";
-    item.lote=encontrado.lote || "";
-    item.sistema_cantidad=encontrado.sistema_cantidad ?? "";
-    item.descripcion=encontrado.descripcion || "";
-    item.cliente=encontrado.cliente || "";
-    item.inventory_status=encontrado.inventory_status || "";
-    item.storage_location=encontrado.storage_location || "";
-
-    if(index===0 && encontrado.sto){
-      const sto=document.getElementById("sto");
-      if(sto) sto.value=encontrado.sto;
-    }
-
-    actualizarVistaLpn(index);
-
-    if(status) status.className="lpn-found";
-    if(notFound) notFound.className="hidden";
-
-    actualizarEstadoLpn(index);
-    actualizarResultadoGeneral();
-
-  }else{
-    item.excel_encontrada=false;
-
-    if(status) status.className="hidden";
-
-    if(notFound){
-      notFound.className="lpn-not-found";
-      notFound.textContent="⚠ LPN no encontrada en el archivo cargado";
-    }
-
-    actualizarEstadoLpn(index);
-
-    if(mostrarAviso){
+});
       actualizarResultadoGeneral();
     }
+
+    console.log("Excel cargado:",{nombre,totalRegistros,totalLpn,filasLeidas,hojas});
+  }catch(error){
+    excelRecibo=[];
+    excelIndexLpn=new Map();
+    excelArchivoNombre="";
+    excelCargado=false;
+    console.error("Error procesando Excel:",error);
+    actualizarEstadoExcel("error",`⚠ No se pudo cargar el Excel. ${error?.message||"Error desconocido."}`);
   }
 }
-
-function actualizarVistaLpn(
-  index
-){
-
-  const item =
-    auditoriaActual[index];
-
-  if(!item){
-    return;
-  }
-
-  const set = (
-    id,
-    val
-  ) => {
-
-    const el =
-      document.getElementById(
-        id
-      );
-
-    if(el){
-      el.value =
-        val ?? "";
-    }
-
-  };
-
-  set(
-    `stoLpn_${index}`,
-    item.sto
-  );
-
-  set(
-    `gcas_${index}`,
-    item.gcas
-  );
-
-  set(
-    `lote_${index}`,
-    item.lote
-  );
-
-  set(
-    `cantidad_${index}`,
-    item.sistema_cantidad
-  );
-
-  const put = (
-    id,
-    val
-  ) => {
-
-    const el =
-      document.getElementById(
-        id
-      );
-
-    if(el){
-
-      el.textContent =
-        val || "—";
-
-    }
-
-  };
-
-  put(
-    `descripcion_${index}`,
-    item.descripcion
-  );
-
-  put(
-    `cliente_${index}`,
-    item.cliente
-  );
-
-  put(
-    `ubicacion_${index}`,
-    item.storage_location
-  );
-
-  const status =
-    document.getElementById(
-      `excelStatus_${index}`
-    );
-
-  const nf =
-    document.getElementById(
-      `excelNotFound_${index}`
-    );
-
-  if(item.excel_encontrada){
-
-    status?.classList.remove(
-      "hidden"
-    );
-
-    if(nf){
-      nf.className =
-        "hidden";
-    }
-
-  }else if(
-    item.lpn &&
-    excelCargado
-  ){
-
-    status?.classList.add(
-      "hidden"
-    );
-
-    if(nf){
-
-      nf.className =
-        "lpn-not-found";
-
-    }
-
-  }
-
-}
-
-
-function actualizarEstadoLpn(
-  index
-){
-
-  const item =
-    auditoriaActual[index];
-
-  if(!item){
-    return;
-  }
-
-  const status =
-    document.getElementById(
-      `status_${index}`
-    );
-
-  if(!status){
-    return;
-  }
-
-  if(!item.lpn){
-
-    status.className =
-      "status-pill status-pending";
-
-    status.textContent =
-      "PENDIENTE";
-
-  }else if(!excelCargado){
-
-    status.className =
-      "status-pill status-pending";
-
-    status.textContent =
-      "LPN CAPTURADA";
-
-  }else if(
-    item.excel_encontrada
-  ){
-
-    status.className =
-      "status-pill status-ok";
-
-    status.textContent =
-      "✓ ENCONTRADA";
-
-  }else{
-
-    status.className =
-      "status-pill status-error";
-
-    status.textContent =
-      "NO ENCONTRADA";
-
-  }
-
-}
-
 
 /* =========================================================
    MARCAR QA
@@ -5638,366 +5869,86 @@ function checksRequeridosParaItem(
 
 
 function validarTiempoReal(){
+  const faltantes=[];
+  const campo=(id,nombre)=>{
+    const el=document.getElementById(id);
+    if(!String(el?.value??"").trim()) faltantes.push(nombre);
+  };
 
-  const sto =
-    document
-      .getElementById(
-        "sto"
-      )
-      .value
-      .trim();
+  if(!auditoriaActual.length){
+    faltantes.push("la muestra de LPN");
+  }
 
   if(excelCargado){
-
-    if(!auditoriaActual.length){
-
-      alert(
-        "Calcula primero la muestra."
-      );
-
-      return false;
-
-    }
-
-    const stoExcel =
-      auditoriaActual.find(
-        x =>
-          x.sto
-      )?.sto ||
-      sto;
-
-    if(!stoExcel){
-
-      alert(
-        "El archivo de recibo no contiene STO para las LPN auditadas."
-      );
-
-      return false;
-
-    }
-
-    document
-      .getElementById(
-        "sto"
-      )
-      .value =
-      stoExcel;
-
-  }else if(
-    !/^\d{10}$/.test(
-      sto
-    )
-  ){
-
-    alert(
-      "El STO debe contener exactamente 10 dígitos."
-    );
-
-    return false;
-
+    const stoExcel=auditoriaActual.find(x=>x.sto)?.sto||document.getElementById("sto")?.value?.trim()||"";
+    if(!stoExcel) faltantes.push("STO (no encontrado en el Excel)");
+    else document.getElementById("sto").value=stoExcel;
+  }else{
+    const sto=document.getElementById("sto")?.value?.trim()||"";
+    if(!/^\d{10}$/.test(sto)) faltantes.push("STO de exactamente 10 dígitos");
   }
 
-  if(
-    !document
-      .getElementById(
-        "turno"
-      )
-      .value
-  ){
+  campo("turno","turno");
+  campo("cuadrilla","cuadrilla");
+  campo("coordinador","coordinador");
 
-    alert(
-      "Selecciona el turno."
-    );
-
-    return false;
-
+  if(!muestraCalculada) faltantes.push("la muestra (calcular muestra)");
+  if(muestraCalculada && auditoriaActual.length!==muestraCalculada){
+    faltantes.push(`la cantidad correcta de LPN de la muestra (${muestraCalculada})`);
   }
 
-  if(
-    ![
-      "A",
-      "B",
-      "C",
-      "D"
-    ].includes(
-      document
-        .getElementById(
-          "cuadrilla"
-        )
-        .value
-    )
-  ){
-
-    alert(
-      "Selecciona la cuadrilla A, B, C o D."
-    );
-
-    return false;
-
-  }
-
-  if(
-    !document
-      .getElementById(
-        "coordinador"
-      )
-      .value
-  ){
-
-    alert(
-      "Selecciona el coordinador."
-    );
-
-    return false;
-
-  }
-
-  if(!muestraCalculada){
-
-    alert(
-      "Calcula primero la muestra."
-    );
-
-    return false;
-
-  }
-
-  if(
-    auditoriaActual.length !==
-    muestraCalculada
-  ){
-
-    alert(
-      "La cantidad de LPN no coincide con la muestra."
-    );
-
-    return false;
-
-  }
-
-  for(
-    let i=0;
-    i<auditoriaActual.length;
-    i++
-  ){
-
-    const item =
-      auditoriaActual[i];
-
-    if(
-      !item.lpn.trim()
-    ){
-
-      alert(
-        `Completa la LPN ${i+1}.`
-      );
-
-      return false;
-
+  auditoriaActual.forEach((item,i)=>{
+    const n=i+1;
+    if(!String(item.lpn||"").trim()){
+      faltantes.push(`LPN ${n}`);
+      return;
     }
 
     if(excelCargado){
-
-      if(
-        !item.excel_encontrada
-      ){
-
-        alert(
-          `La LPN ${i+1} no fue encontrada en el archivo de recibo. No se permite captura manual de datos de sistema.`
-        );
-
-        return false;
-
+      if(!item.excel_encontrada){
+        faltantes.push(`LPN ${n} encontrada en el archivo de recibo`);
       }
-
-      if(
-        !item.sto ||
-        !item.gcas ||
-        !item.lote ||
-        item.sistema_cantidad === ""
-      ){
-
-        alert(
-          `La información del archivo para la LPN ${i+1} está incompleta (STO, GCAS, lote o cantidad sistema).`
-        );
-
-        return false;
-
-      }
-
+      if(!item.sto) faltantes.push(`STO de la LPN ${n}`);
+      if(!item.gcas) faltantes.push(`GCAS de la LPN ${n}`);
+      if(!item.lote) faltantes.push(`lote de la LPN ${n}`);
+      if(item.sistema_cantidad==="" || item.sistema_cantidad===null || item.sistema_cantidad===undefined) faltantes.push(`cantidad de sistema de la LPN ${n}`);
     }else{
-
-      if(
-        !/^\d{8}$/.test(
-          item.gcas
-        )
-      ){
-
-        alert(
-          `El GCAS de la LPN ${i+1} debe tener 8 dígitos.`
-        );
-
-        return false;
-
-      }
-
-      if(
-        !item.lote.trim()
-      ){
-
-        alert(
-          `Completa el lote de la LPN ${i+1}.`
-        );
-
-        return false;
-
-      }
-
-      if(
-        item.sistema_cantidad === ""
-      ){
-
-        alert(
-          `Completa la cantidad de sistema de la LPN ${i+1}.`
-        );
-
-        return false;
-
-      }
-
+      if(!/^\d{8}$/.test(String(item.gcas||""))) faltantes.push(`GCAS de 8 dígitos de la LPN ${n}`);
+      if(!String(item.lote||"").trim()) faltantes.push(`lote de la LPN ${n}`);
+      if(item.sistema_cantidad==="" || item.sistema_cantidad===null || item.sistema_cantidad===undefined) faltantes.push(`cantidad de sistema de la LPN ${n}`);
     }
 
-    const checks =
-      checksRequeridosParaItem(
-        item
-      );
-
-    for(
-      const [
-        categoria,
-        campo
-      ]
-      of checks
-    ){
-
-      if(
-        ![
-          "OK",
-          "ERROR"
-        ].includes(
-          item[categoria]?.[campo]
-        )
-      ){
-
-        alert(
-          `Marca BIEN o MAL en "${campo.replaceAll("_"," ")}" de la LPN ${i+1}.`
-        );
-
-        return false;
-
+    const checks=checksRequeridosParaItem(item);
+    checks.forEach(([categoria,campoNombre])=>{
+      if(!["OK","ERROR"].includes(item[categoria]?.[campoNombre])){
+        faltantes.push(`respuesta BIEN o MAL en ${campoNombre.replaceAll("_"," ")} de la LPN ${n}`);
       }
+    });
 
+    if(existeErrorObjetivo(item)){
+      if(!String(item.error_detalle||"").trim()) faltantes.push(`descripción del hallazgo de la LPN ${n}`);
+      if(item.error_tipo==="NINGUNO") faltantes.push(`clasificación PLANTA u OPERACIÓN del hallazgo de la LPN ${n}`);
+      if(item.error_tipo==="OPERACION"){
+        if(!item.responsable_usuario) faltantes.push(`usuario responsable de la LPN ${n}`);
+        if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
+        if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
+      }
+      if(!["SI","NO"].includes(item.desviacion_corregida)) faltantes.push(`indicación de si el error de la LPN ${n} fue corregido`);
     }
+  });
 
-    const tieneHallazgo =
-      existeErrorObjetivo(
-        item
-      );
-
-    if(tieneHallazgo){
-
-      if(
-        !item.error_detalle.trim()
-      ){
-
-        alert(
-          `Describe el hallazgo de la LPN ${i+1}.`
-        );
-
-        return false;
-
-      }
-
-      if(
-        item.error_tipo ===
-        "NINGUNO"
-      ){
-
-        alert(
-          `Clasifica el hallazgo de la LPN ${i+1} como PLANTA u OPERACIÓN.`
-        );
-
-        return false;
-
-      }
-
-      if(
-        item.error_tipo ===
-        "OPERACION"
-      ){
-
-        if(
-          !item.responsable_usuario
-        ){
-
-          alert(
-            `Indica el usuario responsable de la LPN ${i+1}.`
-          );
-
-          return false;
-
-        }
-
-        if(
-          !item.responsable_cuadrilla
-        ){
-
-          alert(
-            `Indica la cuadrilla responsable de la LPN ${i+1}.`
-          );
-
-          return false;
-
-        }
-
-        if(
-          !item.responsable_coordinador
-        ){
-
-          alert(
-            `Indica el coordinador responsable de la LPN ${i+1}.`
-          );
-
-          return false;
-
-        }
-
-      }
-
-      if(
-        ![
-          "SI",
-          "NO"
-        ].includes(
-          item.desviacion_corregida
-        )
-      ){
-
-        alert(
-          `Indica si el error de la LPN ${i+1} fue corregido.`
-        );
-
-        return false;
-
-      }
-
-    }
-
+  if(faltantes.length){
+    const unicos=[...new Set(faltantes)];
+    mostrarAlertaQA(
+      "Antes de guardar falta completar exactamente lo siguiente:<br><br>" +
+      unicos.map((x,i)=>`${i+1}. ${escapeHtml(x)}`).join("<br>"),
+      "warning",
+      "Faltan datos"
+    );
+    return false;
   }
 
-
   return true;
-
 }
 
 /* =========================================================
@@ -7725,321 +7676,279 @@ async function guardarResultadoAlmacenaje(){
 
 }
 
-  // ✅ LOGO
-  const imgLogo = "data:image/jpeg;base64,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"
 
-doc.addImage(imgLogo, "PNG", 160, 7, 38, 14);
+/* =========================================================
+   REPORTES · 20 REGISTROS POR PÁGINA
+========================================================= */
+let reportesDatos=[];
+let reportesPaginaActual=1;
+const REPORTES_POR_PAGINA=20;
+
+function abrirReportes(){
+  const overlay=document.getElementById("reportesOverlay");
+  if(!overlay) return;
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden","false");
+  reportesPaginaActual=1;
+  cargarReportes();
+}
+
+function cerrarReportes(){
+  const overlay=document.getElementById("reportesOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  overlay.setAttribute("aria-hidden","true");
+}
+
+async function cargarReportes(){
+  const lista=document.getElementById("reportesLista");
+  if(lista){
+    lista.innerHTML='<div class="reportes-loading"><span class="qa-spinner"></span><span>Consultando auditorías guardadas en Supabase…</span></div>';
+  }
+
+  try{
+    if(!supabaseClient) throw new Error("La conexión con Supabase no está disponible.");
+
+    const {data,error}=await supabaseClient
+      .from(TABLA)
+      .select("*");
+
+    if(error) throw error;
+
+    reportesDatos=Array.isArray(data)?data:[];
+    reportesDatos.sort((a,b)=>{
+      const ca=Number(a?.consecutivo||0);
+      const cb=Number(b?.consecutivo||0);
+      if(cb!==ca) return cb-ca;
+      const da=new Date(a?.created_at||0).getTime()||0;
+      const db=new Date(b?.created_at||0).getTime()||0;
+      return db-da;
+    });
+
+    reportesPaginaActual=1;
+    renderReportes();
+
+    if(!reportesDatos.length && lista){
+      lista.innerHTML='<div class="reportes-empty">No hay auditorías registradas todavía en Auditoria_Recibo.</div>';
+      actualizarKpisReportes();
+    }
+  }catch(error){
+    console.error("Error cargando reportes:",error);
+    if(lista){
+      lista.innerHTML=`<div class="reportes-empty"><strong>No fue posible cargar los reportes.</strong><br><br>${escapeHtml(error?.message||"Error de conexión con Supabase.")}<br><br><small>Si las auditorías sí aparecen en el sistema, revisa la política SELECT de la tabla Auditoria_Recibo en Supabase.</small></div>`;
+    }
+    reportesDatos=[];
+    actualizarKpisReportes();
+  }
+}
+
+function actualizarKpisReportes(){
+  const total=reportesDatos.length;
+  const paginas=Math.max(1,Math.ceil(total/REPORTES_POR_PAGINA));
+  const inicio=total?((reportesPaginaActual-1)*REPORTES_POR_PAGINA)+1:0;
+  const fin=Math.min(reportesPaginaActual*REPORTES_POR_PAGINA,total);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set("reportesTotal",total.toLocaleString("es-MX"));
+  set("reportesPagina",`${reportesPaginaActual} / ${paginas}`);
+  set("reportesMostrando",total?`${inicio}-${fin}`:"0");
+  set("reportesPaginaTexto",`Página ${reportesPaginaActual} de ${paginas}`);
+  const ant=document.getElementById("reportesAnterior");
+  const sig=document.getElementById("reportesSiguiente");
+  if(ant) ant.disabled=reportesPaginaActual<=1;
+  if(sig) sig.disabled=reportesPaginaActual>=paginas;
+}
+
+function fechaRegistroReporte(r){
+  if(r?.created_at){
+    const d=new Date(r.created_at);
+    if(!Number.isNaN(d.getTime())) return d.toLocaleDateString("es-MX");
+  }
+  return r?.fecha||new Date().toLocaleDateString("es-MX");
+}
+
+function renderReportes(){
+  const lista=document.getElementById("reportesLista");
+  if(!lista) return;
+  const total=reportesDatos.length;
+  const paginas=Math.max(1,Math.ceil(total/REPORTES_POR_PAGINA));
+  if(reportesPaginaActual>paginas) reportesPaginaActual=paginas;
+  const inicio=(reportesPaginaActual-1)*REPORTES_POR_PAGINA;
+  const pagina=reportesDatos.slice(inicio,inicio+REPORTES_POR_PAGINA);
+
+  if(!pagina.length){
+    lista.innerHTML='<div class="reportes-empty">No hay auditorías registradas.</div>';
+    actualizarKpisReportes();
+    return;
+  }
+
+  lista.innerHTML=pagina.map((r,indicePagina)=>{
+    const indiceGlobal=inicio+indicePagina;
+    const codigos=obtenerCodigosRegistro(r);
+    const primera=codigos[0]||{};
+    const hallazgos=codigos.filter(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO").length;
+    return `
+      <div class="reporte-card">
+        <div class="reporte-card-head">
+          <div class="folio">${escapeHtml(r.folio||generarFolio(r.consecutivo||0))}</div>
+          <div class="fecha">${escapeHtml(fechaRegistroReporte(r))}</div>
+        </div>
+        <div class="reporte-card-body">
+          <div class="reporte-grid">
+            <div class="reporte-dato"><span>Auditor</span><strong>${escapeHtml(r.nombre||"—")}</strong></div>
+            <div class="reporte-dato"><span>Turno</span><strong>${escapeHtml(r.turno||"—")}</strong></div>
+            <div class="reporte-dato"><span>Cuadrilla</span><strong>${escapeHtml(r.cuadrilla||"—")}</strong></div>
+            <div class="reporte-dato"><span>STO</span><strong>${escapeHtml(r.sto||primera.sto||"—")}</strong></div>
+            <div class="reporte-dato"><span>Tipo recibo</span><strong>${escapeHtml(r.etiqueta||"—")}</strong></div>
+            <div class="reporte-dato"><span>Hallazgos</span><strong>${hallazgos}</strong></div>
+          </div>
+          <div class="reporte-card-actions">
+            <button type="button" class="btn btn-primary btn-small" onclick="generarPDFdesdeReporte(${indiceGlobal})">PDF</button>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+  actualizarKpisReportes();
+}
+
+function paginaReportes(direccion){
+  const paginas=Math.max(1,Math.ceil(reportesDatos.length/REPORTES_POR_PAGINA));
+  const nueva=reportesPaginaActual+direccion;
+  if(nueva<1||nueva>paginas) return;
+  reportesPaginaActual=nueva;
+  renderReportes();
+}
+
+function obtenerCodigosRegistro(r){
+  let c=r?.codigos ?? r?.auditoria ?? [];
+  if(typeof c==="string"){try{c=JSON.parse(c);}catch(e){c=[];}}
+  return Array.isArray(c)?c:[];
+}
+
+function obtenerImagenesRegistro(r){
+  let imgs=r?.imagenes ?? [];
+  if(typeof imgs==="string"){try{imgs=JSON.parse(imgs);}catch(e){imgs=[imgs];}}
+  if(!Array.isArray(imgs)) imgs=[];
+  return imgs.map(x=>typeof x==="string"?x:x?.url).filter(Boolean);
+}
+
+async function cargarImagenDataURL(url){
+  try{
+    const response=await fetch(url);
+    if(!response.ok) return null;
+    const blob=await response.blob();
+    return await new Promise(resolve=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=()=>resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  }catch(e){return null;}
+}
+
+async function generarPDFdesdeReporte(indice){
+  const r=reportesDatos[indice];
+  if(!r){
+    mostrarAlertaQA("El registro seleccionado ya no está disponible.","warning","Reporte no disponible");
+    return;
+  }
+  try{
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      mostrarAlertaQA("La librería para generar PDF no está disponible.","error","PDF no disponible");
+      return;
+    }
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF();
+    const valor=v=>(v===undefined||v===null||String(v).trim()==="")?"NO APLICA":String(v);
+    const parseArray=v=>{if(Array.isArray(v))return v;if(typeof v==="string"){try{const x=JSON.parse(v);return Array.isArray(x)?x:[];}catch(e){return[];}}return[];};
+    const codigos=parseArray(r.codigos);
+    const primero=codigos[0]||{};
+    const fecha=r.fecha||fechaRegistroReporte(r);
+    const hallazgos=[];
+    codigos.forEach(x=>{
+      if(!x)return;
+      if(Array.isArray(x.hallazgos))x.hallazgos.forEach(h=>{if(h)hallazgos.push(String(h));});
+      if(x.error_tipo&&x.error_tipo!=="NINGUNO")hallazgos.push(String(x.error_tipo));
+      if(x.error_detalle)hallazgos.push(String(x.error_detalle));
+    });
+    const hallazgoTexto=[...new Set(hallazgos)].join(", ")||"AUDITORÍA EN RECIBO";
+    const clasificacion=codigos.some(x=>x?.error_tipo==="PLANTA")?"PLANTA":codigos.some(x=>x?.error_tipo==="OPERACION")?"OPERACION":"PRODUCTO";
+    const ubicacion=r.ubicacion||r.cortina||r.origen||"RECIBO";
+    const cantidad=primero.sistema_cantidad??primero.cantidad??"";
+    const codigo=primero.gcas||primero.codigo||"";
+    const lote=primero.lote||"";
+    const sto=r.sto||primero.sto||"";
+    const proceso="AUDITORÍA EN RECIBO";
+    const resultado=codigos.map(x=>{
+      const p=[];
+      if(x?.lpn)p.push("LPN: "+x.lpn);
+      if(x?.gcas)p.push("Código: "+x.gcas);
+      if(x?.lote)p.push("Lote: "+x.lote);
+      if(x?.sistema_cantidad!==undefined&&x?.sistema_cantidad!==null&&x?.sistema_cantidad!=="")p.push("Cantidad: "+x.sistema_cantidad);
+      if(x?.error_tipo&&x.error_tipo!=="NINGUNO")p.push("Tipo: "+x.error_tipo);
+      if(x?.error_detalle)p.push(x.error_detalle);
+      if(Array.isArray(x?.hallazgos)&&x.hallazgos.length)p.push(x.hallazgos.join(", "));
+      return p.join(" · ");
+    }).filter(Boolean).join(" | ")||"Sin hallazgos registrados.";
+
+    function bloque(titulo,y){
+      doc.setFillColor(253,208,0);doc.rect(10,y,190,8,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0);doc.text(titulo,12,y+5);return y+10;
+    }
+    function campo(x,y,w,label,valCampo){
+      const labelH=3,gap=1,boxH=9;
+      doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(110);doc.text(String(label).toUpperCase(),x,y+labelH);
+      const boxY=y+4;doc.setFillColor(245,245,245);doc.roundedRect(x,boxY,w,boxH,2,2,"F");doc.setDrawColor(220);doc.roundedRect(x,boxY,w,boxH,2,2);
+      const texto=valor(valCampo);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(texto==="NO APLICA"?140:30);
+      const lineas=doc.splitTextToSize(texto,w-6);doc.text(String(lineas[0]||texto),x+w/2,boxY+(boxH/2)+1.5,{align:"center"});return labelH+gap+boxH+4;
+    }
+    function header(){
+      doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(100);doc.text("BUSINESS USE",10,10);
+      doc.setFontSize(6);doc.setTextColor(120);doc.text("SISTEMA DE GESTION DE CALIDAD",10,14);doc.text("FY2627",10,17);
+      if(typeof imgLogoBase64!=="undefined"&&imgLogoBase64){try{doc.addImage(imgLogoBase64,"JPEG",160,7,38,14);}catch(e){try{doc.addImage(imgLogoBase64,"PNG",160,7,38,14);}catch(e2){}}}
+      doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(0);doc.text("REPORTE ALERTA DE CALIDAD",105,18,null,null,"center");
+      doc.setFillColor(253,208,0);doc.rect(0,22,210,1,"F");
+    }
+    function footer(page){
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(100);doc.text("ESTA ALERTA FUE ELABORADA POR: "+valor(r.nombre),105,290,{align:"center"});
+      doc.setFontSize(8);doc.setTextColor(120);doc.text(valor(r.folio)+" | "+page+"/1",195,290,{align:"right"});
+    }
+
+    header();
+    let y=28;const GAP=19;
+    y=bloque("DATOS GENERALES",y);
+    campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Fecha",fecha);campo(140,y,60,"Turno",r.turno);y+=GAP;
+    campo(10,y,60,"Nombre",r.nombre);campo(75,y,60,"Área","RECIBO");campo(140,y,60,"Cuadrilla",r.cuadrilla);y+=GAP;
+    y=bloque("HALLAZGO",y);
+    campo(10,y,60,"Clasificación",clasificacion);campo(75,y,125,"Hallazgo",hallazgoTexto);y+=GAP;
+    campo(10,y,190,"Ubicación",ubicacion);y+=GAP;
+    y=bloque("DETALLE",y);
+    campo(10,y,190,"Proceso",proceso);y+=GAP;
+    campo(10,y,60,"Código",codigo);campo(75,y,60,"Lote",lote);campo(140,y,60,"Cantidad",cantidad);y+=GAP;
+    campo(10,y,190,"STO",sto);y+=GAP;
+    campo(10,y,190,"Resultado",resultado);y+=GAP;
+    y=bloque("EVIDENCIA FOTOGRÁFICA",y);
+    const contX=10,contY=y,contW=190,contH=110;doc.setFillColor(245,245,245);doc.roundedRect(contX,contY,contW,contH,4,4,"F");doc.setDrawColor(220);doc.roundedRect(contX,contY,contW,contH,4,4);
+    let yImg=contY+2;const urls=obtenerImagenesRegistro(r);
+    if(urls.length){
+      const imgW=68,imgH=48;let colocadas=0;
+      for(let i=0;i<Math.min(urls.length,4);i++){
+        try{const response=await fetch(urls[i]);if(!response.ok)continue;const blob=await response.blob();const dataUrl=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>resolve(null);reader.readAsDataURL(blob);});if(!dataUrl)continue;
+          const x=urls.length===1?contX+(contW/2)-(imgW/2):(i%2===0?contX+10:contX+contW-imgW-10);if(i>0&&i%2===0)yImg+=imgH+3;
+          doc.setFillColor(235,235,235);doc.roundedRect(x,yImg,imgW,imgH,3,3,"F");doc.setDrawColor(200);doc.roundedRect(x,yImg,imgW,imgH,3,3);try{doc.addImage(dataUrl,"JPEG",x+2,yImg+2,imgW-4,imgH-4);}catch(e){try{doc.addImage(dataUrl,"PNG",x+2,yImg+2,imgW-4,imgH-4);}catch(e2){}}colocadas++;
+        }catch(e){console.warn("No se pudo cargar evidencia:",e);}
+      }
+      if(!colocadas){doc.setTextColor(120);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("La evidencia está registrada, pero no pudo cargarse en el PDF.",105,contY+60,{align:"center"});}
+    }else{doc.setTextColor(120);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Sin evidencia",105,contY+60,{align:"center"});}
+    footer(1);doc.save((r.folio||"Auditoria_Recibo")+".pdf");
+  }catch(e){console.error("Error PDF reporte:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");}
+}
 
 /* =========================================================
    PDF
 ========================================================= */
 
 function generarPDF(){
-
-  if(
-    typeof window.jspdf ===
-    "undefined"
-  ){
-
-    alert(
-      "La librería PDF no está disponible."
-    );
-
-    return;
-
-  }
-
-  if(
-    !auditoriaActual.length
-  ){
-
-    alert(
-      "Primero calcula y completa la muestra."
-    );
-
-    return;
-
-  }
-
-  const {
-    jsPDF
-  } =
-    window.jspdf;
-
-  const doc =
-    new jsPDF({
-      orientation:"portrait",
-      unit:"mm",
-      format:"a4"
-    });
-
-  const margin = 12;
-
-  let y = 14;
-
-  const pageW = 210;
-
-  const line = (
-    txt,
-    size = 9,
-    bold = false
-  ) => {
-
-    doc.setFont(
-      "helvetica",
-      bold
-        ? "bold"
-        : "normal"
-    );
-
-    doc.setFontSize(
-      size
-    );
-
-    const lines =
-      doc.splitTextToSize(
-        String(
-          txt || ""
-        ),
-        pageW -
-        margin * 2
-      );
-
-    lines.forEach(
-      l => {
-
-        if(
-          y > 282
-        ){
-
-          doc.addPage();
-
-          y = 14;
-
-        }
-
-        doc.text(
-          l,
-          margin,
-          y
-        );
-
-        y +=
-          size * .45 +
-          2.2;
-
-      }
-    );
-
-  };
-
-  doc.setTextColor(
-    30,
-    30,
-    30
-  );
-
-function header(){
-
-  // BUSINESS USE
-  doc.setFont("helvetica","normal");
-  doc.setFontSize(6);
-  doc.setTextColor(100);
-  doc.text("BUSINESS USE",10,10);
-
-  doc.setFontSize(6);
-  doc.setTextColor(120);
-  doc.text("SISTEMA DE GESTION DE CALIDAD",10,14);
-
-  doc.text("FY2627",10,17);
-
-  // LOGO DHL
-  doc.addImage(
-    imgLogo,
-    "JPEG",
-    160,
-    7,
-    38,
-    14
-  );
-
-  // TITULO
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(14);
-  doc.setTextColor(0);
-
-  doc.text(
-    "AUDITORÍA EN RECIBO",
-    105,
-    18,
-    { align:"center" }
-  );
-
-  // PLECA AMARILLA
-  doc.setFillColor(253,208,0);
-  doc.rect(0,22,210,1,"F");
-}
-
-header();
-
-y = 30;
-
-
-
-  const total =
-    auditoriaActual.length;
-
-  const hall =
-    auditoriaActual.filter(
-      x =>
-        existeErrorObjetivo(
-          x
-        )
-    ).length;
-
-  let respuestas = 0;
-  let bien = 0;
-
-  auditoriaActual.forEach(
-    i => {
-
-      obtenerTodosLosChecks(
-        i
-      ).forEach(
-        c => {
-
-          if(
-            [
-              "OK",
-              "ERROR"
-            ].includes(
-              c.valor
-            )
-          ){
-
-            respuestas++;
-
-            if(
-              c.valor ===
-              "OK"
-            ){
-
-              bien++;
-
-            }
-
-          }
-
-        }
-      );
-
-    }
-  );
-
-  const cumplimiento =
-    respuestas
-      ? (
-          (
-            bien /
-            respuestas
-          ) *
-          100
-        ).toFixed(1)
-      : "0";
-
-  line(
-    `KPIs · LPN: ${total} · Hallazgos: ${hall} · Cumplimiento: ${cumplimiento}%`,
-    9,
-    true
-  );
-
-  y += 2;
-
-  auditoriaActual.forEach(
-    (
-      item,
-      i
-    ) => {
-
-      if(
-        y > 270
-      ){
-
-        doc.addPage();
-
-        y = 14;
-
-      }
-
-      line(
-        `LPN ${i+1}: ${item.lpn}`,
-        11,
-        true
-      );
-
-      line(
-        `STO: ${item.sto} · GCAS: ${item.gcas} · Lote: ${item.lote} · Cant. sistema: ${item.sistema_cantidad}`,
-        8
-      );
-
-      line(
-        `Descripción: ${item.descripcion} · Cliente: ${item.cliente} · Estatus: ${item.inventory_status} · Ubicación: ${item.storage_location}`,
-        8
-      );
-
-      line(
-        `Resultado: ${
-          item.error_tipo === "NINGUNO"
-            ? "SIN DESVIACIÓN"
-            : item.error_tipo
-        }`,
-        8,
-        true
-      );
-
-      if(
-        item.hallazgos?.length
-      ){
-
-        line(
-          `Hallazgos: ${item.hallazgos.join(", ")}`,
-          8
-        );
-
-      }
-
-      y += 2;
-
-    }
-  );
-
-  const obs =
-    document
-      .getElementById(
-        "observaciones"
-      )
-      ?.value ||
-    "";
-
-  if(obs){
-
-    line(
-      "Observaciones generales",
-      10,
-      true
-    );
-
-    line(
-      obs,
-      8
-    );
-
-  }
-
-  doc.save(
-    `Auditoria_Recibo_${new Date().toISOString().slice(0,10)}.pdf`
-  );
-
+  abrirReportes();
 }
 
 
@@ -8183,9 +8092,20 @@ function escapeHtml(
 
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
+  async () => {
 
     cargarSesion();
+
+await cargarBorrador();
+
+setInterval(() => {
+
+  if (auditoriaActual.length) {
+    guardarBorrador();
+  }
+
+}, 30000);
+
 
     const excelInput =
       document.getElementById(
@@ -8198,15 +8118,24 @@ document.addEventListener(
       );
 
     if(excelInput){
+      excelInput.addEventListener("click",()=>{
+        excelInput.value="";
+      });
+      excelInput.addEventListener("change",e=>{
+        const file=e.target.files && e.target.files[0];
+        if(file){
+          procesarArchivoExcel(file);
+        }else{
+          actualizarEstadoExcel("empty","No se ha cargado ningún archivo.");
+        }
+      });
+    }
 
-      excelInput.addEventListener(
-        "change",
-        e =>
-          procesarArchivoExcel(
-            e.target.files?.[0]
-          )
-      );
-
+    if(drop && excelInput){
+      drop.addEventListener("click",e=>{
+        if(e.target.closest("button")) return;
+        seleccionarArchivoExcel();
+      });
     }
 
     if(drop){
@@ -8279,6 +8208,17 @@ document.addEventListener(
     renderizarTareasPendientes();
 
     actualizarKPIs();
+
+    document.addEventListener("keydown",e=>{
+      if(e.key==="Escape") cerrarReportes();
+    });
+
+    const reportesOverlay=document.getElementById("reportesOverlay");
+    if(reportesOverlay){
+      reportesOverlay.addEventListener("click",e=>{
+        if(e.target===reportesOverlay) cerrarReportes();
+      });
+    }
 
   }
 );
