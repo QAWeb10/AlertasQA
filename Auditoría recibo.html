@@ -2626,6 +2626,7 @@ const QA_DRAFTS_STATE_KEY = "QA_AuditoriaRecibo_Auditorias";
 let qaDraftDbPromise = null;
 let qaDraftRemoteTimer = null;
 let qaDraftRestoring = false;
+let qaDraftFinalizando = false;
 let auditoriaEnEdicion = false;
 
 function abrirBaseBorrador(){
@@ -2884,33 +2885,24 @@ async function prepararBorradorCompartido(estado){
 }
 
 async function guardarBorradorRemoto(estado){
-  if(qaDraftRestoring||qaDraftFinalizando||!usuarioQA?.nombre||!estado)return;
-  try{
-    const propietario=estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre;
-    const estadoCompartido=await prepararBorradorCompartido({...estado,propietario});
-    estadoCompartido.ultimaEdicionPor=usuarioQA.nombre;
-    estadoCompartido.actualizado=new Date().toISOString();
-
-    const {error:deleteError}=await supabaseClient
-      .from("Auditoria_Recibo_Borrador")
-      .delete()
-      .eq("auditoria_id",estadoCompartido.auditoriaId)
-      .eq("usuario",propietario);
-
-    if(deleteError){
-      console.error("Error reemplazando borrador compartido:",deleteError);
-      return;
+  if(qaDraftRestoring||qaDraftFinalizando||!usuarioQA?.nombre||!estado)return false;
+  for(let intento=1;intento<=3;intento++){
+    try{
+      const propietario=estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre;
+      const estadoCompartido=await prepararBorradorCompartido({...estado,propietario});
+      estadoCompartido.ultimaEdicionPor=usuarioQA.nombre;
+      estadoCompartido.actualizado=new Date().toISOString();
+      const {error:deleteError}=await supabaseClient.from("Auditoria_Recibo_Borrador").delete().eq("auditoria_id",estadoCompartido.auditoriaId).eq("usuario",propietario);
+      if(deleteError)throw deleteError;
+      const {error}=await supabaseClient.from("Auditoria_Recibo_Borrador").insert({auditoria_id:estadoCompartido.auditoriaId,usuario:propietario,estado:estadoCompartido,actualizado:estadoCompartido.actualizado});
+      if(error)throw error;
+      return true;
+    }catch(error){
+      console.error(`Error guardando borrador remoto (intento ${intento}/3):`,error);
+      if(intento<3)await new Promise(resolve=>setTimeout(resolve,500*intento));
     }
-
-    const {error}=await supabaseClient.from("Auditoria_Recibo_Borrador").insert({
-      auditoria_id:estadoCompartido.auditoriaId,
-      usuario:propietario,
-      estado:estadoCompartido,
-      actualizado:estadoCompartido.actualizado
-    });
-
-    if(error)console.error("Error guardando borrador remoto:",error);
-  }catch(error){console.error("Error guardando borrador remoto:",error);}
+  }
+  return false;
 }
 
 async function guardarBorrador(){
@@ -3223,12 +3215,19 @@ function iniciarAuditoriaNueva(){
 
 
 async function guardarAvance(){
+  if(qaDraftFinalizando)return;
   auditoriaEnEdicion=true;
   const estado=await guardarBorradorLocal();
-  if(estado){
-    await guardarBorradorRemoto(estado);
-    mostrarAlertaQA("La auditoría quedó guardada en avance.","success","Avance guardado");
+  if(!estado){
+    mostrarAlertaQA("No fue posible preparar el avance para guardarlo.","error","No se guardó el avance");
+    return;
   }
+  const guardadoRemoto=await guardarBorradorRemoto(estado);
+  if(!guardadoRemoto){
+    mostrarAlertaQA("El avance quedó guardado localmente, pero no fue posible sincronizarlo con el servidor. Verifica la conexión e inténtalo nuevamente.","warning","Sin sincronización");
+    return;
+  }
+  mostrarAlertaQA("La auditoría quedó guardada en avance y sincronizada con el servidor.","success","Avance guardado");
 }
 
 
@@ -5500,13 +5499,32 @@ function lpnAprobada100(index){
   return checks.length>0&&checks.every(([categoria,campo])=>item[categoria]?.[campo]==="OK");
 }
 function manejarEvidenciaPositiva(event,index){
-  const item=auditoriaActual[index],archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
+  const item=auditoriaActual[index];
+  const archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
   if(!item||!archivos.length){if(event?.target)event.target.value="";return;}
-  if(!lpnAprobada100(index)){if(event?.target)event.target.value="";mostrarAlertaQA("La evidencia positiva solo puede agregarse a una LPN con 100% de aprobación y sin desviaciones.","warning","Evidencia no habilitada");return;}
+  if(!lpnAprobada100(index)){
+    if(event?.target)event.target.value="";
+    mostrarAlertaQA("La evidencia positiva solo puede agregarse a una LPN con 100% de aprobación y sin desviaciones.","warning","Evidencia no habilitada");
+    return;
+  }
   item.evidencia_positiva=item.evidencia_positiva||[];
-  archivos.forEach(archivo=>{try{archivo.__qaEvidenceId=`evidencia:${auditoriaId}:${crypto.randomUUID()}`;}catch(e){}});
-  item.evidencia_positiva.push(...archivos);if(event?.target)event.target.value="";renderizarEvidenciaPositiva();guardarBorrador();
+  const disponibles=Math.max(0,3-item.evidencia_positiva.length);
+  if(disponibles===0){
+    if(event?.target)event.target.value="";
+    mostrarAlertaQA("Cada LPN puede tener máximo 3 fotografías de evidencia positiva.","warning","Máximo de fotografías");
+    return;
+  }
+  const seleccion=archivos.slice(0,disponibles);
+  seleccion.forEach(archivo=>{try{archivo.__qaEvidenceId=`evidencia:${auditoriaId}:${crypto.randomUUID()}`;}catch(e){}});
+  item.evidencia_positiva.push(...seleccion);
+  if(event?.target)event.target.value="";
+  renderizarEvidenciaPositiva();
+  guardarBorrador();
+  if(archivos.length>disponibles){
+    mostrarAlertaQA("Solo se agregaron las fotografías necesarias para completar el máximo de 3 por LPN.","warning","Máximo de fotografías");
+  }
 }
+
 function eliminarEvidenciaPositiva(index,evidenciaIndex){
   const item=auditoriaActual[index],arr=item?.evidencia_positiva;if(!arr||!arr[evidenciaIndex])return;
   const archivo=arr[evidenciaIndex],pos=fotosSeleccionadas.indexOf(archivo);if(pos>=0)fotosSeleccionadas.splice(pos,1);
@@ -6977,6 +6995,15 @@ window.confirm = function(mensaje){
 
 };
 
+async function eliminarArchivosLocalesDeAuditoria(items){
+  const ids=[];
+  (items||[]).forEach(item=>{
+    Object.values(item?.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(x=>{if(x?.__qaEvidenceId)ids.push(x.__qaEvidenceId);else if(x?.localId)ids.push(x.localId);})));
+    (item?.evidencia_positiva||[]).forEach(x=>{if(x?.__qaEvidenceId)ids.push(x.__qaEvidenceId);else if(x?.localId)ids.push(x.localId);});
+  });
+  for(const id of [...new Set(ids)])await eliminarArchivoBorradorLocal(id);
+}
+
 /* =========================================================
    ELIMINAR BORRADOR AL FINALIZAR AUDITORÍA
 ========================================================= */
@@ -7182,6 +7209,7 @@ mostrarAlertaQA(
     auditoriaEnEdicion=false;
     clearTimeout(qaDraftRemoteTimer);
     await eliminarBorradorDespuesDeGuardar(auditoriaId);
+    await eliminarArchivosLocalesDeAuditoria(auditoriaActual);
     localStorage.removeItem(QA_DRAFT_STATE_KEY);
 
     const errorPlanta =
@@ -7317,7 +7345,7 @@ mostrarAlertaQA(
     );
 
 mostrarAlertaQA(
-  "Ocurrió un error inesperado al guardar la auditoría.",
+  "Ocurrió un error inesperado al guardar la auditoría.\n\n" + (error?.message || "Error desconocido."),
   "error",
   "Error"
 );
@@ -9029,6 +9057,12 @@ function limpiarFormulario(){
 
   auditoriaActual =
     [];
+
+  const evidenciaPositivaLista=document.getElementById("evidenciaPositivaLista");
+  const evidenciaPositivaSection=document.getElementById("evidenciaPositivaSection");
+  if(evidenciaPositivaLista)evidenciaPositivaLista.innerHTML="";
+  if(evidenciaPositivaSection)evidenciaPositivaSection.classList.add("hidden");
+  document.querySelectorAll('input[id^="positiveCam_"],input[id^="positiveFile_"]').forEach(input=>{input.value="";});
 
   localStorage.removeItem(QA_DRAFT_STATE_KEY);
   clearTimeout(qaDraftRemoteTimer);
