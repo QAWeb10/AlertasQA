@@ -2779,8 +2779,12 @@ async function guardarBorradorLocal(){
         }
       }
     }
-    for(const archivo of item?.evidencia_positiva||[]){
-      if(typeof archivo!=="string"&&archivo?.__qaEvidenceId) await guardarArchivoBorradorLocal(archivo.__qaEvidenceId,archivo);
+    for(const item of auditoriaActual){
+      for(const archivo of item?.evidencia_positiva||[]){
+        if(typeof archivo!=="string"&&archivo?.__qaEvidenceId){
+          await guardarArchivoBorradorLocal(archivo.__qaEvidenceId,archivo);
+        }
+      }
     }
     const estado={
       auditoriaId,
@@ -2880,7 +2884,7 @@ async function prepararBorradorCompartido(estado){
 }
 
 async function guardarBorradorRemoto(estado){
-  if(qaDraftRestoring||!usuarioQA?.nombre||!estado)return;
+  if(qaDraftRestoring||qaDraftFinalizando||!usuarioQA?.nombre||!estado)return;
   try{
     const propietario=estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre;
     const estadoCompartido=await prepararBorradorCompartido({...estado,propietario});
@@ -2910,7 +2914,7 @@ async function guardarBorradorRemoto(estado){
 }
 
 async function guardarBorrador(){
-  if(!auditoriaEnEdicion)return null;
+  if(!auditoriaEnEdicion||qaDraftFinalizando)return null;
   const estado=await guardarBorradorLocal();
   if(!estado||qaDraftRestoring)return;
   clearTimeout(qaDraftRemoteTimer);
@@ -3207,6 +3211,7 @@ function iniciarAuditoriaNueva(){
     console.error("Error limpiando auditoría nueva:",error);
   }finally{
     auditoriaId=crypto.randomUUID();
+    qaDraftFinalizando=false;
     auditoriaEnEdicion=true;
     window.qaBorradorPropietario=usuarioQA?.nombre||"";
     qaDraftRestoring=false;
@@ -6973,6 +6978,84 @@ window.confirm = function(mensaje){
 };
 
 /* =========================================================
+   ELIMINAR BORRADOR AL FINALIZAR AUDITORÍA
+========================================================= */
+
+async function eliminarBorradorDespuesDeGuardar(id){
+  if(!id)return;
+
+  clearTimeout(qaDraftRemoteTimer);
+
+  let estado=null;
+  try{
+    const lista=await obtenerAuditoriasEnProceso();
+    estado=lista.find(x=>String(x?.auditoriaId||"")===String(id))||null;
+  }catch(error){
+    console.error("Error localizando borrador finalizado:",error);
+  }
+
+  try{
+    let query=supabaseClient
+      .from("Auditoria_Recibo_Borrador")
+      .delete()
+      .eq("auditoria_id",id);
+
+    const propietario=estado?.propietario || estado?.usuario || window.qaBorradorPropietario || usuarioQA?.nombre || "";
+    if(propietario){
+      query=query.eq("usuario",propietario);
+    }
+
+    const {error}=await query;
+    if(error){
+      console.error("No fue posible eliminar el borrador remoto después de guardar la auditoría:",error);
+    }
+  }catch(error){
+    console.error("Error eliminando borrador remoto después de guardar:",error);
+  }
+
+  try{
+    const lista=JSON.parse(localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]");
+    const nueva=Array.isArray(lista)
+      ? lista.filter(x=>String(x?.auditoriaId||"")!==String(id))
+      : [];
+    localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(nueva));
+
+    const actualRaw=localStorage.getItem(QA_DRAFT_STATE_KEY);
+    if(actualRaw){
+      try{
+        const actual=JSON.parse(actualRaw);
+        if(String(actual?.auditoriaId||"")===String(id)){
+          localStorage.removeItem(QA_DRAFT_STATE_KEY);
+        }
+      }catch(error){
+        localStorage.removeItem(QA_DRAFT_STATE_KEY);
+      }
+    }
+  }catch(error){
+    console.error("Error eliminando borrador local después de guardar:",error);
+  }
+
+  const archivos=[];
+  (estado?.auditoriaActual||[]).forEach(item=>{
+    Object.values(item?.evidencia_campos||{}).forEach(cat=>
+      Object.values(cat||{}).forEach(arr=>
+        (arr||[]).forEach(x=>{
+          if(x?.localId)archivos.push(x.localId);
+        })
+      )
+    );
+    (item?.evidencia_positiva||[]).forEach(x=>{
+      if(x?.localId)archivos.push(x.localId);
+    });
+  });
+  if(estado?.excelLocalId)archivos.push(estado.excelLocalId);
+
+  for(const idArchivo of [...new Set(archivos)]){
+    await eliminarArchivoBorradorLocal(idArchivo);
+  }
+}
+
+/* =========================================================
    GUARDAR AUDITORÍA
 ========================================================= */
 
@@ -7055,31 +7138,51 @@ mostrarAlertaQA(
 
     }
 
-    auditoriaActual.forEach(
-      item => {
+    /*
+       La auditoría ya quedó registrada en Supabase.
+       Las tareas de seguimiento son posteriores y no deben
+       convertir un guardado exitoso en un error de guardado.
+    */
+    try{
+      auditoriaActual.forEach(
+        item => {
 
-        if(
-          existeErrorObjetivo(item) &&
-          item.desviacion_corregida === "NO"
-        ){
+          if(
+            existeErrorObjetivo(item) &&
+            item.desviacion_corregida === "NO"
+          ){
 
-          guardarTareaAuditoriaLpn(
-            item,
-            folio
-          );
+            guardarTareaAuditoriaLpn(
+              item,
+              folio
+            );
 
-        }else if(
-          item.desviacion_corregida === "SI"
-        ){
+          }else if(
+            item.desviacion_corregida === "SI"
+          ){
 
-          completarTareaAuditoriaLpn(
-            item.lpn
-          );
+            completarTareaAuditoriaLpn(
+              item.lpn
+            );
+
+          }
 
         }
+      );
+    }catch(errorTareas){
+      console.error("La auditoría fue guardada, pero ocurrió un error al actualizar las tareas de seguimiento:",errorTareas);
+    }
 
-      }
-    );
+    /*
+       Si la auditoría nació de un borrador, el borrador se elimina
+       únicamente después de confirmar que el registro principal
+       fue insertado correctamente en Auditoria_Recibo.
+    */
+    qaDraftFinalizando=true;
+    auditoriaEnEdicion=false;
+    clearTimeout(qaDraftRemoteTimer);
+    await eliminarBorradorDespuesDeGuardar(auditoriaId);
+    localStorage.removeItem(QA_DRAFT_STATE_KEY);
 
     const errorPlanta =
       auditoriaActual.find(
@@ -8842,6 +8945,7 @@ function generarPDF(){
 function limpiarFormulario(){
 
   auditoriaEnEdicion=false;
+  qaDraftFinalizando=false;
   auditoriaId=crypto.randomUUID();
 
   document
