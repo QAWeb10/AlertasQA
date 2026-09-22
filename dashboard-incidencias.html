@@ -1455,6 +1455,722 @@ select:focus{
   }
 }
 
+
+/* =========================================================
+   QA SHARED VISUAL SYSTEM · FY2627
+   Capa común para Alertas, Auditorías e Incidencias
+========================================================= */
+:root{
+  --brand:#CF002E;
+  --brand-dark:#A00023;
+  --brand-deep:#6E0018;
+  --accent:#FDD000;
+  --qa-brand:#CF002E;
+  --qa-brand-dark:#A00023;
+  --qa-brand-deep:#6E0018;
+  --qa-accent:#FDD000;
+  --qa-bg:#F5F5F5;
+  --qa-line:#E5E5E5;
+  --qa-muted:#777;
+  --qa-shadow:0 3px 12px rgba(0,0,0,.07);
+  --qa-shadow-lg:0 10px 28px rgba(0,0,0,.12);
+  --qa-radius:14px;
+}
+
+html{scroll-behavior:smooth;}
+body{
+  background:var(--qa-bg) !important;
+  color:#1A1A1A;
+}
+
+.appbar,
+#mainHeader{
+  position:sticky !important;
+  top:0;
+  z-index:1000;
+  min-height:70px !important;
+  width:100%;
+  padding:10px 22px !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  color:#fff !important;
+  background:linear-gradient(105deg,var(--qa-brand-deep) 0%,var(--qa-brand-dark) 42%,var(--qa-brand) 100%) !important;
+  box-shadow:0 4px 16px rgba(0,0,0,.15) !important;
+}
+
+.appbar .logo,
+#mainHeader .logo{
+  width:44px !important;
+  height:44px !important;
+  min-width:44px;
+  flex:0 0 44px;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:9px !important;
+  background:var(--qa-accent) !important;
+  color:var(--qa-brand-deep) !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  letter-spacing:-.4px;
+}
+
+.appbar .titles,
+#mainHeader .titles{
+  min-width:0 !important;
+  flex:0 1 auto;
+}
+.appbar .t1,
+#mainHeader .t1{
+  font-size:9px !important;
+  line-height:1.2;
+  letter-spacing:1.35px !important;
+  text-transform:uppercase;
+  opacity:.78;
+  font-weight:700;
+}
+.appbar .t2,
+#mainHeader .t2{
+  margin-top:2px;
+  font-size:17px !important;
+  line-height:1.2;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.appbar .spacer,
+#mainHeader .spacer,
+.appbar .header-spacer,
+#mainHeader .header-spacer{flex:1 !important;}
+
+.nav-dash{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end;
+  gap:6px !important;
+  flex-wrap:nowrap;
+}
+.nav-dash a{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-height:34px !important;
+  padding:0 12px !important;
+  border-radius:9px !important;
+  color:#fff !important;
+  text-decoration:none !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  background:rgba(255,255,255,.10) !important;
+  white-space:nowrap;
+  transition:.18s ease;
+}
+.nav-dash a:hover{background:rgba(255,255,255,.20) !important;transform:translateY(-1px);}
+.nav-dash a.active{
+  color:var(--qa-brand-deep) !important;
+  background:var(--qa-accent) !important;
+  border-color:var(--qa-accent) !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.14);
+}
+
+.appbar .badge,
+#mainHeader .badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:30px;
+  padding:0 10px !important;
+  border-radius:8px !important;
+  background:rgba(255,255,255,.13) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  color:#fff !important;
+  font-size:11px !important;
+  font-weight:800;
+  white-space:nowrap;
+}
+.appbar .back,
+#mainHeader .back,
+.appbar .fy,
+#mainHeader .fy{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  padding:0 10px !important;
+  border-radius:8px !important;
+  color:#fff !important;
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  text-decoration:none !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  white-space:nowrap;
+}
+.appbar .back:hover,.appbar .fy:hover,#mainHeader .back:hover,#mainHeader .fy:hover{background:rgba(255,255,255,.20) !important;}
+
+.update-box{margin-left:4px !important;min-width:112px !important;}
+.update-label{font-size:8px !important;letter-spacing:.8px !important;}
+.update-value{font-size:10px !important;}
+
+.page,
+.wrap{
+  width:100% !important;
+  max-width:1480px !important;
+  margin:0 auto !important;
+  padding:20px 22px 42px !important;
+}
+
+.page-intro{
+  margin-bottom:16px !important;
+}
+.page-intro h1{
+  font-size:24px !important;
+  font-weight:800 !important;
+  letter-spacing:-.4px !important;
+}
+.page-intro p{font-size:12px !important;color:#7B7B7B !important;}
+
+.card,
+.chart-card,
+.kpi,
+.semaforo-card{
+  border:1px solid var(--qa-line) !important;
+  box-shadow:var(--qa-shadow) !important;
+}
+.card{border-radius:var(--qa-radius) !important;}
+.card-head{
+  min-height:47px !important;
+  padding:12px 16px !important;
+  background:linear-gradient(180deg,#fff,#fcfcfc) !important;
+  border-bottom:1px solid #F0F0F0 !important;
+}
+.card-head h3,.chart-title{font-weight:800 !important;}
+.card-head .dot,.chart-title .dot{box-shadow:0 0 0 4px rgba(207,0,46,.08);}
+
+input,select,
+.multi-select-box{
+  border-color:#DCDCDC !important;
+  border-radius:9px !important;
+}
+input:focus,select:focus,.multi-select.open .multi-select-box{
+  border-color:var(--qa-brand) !important;
+  box-shadow:0 0 0 3px rgba(207,0,46,.10) !important;
+}
+
+.btn-primary{
+  background:linear-gradient(180deg,var(--qa-brand),var(--qa-brand-dark)) !important;
+  box-shadow:0 3px 8px rgba(207,0,46,.18) !important;
+}
+.btn-secondary,.btn-ghost{
+  background:#F0F1F3 !important;
+  border-color:#E1E2E4 !important;
+  color:#444 !important;
+}
+
+.toast{z-index:2000 !important;}
+
+@media (max-width:1100px){
+  .appbar .t2,#mainHeader .t2{font-size:15px !important;}
+  .nav-dash a{padding:0 9px !important;font-size:10px !important;}
+  .appbar .badge,#mainHeader .badge{display:none !important;}
+  .update-box{display:none !important;}
+}
+
+@media (max-width:760px){
+  .appbar,#mainHeader{
+    position:sticky !important;
+    min-height:64px !important;
+    padding:8px 10px !important;
+    gap:8px !important;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .appbar::-webkit-scrollbar,#mainHeader::-webkit-scrollbar{display:none;}
+  .appbar .logo,#mainHeader .logo{width:38px !important;height:38px !important;min-width:38px;flex-basis:38px;font-size:13px !important;}
+  .appbar .t1,#mainHeader .t1{font-size:7px !important;letter-spacing:1px !important;}
+  .appbar .t2,#mainHeader .t2{font-size:13px !important;}
+  .appbar .spacer,.appbar .header-spacer,#mainHeader .spacer,#mainHeader .header-spacer{min-width:4px;}
+  .nav-dash{gap:4px !important;}
+  .nav-dash a{min-height:32px !important;padding:0 8px !important;font-size:9px !important;}
+  .appbar .back,#mainHeader .back,.appbar .fy,#mainHeader .fy{min-height:28px;font-size:9px !important;padding:0 8px !important;}
+  .page,.wrap{padding:14px 12px 30px !important;}
+  .page-intro{align-items:flex-start !important;flex-direction:column !important;gap:8px !important;}
+  .page-intro h1{font-size:20px !important;}
+}
+
+
+/* =========================================================
+   QA · SISTEMA VISUAL ÚNICO · FY2627
+   Aplicado de forma idéntica en los tres dashboards.
+   No modifica lógica, consultas, funciones ni datos.
+========================================================= */
+:root{
+  --qa-brand:#CF002E;
+  --qa-brand-dark:#A00023;
+  --qa-brand-deep:#6E0018;
+  --qa-accent:#FDD000;
+  --qa-ink:#1A1A1A;
+  --qa-ink-soft:#4A4A4A;
+  --qa-ink-muted:#8A8A8A;
+  --qa-line:#E5E5E5;
+  --qa-line-soft:#F2F2F2;
+  --qa-bg:#F5F5F5;
+  --qa-surface:#FFFFFF;
+  --qa-ok:#1B8A3A;
+  --qa-radius:14px;
+  --qa-radius-sm:10px;
+  --qa-shadow:0 3px 12px rgba(0,0,0,.07);
+  --qa-shadow-hover:0 10px 28px rgba(25,35,45,.10);
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--qa-bg) !important;
+  color:var(--qa-ink) !important;
+}
+
+/* HEADER ÚNICO */
+.appbar,
+#mainHeader{
+  position:sticky !important;
+  top:0 !important;
+  z-index:1000 !important;
+  min-height:70px !important;
+  width:100% !important;
+  padding:10px 22px !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  color:#fff !important;
+  background:linear-gradient(105deg,var(--qa-brand-deep) 0%,var(--qa-brand-dark) 42%,var(--qa-brand) 100%) !important;
+  box-shadow:0 4px 16px rgba(0,0,0,.15) !important;
+}
+.appbar .logo,
+#mainHeader .logo,
+.appbar > .logo{
+  width:44px !important;
+  height:44px !important;
+  min-width:44px !important;
+  flex:0 0 44px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:9px !important;
+  background:var(--qa-accent) !important;
+  color:var(--qa-brand-deep) !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  box-shadow:0 2px 7px rgba(0,0,0,.12) !important;
+}
+.appbar .titles,
+#mainHeader .titles{min-width:0 !important;flex:0 1 auto !important}
+.appbar .t1,
+#mainHeader .t1{
+  font-size:9px !important;
+  line-height:1.2 !important;
+  letter-spacing:1.35px !important;
+  text-transform:uppercase !important;
+  opacity:.78 !important;
+  font-weight:700 !important;
+}
+.appbar .t2,
+#mainHeader .t2{
+  margin-top:2px !important;
+  font-size:17px !important;
+  line-height:1.2 !important;
+  font-weight:800 !important;
+  white-space:nowrap !important;
+}
+.appbar .spacer,
+#mainHeader .spacer,
+.appbar .header-spacer,
+#mainHeader .header-spacer{flex:1 !important}
+
+.nav-dash{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:6px !important;
+  flex-wrap:nowrap !important;
+}
+.nav-dash a{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-height:34px !important;
+  height:34px !important;
+  padding:0 12px !important;
+  border-radius:9px !important;
+  color:#fff !important;
+  text-decoration:none !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  background:rgba(255,255,255,.10) !important;
+  box-shadow:none !important;
+  white-space:nowrap !important;
+  transition:.18s ease !important;
+}
+.nav-dash a:hover{background:rgba(255,255,255,.20) !important;transform:translateY(-1px) !important}
+.nav-dash a.active{
+  color:var(--qa-brand-deep) !important;
+  background:var(--qa-accent) !important;
+  border-color:var(--qa-accent) !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.14) !important;
+}
+.appbar .badge,
+#mainHeader .badge,
+.appbar .back,
+#mainHeader .back,
+.appbar .fy,
+#mainHeader .fy{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 10px !important;
+  margin-left:0 !important;
+  border-radius:8px !important;
+  color:#fff !important;
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  text-decoration:none !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  white-space:nowrap !important;
+}
+.appbar .badge{background:rgba(255,255,255,.13) !important}
+.appbar .back:hover,
+.appbar .fy:hover{background:rgba(255,255,255,.20) !important}
+.update-box{margin-left:4px !important;min-width:112px !important}
+.update-label{font-size:8px !important;letter-spacing:.8px !important}
+.update-value{font-size:10px !important}
+
+/* CONTENEDOR ÚNICO */
+.page,
+.wrap{
+  width:100% !important;
+  max-width:1480px !important;
+  margin:0 auto !important;
+  padding:20px 22px 42px !important;
+}
+
+/* TARJETAS ÚNICAS */
+.card,
+.chart-card,
+.kpi,
+.criticidad-card,
+.semaforo-card{
+  border-color:var(--qa-line) !important;
+  box-shadow:var(--qa-shadow) !important;
+}
+.card{border-radius:var(--qa-radius) !important}
+.card-head{
+  min-height:47px !important;
+  padding:11px 16px !important;
+  background:linear-gradient(180deg,#fffdf4,#fff) !important;
+  border-bottom:1px solid var(--qa-line-soft) !important;
+}
+.card-head h3{
+  font-weight:900 !important;
+  letter-spacing:.7px !important;
+}
+.card-head .dot{
+  width:8px !important;
+  height:8px !important;
+  flex:none !important;
+  background:var(--qa-brand) !important;
+  box-shadow:0 0 0 4px rgba(207,0,46,.10) !important;
+}
+
+/* CAMPOS */
+input,select,.multi-select-box{
+  border-color:#D6DBE1 !important;
+  background:#fff !important;
+  border-radius:10px !important;
+}
+input:hover,select:hover,.multi-select-box:hover{border-color:#B9C0C8 !important}
+input:focus,select:focus,.multi-select.open .multi-select-box{
+  border-color:var(--qa-brand) !important;
+  box-shadow:0 0 0 3px rgba(207,0,46,.09),0 2px 8px rgba(0,0,0,.05) !important;
+}
+
+/* BOTONES: EXACTAMENTE MISMO TRATAMIENTO */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost{
+  box-sizing:border-box !important;
+  min-height:42px !important;
+  height:42px !important;
+  padding:0 17px !important;
+  border-radius:10px !important;
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  letter-spacing:.15px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:7px !important;
+  cursor:pointer !important;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease,filter .16s ease !important;
+}
+.btn-primary{
+  color:#fff !important;
+  background:linear-gradient(180deg,var(--qa-brand),var(--qa-brand-dark)) !important;
+  border:1px solid transparent !important;
+  box-shadow:0 4px 10px rgba(207,0,46,.20) !important;
+}
+.btn-secondary,
+.btn-ghost{
+  color:#34383D !important;
+  background:#fff !important;
+  border:1px solid #D8DDE3 !important;
+  box-shadow:0 3px 8px rgba(0,0,0,.05) !important;
+}
+.btn-primary:hover{
+  filter:brightness(1.03) !important;
+  transform:translateY(-1px) !important;
+  box-shadow:0 6px 14px rgba(207,0,46,.24) !important;
+}
+.btn-secondary:hover,
+.btn-ghost:hover{
+  background:#F6F7F8 !important;
+  border-color:#C7CDD4 !important;
+  transform:translateY(-1px) !important;
+  box-shadow:0 5px 12px rgba(0,0,0,.08) !important;
+}
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-ghost:active{transform:translateY(1px) !important}
+.acciones-filtros,
+.filter-actions{gap:10px !important}
+
+/* KPI: SIEMPRE FRANJA DE COLOR ARRIBA, NUNCA AL COSTADO */
+.kpi,
+.kpi-grid .kpi,
+.kpis .kpi{
+  position:relative !important;
+  overflow:hidden !important;
+  min-height:108px !important;
+  padding:15px !important;
+  border:1px solid var(--qa-line) !important;
+  border-radius:var(--qa-radius) !important;
+  background:#fff !important;
+  box-shadow:var(--qa-shadow) !important;
+}
+.kpi::before,
+.kpi-grid .kpi::before,
+.kpis .kpi::before{
+  content:"" !important;
+  position:absolute !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:auto !important;
+  width:100% !important;
+  height:4px !important;
+  background:var(--qa-brand) !important;
+}
+.kpi.accent::before,
+.kpi.k-accent::before,
+.kpi.yellow::before{background:var(--qa-accent) !important}
+.kpi.green::before,
+.kpi.k-ok::before{background:var(--qa-ok) !important}
+.kpi.dark::before,
+.kpi.k-deep::before{background:var(--qa-brand-deep) !important}
+.kpi.blue::before{background:#2563EB !important}
+.kpi:hover{box-shadow:var(--qa-shadow-hover) !important}
+
+/* GRÁFICAS */
+.chart-card{border-radius:14px !important}
+
+/* RESPONSIVE CONSISTENTE */
+@media(max-width:900px){
+  .appbar,#mainHeader{padding:10px 16px !important}
+  .page,.wrap{padding:16px 16px 34px !important}
+}
+@media(max-width:700px){
+  .appbar .t2,#mainHeader .t2{font-size:15px !important}
+  .nav-dash{gap:4px !important}
+  .nav-dash a{padding:0 9px !important;font-size:10px !important}
+  .update-box{display:none !important}
+}
+@media(max-width:560px){
+  .appbar .titles{max-width:125px !important}
+  .nav-dash a{font-size:0 !important;width:34px !important;padding:0 !important}
+  .nav-dash a:first-child::first-letter,
+  .nav-dash a:nth-child(2)::first-letter,
+  .nav-dash a:nth-child(3)::first-letter{font-size:14px !important}
+  .appbar .badge,.appbar .back,.appbar .fy{display:none !important}
+}
+
+
+/* =========================================================
+   QA UNIFIED VISUAL SYSTEM — FINAL OVERRIDES
+========================================================= */
+:root{--qa-border:#E5E7EB;--qa-shadow:0 3px 12px rgba(0,0,0,.07);--qa-shadow-hover:0 10px 28px rgba(0,0,0,.10)}
+.appbar{min-height:72px!important;padding:12px 18px!important;gap:12px!important;background:linear-gradient(105deg,#6E0018 0%,#A00023 42%,#CF002E 100%)!important;box-shadow:0 4px 16px rgba(0,0,0,.15)!important}
+.appbar .logo{width:40px!important;height:40px!important;min-width:40px!important;border-radius:9px!important;background:#FDD000!important;color:#6E0018!important;font-size:14px!important}
+.appbar .titles{min-width:180px!important}.appbar .t1{font-size:10px!important;letter-spacing:1.25px!important}.appbar .t2{font-size:16px!important;font-weight:800!important}
+.nav-dash{display:flex!important;align-items:center!important;gap:6px!important;margin-right:2px!important}.nav-dash a{min-height:36px!important;padding:8px 12px!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.24)!important;background:rgba(255,255,255,.12)!important;color:#fff!important;font-size:11px!important;font-weight:800!important;box-shadow:none!important;transform:none!important}.nav-dash a.active{background:#FDD000!important;color:#6E0018!important;border-color:#FDD000!important}
+.appbar .badge,.appbar .fy{min-height:36px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0 11px!important;border-radius:999px!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.23)!important;color:#fff!important;font-size:11px!important;font-weight:800!important;text-decoration:none!important}
+.update-box{display:flex!important;flex-direction:column!important;justify-content:center!important;min-width:154px!important;padding:6px 11px!important;border-radius:10px!important;background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.20)!important;color:#fff!important}.update-label{font-size:8px!important;letter-spacing:.9px!important;text-transform:uppercase!important;opacity:.72!important;font-weight:800!important}.update-value{margin-top:2px!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important}
+.filter-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;margin-top:14px!important;padding-top:12px!important;border-top:1px solid var(--qa-border)!important}.filter-actions .btn{height:38px!important;min-width:122px!important;padding:0 16px!important;border-radius:9px!important;font-size:12px!important;font-weight:800!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;box-shadow:none!important;transform:none!important}.filter-actions .btn-primary{background:linear-gradient(180deg,#D40511,#A9000D)!important;border:1px solid #A9000D!important;color:#fff!important}.filter-actions .btn-secondary{background:#fff!important;border:1px solid #D1D5DB!important;color:#34383D!important}
+.kpi,.kpi-grid .kpi,.kpis .kpi{position:relative!important;overflow:hidden!important;border:1px solid var(--qa-border)!important;border-radius:14px!important;background:#fff!important;box-shadow:var(--qa-shadow)!important}.kpi::before,.kpi-grid .kpi::before,.kpis .kpi::before{content:""!important;position:absolute!important;left:0!important;right:0!important;top:0!important;bottom:auto!important;width:auto!important;height:4px!important;background:#CF002E!important}.kpi.yellow::before,.kpi.k-accent::before{background:#FDD000!important}.kpi.blue::before{background:#2563EB!important}.kpi:hover{box-shadow:var(--qa-shadow-hover)!important;transform:none!important}
+.card,.chart-card,.criticidad-card{border-color:var(--qa-border)!important;box-shadow:var(--qa-shadow)!important}
+@media(max-width:700px){.appbar{padding:9px 10px!important;gap:7px!important}.appbar .titles{min-width:110px!important;max-width:150px!important}.appbar .t2{font-size:13px!important}.nav-dash{gap:3px!important}.nav-dash a{min-height:32px!important;padding:0 8px!important;font-size:9px!important}.appbar .badge,.appbar .fy{min-height:32px!important;padding:0 8px!important;font-size:9px!important}.update-box{min-width:112px!important;padding:4px 7px!important}.update-label{font-size:7px!important}.update-value{font-size:9px!important}.filter-actions{justify-content:stretch!important}.filter-actions .btn{flex:1!important;min-width:0!important}}
+@media(max-width:560px){.appbar .titles{max-width:115px!important;min-width:90px!important}.nav-dash a{font-size:0!important;width:32px!important;padding:0!important}.nav-dash a:first-child::first-letter,.nav-dash a:nth-child(2)::first-letter,.nav-dash a:nth-child(3)::first-letter{font-size:14px!important}.appbar .badge,.appbar .fy{display:none!important}.update-box{min-width:96px!important;max-width:112px!important}}
+
+</style>
+
+<style id="qa-unified-filters-final">
+/* ===== QA: ESTILO FINAL UNIFICADO DE FILTROS ===== */
+.filter-card, .card:has(.filtros-grid){
+  border:1px solid #e3e7eb !important;
+  border-radius:14px !important;
+  box-shadow:0 4px 14px rgba(0,0,0,.06) !important;
+}
+.filter-card .card-head, .card:has(.filtros-grid) .card-head{
+  min-height:48px !important;
+  padding:0 18px !important;
+  border-bottom:1px solid #edf0f2 !important;
+}
+.filter-card .card-head h3, .card:has(.filtros-grid) .card-head h3{
+  font-size:14px !important;
+  font-weight:800 !important;
+  margin:0 !important;
+}
+.filter-card .head-meta, .filter-card .filter-summary, .card:has(.filtros-grid) .filter-summary{
+  display:none !important;
+}
+.filter-body, .card:has(.filtros-grid) .card-body{
+  padding:18px !important;
+}
+.filter-actions, .acciones-filtros{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  margin-top:14px !important;
+  padding-top:12px !important;
+  border-top:1px solid #edf0f2 !important;
+}
+.filter-actions .btn, .acciones-filtros .btn{
+  width:132px !important;
+  min-width:132px !important;
+  max-width:132px !important;
+  height:38px !important;
+  min-height:38px !important;
+  padding:0 12px !important;
+  border-radius:9px !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  white-space:nowrap !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.filter-actions .btn-primary, .acciones-filtros .btn-primary{
+  background:linear-gradient(180deg,#D40511,#A9000D) !important;
+  border:1px solid #A9000D !important;
+  color:#fff !important;
+}
+.filter-actions .btn-secondary, .acciones-filtros .btn-secondary{
+  background:#fff !important;
+  border:1px solid #D1D5DB !important;
+  color:#34383D !important;
+}
+.filter-actions .btn:hover, .acciones-filtros .btn:hover{
+  transform:none !important;
+  filter:none !important;
+}
+@media(max-width:700px){
+  .filter-actions, .acciones-filtros{justify-content:stretch !important;}
+  .filter-actions .btn, .acciones-filtros .btn{flex:1 1 0 !important; width:auto !important; min-width:0 !important; max-width:none !important;}
+}
+</style>
+
+<style>
+/* === QA UNIFIED FILTER BUTTONS — FINAL === */
+.filter-actions, .acciones-filtros{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  width:100% !important;
+  margin-top:14px !important;
+  padding-top:12px !important;
+  border-top:1px solid #E9ECEF !important;
+  box-sizing:border-box !important;
+}
+.filter-actions .btn, .acciones-filtros .btn{
+  width:132px !important;
+  min-width:132px !important;
+  max-width:132px !important;
+  height:38px !important;
+  min-height:38px !important;
+  max-height:38px !important;
+  padding:0 12px !important;
+  margin:0 !important;
+  border-radius:9px !important;
+  border:1px solid transparent !important;
+  box-sizing:border-box !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0 !important;
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  letter-spacing:.1px !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.filter-actions .btn-primary, .acciones-filtros .btn-primary{
+  color:#fff !important;
+  background:linear-gradient(180deg,#D40511,#A9000D) !important;
+  border-color:#A9000D !important;
+}
+.filter-actions .btn-secondary, .acciones-filtros .btn-secondary,
+.filter-actions .btn-ghost, .acciones-filtros .btn-ghost{
+  color:#34383D !important;
+  background:#fff !important;
+  border-color:#D1D5DB !important;
+}
+.filter-actions .btn:hover, .acciones-filtros .btn:hover,
+.filter-actions .btn:focus, .acciones-filtros .btn:focus{
+  transform:none !important;
+  filter:none !important;
+  box-shadow:0 3px 8px rgba(0,0,0,.07) !important;
+}
+.filter-actions .btn:active, .acciones-filtros .btn:active{
+  transform:translateY(1px) !important;
+}
+@media(max-width:700px){
+  .filter-actions, .acciones-filtros{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+    justify-content:stretch !important;
+  }
+  .filter-actions .btn, .acciones-filtros .btn{
+    width:100% !important; min-width:0 !important; max-width:none !important;
+  }
+}
 </style>
 </head>
 
@@ -1465,60 +2181,23 @@ select:focus{
 ========================================================= -->
 
 <header class="appbar">
-
-  <div class="logo">
-    QA
-  </div>
-
+  <div class="logo">QA</div>
   <div class="titles">
-
-    <div class="t1">
-      Sistema de Calidad
-    </div>
-
-    <div class="t2">
-      Dashboard de Incidencias
-    </div>
-
+    <div class="t1">Sistema de Gestión de Calidad</div>
+    <div class="t2">Dashboard de Incidencias</div>
   </div>
-
   <div class="header-spacer"></div>
-
-<nav class="nav-dash">
-
-  <a
-    href="dashboard-incidencias.html"
-    class="active"
-  >
-    Dashboard Incidencias
-  </a>
-
-  <a href="dashboard.html">
-    Dashboard Calidad
-  </a>
-
-</nav>
-
+  <nav class="nav-dash">
+    <a href="dashboard.html">📊 Calidad</a>
+    <a href="dashboard-auditorias.html">📋 Auditorías</a>
+    <a href="dashboard-incidencias.html" class="active">⚠️ Incidencias</a>
+  </nav>
+  <div class="badge">FY2627</div>
   <div class="update-box">
-
-    <div class="update-label">
-      Última actualización
-    </div>
-
-    <div
-      class="update-value"
-      id="ultimaActualizacion"
-    >
-      Cargando...
-    </div>
-
+    <div class="update-label">Última actualización</div>
+    <div class="update-value" id="ultimaActualizacion">Cargando...</div>
   </div>
-
-<a href="index.html" class="fy">
-
-    🏠 Home
-  </a>
-
+  <a href="index.html" class="fy">🏠 Home</a>
 </header>
 
 
@@ -1528,31 +2207,7 @@ select:focus{
      INTRO
 ========================================================= -->
 
-<section class="page-intro">
 
-  <div>
-
-    <h1>
-      Dashboard de Incidencias
-    </h1>
-
-    <p>
-      Indicadores incidencias registradas en recibo · Sistema de Gestión de Calidad
-    </p>
-
-  </div>
-
-  <div class="status">
-
-    <span class="status-dot"></span>
-
-    <span id="estadoDatos">
-      Conectando con base de datos...
-    </span>
-
-  </div>
-
-</section>
 
 
 <!-- =========================================================
@@ -1569,9 +2224,6 @@ select:focus{
       Filtros
     </h3>
 
-    <span class="head-meta">
-      Análisis operativo
-    </span>
 
   </div>
 
@@ -1663,17 +2315,17 @@ select:focus{
     <div class="filter-actions">
 
       <button
-        class="btn btn-secondary"
-        onclick="limpiarFiltros()"
-      >
-        ↺ Limpiar filtros
-      </button>
-
-      <button
         class="btn btn-primary"
         onclick="aplicarFiltros()"
       >
-        ✓ Aplicar filtros
+        Aplicar filtros
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        onclick="limpiarFiltros()"
+      >
+        Limpiar filtros
       </button>
 
     </div>
@@ -2551,10 +3203,10 @@ function mostrarToast(msg,type=""){
 
 async function cargar(){
 
-  document.getElementById(
-    "estadoDatos"
-  ).textContent =
-    "Cargando información...";
+  const estadoDatosCarga = document.getElementById("estadoDatos");
+  if(estadoDatosCarga){
+    estadoDatosCarga.textContent = "Cargando información...";
+  }
 
 
   try{
@@ -2621,18 +3273,18 @@ async function cargar(){
       );
 
 
-    document.getElementById(
-      "estadoDatos"
-    ).textContent =
-      `${formatoNumero(datos.length)} registros cargados`;
+    const estadoDatos = document.getElementById("estadoDatos");
+    if(estadoDatos){
+      estadoDatos.textContent = `${formatoNumero(datos.length)} registros cargados`;
+    }
 
 
   }catch(error){
 
-    document.getElementById(
-      "estadoDatos"
-    ).textContent =
-      "Error de conexión";
+    const estadoDatosError = document.getElementById("estadoDatos");
+    if(estadoDatosError){
+      estadoDatosError.textContent = "Error de conexión";
+    }
 
 
     mostrarToast(
