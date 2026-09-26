@@ -951,6 +951,14 @@ onclick="location.href='dashboard-incidencias.html'">
 <div class='tituloBoton'>Dashboard Incidencias</div><div class='subtituloBoton'>Seguimiento de incidencias</div>
 </button>
 
+<button
+id="btnDashboardQuejas"
+class="btn-dashboard"
+onclick="location.href='Dashboard_Quejas.html'">
+<div class='tituloBoton'>Dashboard Quejas</div>
+<div class='subtituloBoton'>Seguimiento y análisis de quejas</div>
+</button>
+
 <h3
 id="tituloConcentrados"
 style="text-align:left;margin:25px 0 10px 0;">
@@ -1401,6 +1409,7 @@ const botones = [
 "btnDashboardAlertas",
 "btnDashboardAuditorias",
 "btnDashboardIncidencias",
+"btnDashboardQuejas",
 
 "btnExcelAlertas",
 "btnExcelAuditorias",
@@ -1440,6 +1449,7 @@ document.getElementById("btnIncidencia").style.display="block";
 document.getElementById("btnDashboardAlertas").style.display="block";
 document.getElementById("btnDashboardAuditorias").style.display="block";
 document.getElementById("btnDashboardIncidencias").style.display="block";
+document.getElementById("btnDashboardQuejas").style.display="block";
 
 document.getElementById("btnExcelAlertas").style.display="block";
 document.getElementById("btnExcelAuditorias").style.display="block";
@@ -1461,6 +1471,7 @@ if(info.rol === "VISUALIZADOR"){
     document.getElementById("btnDashboardAlertas").style.display="block";
     document.getElementById("btnDashboardAuditorias").style.display="block";
     document.getElementById("btnDashboardIncidencias").style.display="block";
+    document.getElementById("btnDashboardQuejas").style.display="block";
 
     return;
 }
