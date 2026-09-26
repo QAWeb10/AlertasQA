@@ -1,18 +1,15 @@
-  <!DOCTYPE html>
-  <html lang="es">
-  <head>
+ <!DOCTYPE html>
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#CF002E">
-
-  <title>QA · Dashboard de Alertas</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-  <style>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="#CF002E" name="theme-color"/>
+<title>QA · Dashboard de Alertas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<style>
 
   :root{
     --brand:#CF002E;
@@ -1634,1699 +1631,634 @@ input:focus,select:focus,.multi-select.open .multi-select-box{border-color:var(-
   .evidencias-modal-content{max-height:94vh;border-radius:12px;}
 }
 
+</style>
 
-/* =========================================================
-   QA SHARED VISUAL SYSTEM · FY2627
-   Capa común para Alertas, Auditorías e Incidencias
-========================================================= */
-:root{
-  --brand:#CF002E;
-  --brand-dark:#A00023;
-  --brand-deep:#6E0018;
-  --accent:#FDD000;
-  --qa-brand:#CF002E;
-  --qa-brand-dark:#A00023;
-  --qa-brand-deep:#6E0018;
-  --qa-accent:#FDD000;
-  --qa-bg:#F5F5F5;
-  --qa-line:#E5E5E5;
-  --qa-muted:#777;
-  --qa-shadow:0 3px 12px rgba(0,0,0,.07);
-  --qa-shadow-lg:0 10px 28px rgba(0,0,0,.12);
-  --qa-radius:14px;
-}
-
-html{scroll-behavior:smooth;}
-body{
-  background:var(--qa-bg) !important;
-  color:#1A1A1A;
-}
-
-.appbar,
-#mainHeader{
-  position:sticky !important;
-  top:0;
-  z-index:1000;
-  min-height:70px !important;
-  width:100%;
-  padding:10px 22px !important;
-  display:flex !important;
-  align-items:center !important;
-  gap:12px !important;
-  color:#fff !important;
-  background:linear-gradient(105deg,var(--qa-brand-deep) 0%,var(--qa-brand-dark) 42%,var(--qa-brand) 100%) !important;
-  box-shadow:0 4px 16px rgba(0,0,0,.15) !important;
-}
-
-.appbar .logo,
-#mainHeader .logo{
-  width:44px !important;
-  height:44px !important;
-  min-width:44px;
-  flex:0 0 44px;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  border-radius:9px !important;
-  background:var(--qa-accent) !important;
-  color:var(--qa-brand-deep) !important;
-  font-size:15px !important;
-  font-weight:900 !important;
-  letter-spacing:-.4px;
-}
-
-.appbar .titles,
-#mainHeader .titles{
-  min-width:0 !important;
-  flex:0 1 auto;
-}
-.appbar .t1,
-#mainHeader .t1{
-  font-size:9px !important;
-  line-height:1.2;
-  letter-spacing:1.35px !important;
-  text-transform:uppercase;
-  opacity:.78;
-  font-weight:700;
-}
-.appbar .t2,
-#mainHeader .t2{
-  margin-top:2px;
-  font-size:17px !important;
-  line-height:1.2;
-  font-weight:800;
-  white-space:nowrap;
-}
-
-.appbar .spacer,
-#mainHeader .spacer,
-.appbar .header-spacer,
-#mainHeader .header-spacer{flex:1 !important;}
-
-.nav-dash{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-end;
-  gap:6px !important;
-  flex-wrap:nowrap;
-}
-.nav-dash a{
-  display:inline-flex !important;
-  align-items:center;
-  justify-content:center;
-  min-height:34px !important;
-  padding:0 12px !important;
-  border-radius:9px !important;
-  color:#fff !important;
-  text-decoration:none !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  border:1px solid rgba(255,255,255,.20) !important;
-  background:rgba(255,255,255,.10) !important;
-  white-space:nowrap;
-  transition:.18s ease;
-}
-.nav-dash a:hover{background:rgba(255,255,255,.20) !important;transform:translateY(-1px);}
-.nav-dash a.active{
-  color:var(--qa-brand-deep) !important;
-  background:var(--qa-accent) !important;
-  border-color:var(--qa-accent) !important;
-  box-shadow:0 2px 8px rgba(0,0,0,.14);
-}
-
-.appbar .badge,
-#mainHeader .badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  height:30px;
-  padding:0 10px !important;
-  border-radius:8px !important;
-  background:rgba(255,255,255,.13) !important;
-  border:1px solid rgba(255,255,255,.20) !important;
-  color:#fff !important;
-  font-size:11px !important;
-  font-weight:800;
-  white-space:nowrap;
-}
-.appbar .back,
-#mainHeader .back,
-.appbar .fy,
-#mainHeader .fy{
-  display:inline-flex !important;
-  align-items:center;
-  justify-content:center;
-  min-height:30px;
-  padding:0 10px !important;
-  border-radius:8px !important;
-  color:#fff !important;
-  background:rgba(255,255,255,.10) !important;
-  border:1px solid rgba(255,255,255,.20) !important;
-  text-decoration:none !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  white-space:nowrap;
-}
-.appbar .back:hover,.appbar .fy:hover,#mainHeader .back:hover,#mainHeader .fy:hover{background:rgba(255,255,255,.20) !important;}
-
-.update-box{margin-left:4px !important;min-width:112px !important;}
-.update-label{font-size:8px !important;letter-spacing:.8px !important;}
-.update-value{font-size:10px !important;}
-
-.page,
-.wrap{
-  width:100% !important;
-  max-width:1480px !important;
-  margin:0 auto !important;
-  padding:20px 22px 42px !important;
-}
-
-.page-intro{
-  margin-bottom:16px !important;
-}
-.page-intro h1{
-  font-size:24px !important;
-  font-weight:800 !important;
-  letter-spacing:-.4px !important;
-}
-.page-intro p{font-size:12px !important;color:#7B7B7B !important;}
-
-.card,
-.chart-card,
-.kpi,
-.semaforo-card{
-  border:1px solid var(--qa-line) !important;
-  box-shadow:var(--qa-shadow) !important;
-}
-.card{border-radius:var(--qa-radius) !important;}
-.card-head{
-  min-height:47px !important;
-  padding:12px 16px !important;
-  background:linear-gradient(180deg,#fff,#fcfcfc) !important;
-  border-bottom:1px solid #F0F0F0 !important;
-}
-.card-head h3,.chart-title{font-weight:800 !important;}
-.card-head .dot,.chart-title .dot{box-shadow:0 0 0 4px rgba(207,0,46,.08);}
-
-input,select,
-.multi-select-box{
-  border-color:#DCDCDC !important;
-  border-radius:9px !important;
-}
-input:focus,select:focus,.multi-select.open .multi-select-box{
-  border-color:var(--qa-brand) !important;
-  box-shadow:0 0 0 3px rgba(207,0,46,.10) !important;
-}
-
-.btn-primary{
-  background:linear-gradient(180deg,var(--qa-brand),var(--qa-brand-dark)) !important;
-  box-shadow:0 3px 8px rgba(207,0,46,.18) !important;
-}
-.btn-secondary,.btn-ghost{
-  background:#F0F1F3 !important;
-  border-color:#E1E2E4 !important;
-  color:#444 !important;
-}
-
-.toast{z-index:2000 !important;}
-
-@media (max-width:1100px){
-  .appbar .t2,#mainHeader .t2{font-size:15px !important;}
-  .nav-dash a{padding:0 9px !important;font-size:10px !important;}
-  .appbar .badge,#mainHeader .badge{display:none !important;}
-  .update-box{display:none !important;}
-}
-
-@media (max-width:760px){
-  .appbar,#mainHeader{
-    position:sticky !important;
-    min-height:64px !important;
-    padding:8px 10px !important;
-    gap:8px !important;
-    overflow-x:auto;
-    scrollbar-width:none;
-  }
-  .appbar::-webkit-scrollbar,#mainHeader::-webkit-scrollbar{display:none;}
-  .appbar .logo,#mainHeader .logo{width:38px !important;height:38px !important;min-width:38px;flex-basis:38px;font-size:13px !important;}
-  .appbar .t1,#mainHeader .t1{font-size:7px !important;letter-spacing:1px !important;}
-  .appbar .t2,#mainHeader .t2{font-size:13px !important;}
-  .appbar .spacer,.appbar .header-spacer,#mainHeader .spacer,#mainHeader .header-spacer{min-width:4px;}
-  .nav-dash{gap:4px !important;}
-  .nav-dash a{min-height:32px !important;padding:0 8px !important;font-size:9px !important;}
-  .appbar .back,#mainHeader .back,.appbar .fy,#mainHeader .fy{min-height:28px;font-size:9px !important;padding:0 8px !important;}
-  .page,.wrap{padding:14px 12px 30px !important;}
-  .page-intro{align-items:flex-start !important;flex-direction:column !important;gap:8px !important;}
-  .page-intro h1{font-size:20px !important;}
-}
-
-
-/* =========================================================
-   QA · SISTEMA VISUAL ÚNICO · FY2627
-   Aplicado de forma idéntica en los tres dashboards.
-   No modifica lógica, consultas, funciones ni datos.
-========================================================= */
+<style id="qa-unified-shell">
+/* ===== SHELL ÚNICO PARA LOS 4 DASHBOARDS ===== */
 :root{
   --qa-brand:#CF002E;
   --qa-brand-dark:#A00023;
   --qa-brand-deep:#6E0018;
   --qa-accent:#FDD000;
-  --qa-ink:#1A1A1A;
-  --qa-ink-soft:#4A4A4A;
-  --qa-ink-muted:#8A8A8A;
-  --qa-line:#E5E5E5;
-  --qa-line-soft:#F2F2F2;
-  --qa-bg:#F5F5F5;
-  --qa-surface:#FFFFFF;
-  --qa-ok:#1B8A3A;
-  --qa-radius:14px;
-  --qa-radius-sm:10px;
-  --qa-shadow:0 3px 12px rgba(0,0,0,.07);
-  --qa-shadow-hover:0 10px 28px rgba(25,35,45,.10);
 }
-
-html{scroll-behavior:smooth}
-body{
-  background:var(--qa-bg) !important;
-  color:var(--qa-ink) !important;
+.qa-unified-header{
+  position:sticky !important; top:0 !important; z-index:1000 !important;
+  background:linear-gradient(90deg,var(--qa-brand-deep),var(--qa-brand)) !important;
+  color:#fff !important; min-height:68px !important; padding:11px 24px !important;
+  display:flex !important; align-items:center !important; gap:12px !important;
+  box-shadow:0 4px 12px rgba(0,0,0,.12) !important;
+  border:0 !important; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif !important;
 }
-
-/* HEADER ÚNICO */
-.appbar,
-#mainHeader{
-  position:sticky !important;
-  top:0 !important;
-  z-index:1000 !important;
-  min-height:70px !important;
-  width:100% !important;
-  padding:10px 22px !important;
-  display:flex !important;
-  align-items:center !important;
-  gap:12px !important;
-  color:#fff !important;
-  background:linear-gradient(105deg,var(--qa-brand-deep) 0%,var(--qa-brand-dark) 42%,var(--qa-brand) 100%) !important;
-  box-shadow:0 4px 16px rgba(0,0,0,.15) !important;
+.qa-unified-header .logo{
+  width:42px !important; height:42px !important; min-width:42px !important;
+  border-radius:9px !important; background:var(--qa-accent) !important;
+  color:var(--qa-brand-deep) !important; display:flex !important;
+  align-items:center !important; justify-content:center !important;
+  font-weight:900 !important; font-size:14px !important; padding:0 !important;
 }
-.appbar .logo,
-#mainHeader .logo,
-.appbar > .logo{
-  width:44px !important;
-  height:44px !important;
-  min-width:44px !important;
-  flex:0 0 44px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  border-radius:9px !important;
-  background:var(--qa-accent) !important;
-  color:var(--qa-brand-deep) !important;
-  font-size:15px !important;
-  font-weight:900 !important;
-  box-shadow:0 2px 7px rgba(0,0,0,.12) !important;
+.qa-unified-header .titles{min-width:0 !important;}
+.qa-unified-header .t1{font-size:10px !important; opacity:.82 !important; letter-spacing:1.2px !important; text-transform:uppercase !important;}
+.qa-unified-header .t2{font-size:18px !important; font-weight:800 !important; line-height:1.15 !important; color:#fff !important;}
+.qa-unified-header .spacer,.qa-unified-header .header-spacer{flex:1 !important; min-width:8px;}
+.qa-unified-nav{display:flex !important; align-items:center !important; gap:6px !important; flex:none !important;}
+.qa-unified-nav a{
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  min-height:34px !important; padding:0 10px !important; border-radius:8px !important;
+  color:#fff !important; text-decoration:none !important; font-size:10px !important;
+  font-weight:800 !important; white-space:nowrap !important; border:1px solid rgba(255,255,255,.20) !important;
+  background:rgba(255,255,255,.08) !important; transition:.15s ease !important;
 }
-.appbar .titles,
-#mainHeader .titles{min-width:0 !important;flex:0 1 auto !important}
-.appbar .t1,
-#mainHeader .t1{
-  font-size:9px !important;
-  line-height:1.2 !important;
-  letter-spacing:1.35px !important;
-  text-transform:uppercase !important;
-  opacity:.78 !important;
-  font-weight:700 !important;
+.qa-unified-nav a:hover{background:rgba(255,255,255,.17) !important;}
+.qa-unified-nav a.active{background:var(--qa-accent) !important; color:var(--qa-brand-deep) !important; border-color:var(--qa-accent) !important;}
+.qa-unified-header .badge{
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  min-height:34px !important; padding:0 10px !important; border-radius:8px !important;
+  background:rgba(253,208,0,.16) !important; border:1px solid rgba(253,208,0,.5) !important;
+  color:#fff !important; font-size:10px !important; font-weight:900 !important; white-space:nowrap !important;
 }
-.appbar .t2,
-#mainHeader .t2{
-  margin-top:2px !important;
-  font-size:17px !important;
-  line-height:1.2 !important;
-  font-weight:800 !important;
-  white-space:nowrap !important;
+.qa-unified-header .qa-header-update{
+  min-width:125px !important; padding:5px 8px !important; border-radius:8px !important;
+  background:rgba(0,0,0,.14) !important; border:1px solid rgba(255,255,255,.14) !important;
 }
-.appbar .spacer,
-#mainHeader .spacer,
-.appbar .header-spacer,
-#mainHeader .header-spacer{flex:1 !important}
-
-.nav-dash{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:6px !important;
-  flex-wrap:nowrap !important;
+.qa-unified-header .update-label{font-size:7px !important; text-transform:uppercase !important; opacity:.72 !important; letter-spacing:.5px !important;}
+.qa-unified-header .update-value{font-size:9px !important; font-weight:800 !important; white-space:nowrap !important; color:#fff !important;}
+.qa-unified-header .qa-home{
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  min-height:34px !important; padding:0 11px !important; border-radius:8px !important;
+  background:#fff !important; color:var(--qa-brand-deep) !important; text-decoration:none !important;
+  font-size:10px !important; font-weight:900 !important; white-space:nowrap !important;
 }
-.nav-dash a{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  min-height:34px !important;
-  height:34px !important;
-  padding:0 12px !important;
-  border-radius:9px !important;
-  color:#fff !important;
-  text-decoration:none !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  border:1px solid rgba(255,255,255,.20) !important;
-  background:rgba(255,255,255,.10) !important;
-  box-shadow:none !important;
-  white-space:nowrap !important;
-  transition:.18s ease !important;
-}
-.nav-dash a:hover{background:rgba(255,255,255,.20) !important;transform:translateY(-1px) !important}
-.nav-dash a.active{
-  color:var(--qa-brand-deep) !important;
-  background:var(--qa-accent) !important;
-  border-color:var(--qa-accent) !important;
-  box-shadow:0 2px 8px rgba(0,0,0,.14) !important;
-}
-.appbar .badge,
-#mainHeader .badge,
-.appbar .back,
-#mainHeader .back,
-.appbar .fy,
-#mainHeader .fy{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  height:30px !important;
-  min-height:30px !important;
-  padding:0 10px !important;
-  margin-left:0 !important;
-  border-radius:8px !important;
-  color:#fff !important;
-  background:rgba(255,255,255,.10) !important;
-  border:1px solid rgba(255,255,255,.20) !important;
-  text-decoration:none !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  white-space:nowrap !important;
-}
-.appbar .badge{background:rgba(255,255,255,.13) !important}
-.appbar .back:hover,
-.appbar .fy:hover{background:rgba(255,255,255,.20) !important}
-.update-box{margin-left:4px !important;min-width:112px !important}
-.update-label{font-size:8px !important;letter-spacing:.8px !important}
-.update-value{font-size:10px !important}
-
-/* CONTENEDOR ÚNICO */
-.page,
-.wrap{
-  width:100% !important;
-  max-width:1480px !important;
-  margin:0 auto !important;
-  padding:20px 22px 42px !important;
-}
-
-/* TARJETAS ÚNICAS */
-.card,
-.chart-card,
-.kpi,
-.criticidad-card,
-.semaforo-card{
-  border-color:var(--qa-line) !important;
-  box-shadow:var(--qa-shadow) !important;
-}
-.card{border-radius:var(--qa-radius) !important}
-.card-head{
-  min-height:47px !important;
-  padding:11px 16px !important;
-  background:linear-gradient(180deg,#fffdf4,#fff) !important;
-  border-bottom:1px solid var(--qa-line-soft) !important;
-}
-.card-head h3{
-  font-weight:900 !important;
-  letter-spacing:.7px !important;
-}
-.card-head .dot{
-  width:8px !important;
-  height:8px !important;
-  flex:none !important;
-  background:var(--qa-brand) !important;
-  box-shadow:0 0 0 4px rgba(207,0,46,.10) !important;
-}
-
-/* CAMPOS */
-input,select,.multi-select-box{
-  border-color:#D6DBE1 !important;
-  background:#fff !important;
+.qa-unified-header .qa-home:hover{background:#fffbe0 !important;}
+/* Quejas: conservar su contenido, pero adoptar fondo/tipografía del sistema */
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif !important;}
+body:has(.qa-unified-header) .header{display:none !important;}
+.qa-unified-header ~ .container{max-width:1800px !important;}
+.qa-unified-header ~ .container .upload-card,
+.qa-unified-header ~ .container .panel,
+.qa-unified-header ~ .container .chart-card,
+.qa-unified-header ~ .container .kpi{
   border-radius:10px !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.06) !important;
 }
-input:hover,select:hover,.multi-select-box:hover{border-color:#B9C0C8 !important}
-input:focus,select:focus,.multi-select.open .multi-select-box{
-  border-color:var(--qa-brand) !important;
-  box-shadow:0 0 0 3px rgba(207,0,46,.09),0 2px 8px rgba(0,0,0,.05) !important;
+.qa-unified-header ~ .container .file-button,
+.qa-unified-header ~ .container .btn-primary,
+.qa-unified-header ~ .container .page-btn.active{background:var(--qa-brand) !important; border-color:var(--qa-brand) !important;}
+.qa-unified-header ~ .container .upload-card{border-left-color:var(--qa-brand) !important;}
+.qa-unified-header ~ .container .field input:focus,
+.qa-unified-header ~ .container .field select:focus{border-color:var(--qa-brand) !important;}
+@media(max-width:1100px){
+  .qa-unified-header .t2{font-size:15px !important;}
+  .qa-unified-nav a{padding:0 9px !important;font-size:10px !important;}
+  .qa-unified-header .badge{display:none !important;}
+  .qa-header-update{display:none !important;}
 }
+@media(max-width:760px){
+  .qa-unified-header{min-height:64px !important;padding:8px 10px !important;gap:8px !important;overflow-x:auto !important;scrollbar-width:none !important;}
+  .qa-unified-header::-webkit-scrollbar{display:none;}
+  .qa-unified-header .logo{width:38px !important;height:38px !important;min-width:38px !important;font-size:13px !important;}
+  .qa-unified-header .t1{font-size:7px !important;letter-spacing:1px !important;}
+  .qa-unified-header .t2{font-size:13px !important;}
+  .qa-unified-nav{gap:4px !important;}
+  .qa-unified-nav a{min-height:32px !important;padding:0 8px !important;font-size:9px !important;}
+  .qa-unified-header .qa-home{min-height:32px !important;font-size:9px !important;padding:0 8px !important;}
+  .qa-unified-header .header-spacer{min-width:4px !important;}
+}
+@media(max-width:560px){
+  .qa-unified-header .titles{max-width:120px !important;min-width:90px !important;}
+  .qa-unified-nav a{font-size:0 !important;width:32px !important;padding:0 !important;}
+  .qa-unified-nav a::first-letter{font-size:14px !important;}
+  .qa-unified-header .qa-home{display:none !important;}
+}
+</style>
 
-/* BOTONES: EXACTAMENTE MISMO TRATAMIENTO */
-.btn,
-.btn-primary,
-.btn-secondary,
-.btn-ghost{
-  box-sizing:border-box !important;
-  min-height:42px !important;
-  height:42px !important;
-  padding:0 17px !important;
-  border-radius:10px !important;
-  font-family:inherit !important;
-  font-size:12px !important;
-  font-weight:800 !important;
-  letter-spacing:.15px !important;
+<style id="qa-shared-controls">
+/* CONTROLES UNIFICADOS DE LOS 4 DASHBOARDS — SOLO ESTILO */
+.btn{
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
   gap:7px !important;
-  cursor:pointer !important;
-  transition:transform .16s ease,box-shadow .16s ease,background .16s ease,filter .16s ease !important;
-}
-.btn-primary{
-  color:#fff !important;
-  background:linear-gradient(180deg,var(--qa-brand),var(--qa-brand-dark)) !important;
+  min-height:40px !important;
+  height:40px !important;
+  width:auto !important;
+  padding:9px 17px !important;
   border:1px solid transparent !important;
-  box-shadow:0 4px 10px rgba(207,0,46,.20) !important;
-}
-.btn-secondary,
-.btn-ghost{
-  color:#34383D !important;
-  background:#fff !important;
-  border:1px solid #D8DDE3 !important;
-  box-shadow:0 3px 8px rgba(0,0,0,.05) !important;
-}
-.btn-primary:hover{
-  filter:brightness(1.03) !important;
-  transform:translateY(-1px) !important;
-  box-shadow:0 6px 14px rgba(207,0,46,.24) !important;
-}
-.btn-secondary:hover,
-.btn-ghost:hover{
-  background:#F6F7F8 !important;
-  border-color:#C7CDD4 !important;
-  transform:translateY(-1px) !important;
-  box-shadow:0 5px 12px rgba(0,0,0,.08) !important;
-}
-.btn:active,
-.btn-primary:active,
-.btn-secondary:active,
-.btn-ghost:active{transform:translateY(1px) !important}
-.acciones-filtros,
-.filter-actions{gap:10px !important}
-
-/* KPI: SIEMPRE FRANJA DE COLOR ARRIBA, NUNCA AL COSTADO */
-.kpi,
-.kpi-grid .kpi,
-.kpis .kpi{
-  position:relative !important;
-  overflow:hidden !important;
-  min-height:108px !important;
-  padding:15px !important;
-  border:1px solid var(--qa-line) !important;
-  border-radius:var(--qa-radius) !important;
-  background:#fff !important;
-  box-shadow:var(--qa-shadow) !important;
-}
-.kpi::before,
-.kpi-grid .kpi::before,
-.kpis .kpi::before{
-  content:"" !important;
-  position:absolute !important;
-  top:0 !important;
-  left:0 !important;
-  right:0 !important;
-  bottom:auto !important;
-  width:100% !important;
-  height:4px !important;
-  background:var(--qa-brand) !important;
-}
-.kpi.accent::before,
-.kpi.k-accent::before,
-.kpi.yellow::before{background:var(--qa-accent) !important}
-.kpi.green::before,
-.kpi.k-ok::before{background:var(--qa-ok) !important}
-.kpi.dark::before,
-.kpi.k-deep::before{background:var(--qa-brand-deep) !important}
-.kpi.blue::before{background:#2563EB !important}
-.kpi:hover{box-shadow:var(--qa-shadow-hover) !important}
-
-/* GRÁFICAS */
-.chart-card{border-radius:14px !important}
-
-/* RESPONSIVE CONSISTENTE */
-@media(max-width:900px){
-  .appbar,#mainHeader{padding:10px 16px !important}
-  .page,.wrap{padding:16px 16px 34px !important}
-}
-@media(max-width:700px){
-  .appbar .t2,#mainHeader .t2{font-size:15px !important}
-  .nav-dash{gap:4px !important}
-  .nav-dash a{padding:0 9px !important;font-size:10px !important}
-  .update-box{display:none !important}
-}
-@media(max-width:560px){
-  .appbar .titles{max-width:125px !important}
-  .nav-dash a{font-size:0 !important;width:34px !important;padding:0 !important}
-  .nav-dash a:first-child::first-letter,
-  .nav-dash a:nth-child(2)::first-letter,
-  .nav-dash a:nth-child(3)::first-letter{font-size:14px !important}
-  .appbar .badge,.appbar .back,.appbar .fy{display:none !important}
-}
-
-
-/* =========================================================
-   QA UNIFIED VISUAL SYSTEM — FINAL OVERRIDES
-========================================================= */
-:root{
-  --qa-brand:#CF002E;
-  --qa-brand-dark:#A00023;
-  --qa-brand-deep:#6E0018;
-  --qa-accent:#FDD000;
-  --qa-ink:#1A1A1A;
-  --qa-muted:#6B7280;
-  --qa-border:#E5E7EB;
-  --qa-surface:#FFFFFF;
-  --qa-bg:#F7F7F7;
-  --qa-ok:#1B8A3A;
-  --qa-shadow:0 3px 12px rgba(0,0,0,.07);
-  --qa-shadow-hover:0 10px 28px rgba(0,0,0,.10);
-  --qa-radius:14px;
-}
-
-/* Header identical in all three dashboards */
-.appbar,#mainHeader{
-  min-height:72px !important;
-  padding:12px 18px !important;
-  gap:12px !important;
-  background:linear-gradient(105deg,#6E0018 0%,#A00023 42%,#CF002E 100%) !important;
-  box-shadow:0 4px 16px rgba(0,0,0,.15) !important;
-}
-.appbar .logo,#mainHeader .logo{
-  width:40px !important;height:40px !important;min-width:40px !important;
-  border-radius:9px !important;background:#FDD000 !important;color:#6E0018 !important;
-  font-size:14px !important;font-weight:900 !important;
-}
-.appbar .titles,#mainHeader .titles{min-width:180px !important}
-.appbar .t1,#mainHeader .t1{font-size:10px !important;letter-spacing:1.25px !important}
-.appbar .t2,#mainHeader .t2{font-size:16px !important;font-weight:800 !important}
-.nav-dash{display:flex !important;align-items:center !important;gap:6px !important;margin-right:2px !important}
-.nav-dash a{
-  min-height:36px !important;padding:8px 12px !important;
-  border-radius:999px !important;border:1px solid rgba(255,255,255,.24) !important;
-  background:rgba(255,255,255,.12) !important;color:#fff !important;
-  font-size:11px !important;font-weight:800 !important;
-  text-decoration:none !important;box-shadow:none !important;transform:none !important;
-}
-.nav-dash a:hover{background:rgba(255,255,255,.20) !important;transform:none !important}
-.nav-dash a.active{background:#FDD000 !important;color:#6E0018 !important;border-color:#FDD000 !important}
-.appbar .badge,#mainHeader .badge{
-  min-height:36px !important;display:inline-flex !important;align-items:center !important;
-  padding:0 11px !important;border-radius:999px !important;
-  background:rgba(255,255,255,.12) !important;border:1px solid rgba(255,255,255,.23) !important;
-  font-size:11px !important;font-weight:800 !important;color:#fff !important;
-}
-.appbar .back,.appbar .fy,#mainHeader .back,#mainHeader .fy{
-  min-height:36px !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;
-  padding:0 12px !important;border-radius:999px !important;
-  background:rgba(255,255,255,.12) !important;border:1px solid rgba(255,255,255,.23) !important;
-  color:#fff !important;font-size:11px !important;font-weight:800 !important;text-decoration:none !important;
-}
-
-/* Same update box in every dashboard */
-.update-box{
-  display:flex !important;flex-direction:column !important;justify-content:center !important;
-  min-width:154px !important;padding:6px 11px !important;
-  border-radius:10px !important;background:rgba(255,255,255,.10) !important;
-  border:1px solid rgba(255,255,255,.20) !important;color:#fff !important;
-}
-.update-label{font-size:8px !important;line-height:1.2 !important;letter-spacing:.9px !important;text-transform:uppercase !important;opacity:.72 !important;font-weight:800 !important}
-.update-value{margin-top:2px !important;font-size:11px !important;line-height:1.2 !important;font-weight:800 !important;white-space:nowrap !important}
-
-/* Filters: same button row, order and dimensions */
-.filter-actions,.acciones-filtros{
-  display:flex !important;align-items:center !important;justify-content:flex-end !important;
-  gap:8px !important;margin-top:14px !important;padding-top:12px !important;
-  border-top:1px solid var(--qa-border) !important;
-}
-.filter-actions .btn,.acciones-filtros .btn,
-.btn-field .btn{
-  height:38px !important;min-width:122px !important;padding:0 16px !important;
-  border-radius:9px !important;font-size:12px !important;font-weight:800 !important;
-  display:inline-flex !important;align-items:center !important;justify-content:center !important;
-  box-shadow:none !important;transform:none !important;
-}
-.btn-primary,.filter-actions .btn-primary,.acciones-filtros .btn-primary{
-  background:linear-gradient(180deg,#D40511,#A9000D) !important;
-  border:1px solid #A9000D !important;color:#fff !important;
-}
-.btn-secondary,.btn-ghost,.filter-actions .btn-secondary,.acciones-filtros .btn-ghost,.acciones-filtros .btn-secondary{
-  background:#fff !important;border:1px solid #D1D5DB !important;color:#34383D !important;
-}
-.btn-primary:hover,.btn-secondary:hover,.btn-ghost:hover{transform:none !important;filter:none !important;box-shadow:0 3px 10px rgba(0,0,0,.08) !important}
-
-/* Same KPI treatment: accent line always on TOP */
-.kpi,.kpi-grid .kpi,.kpis .kpi{
-  position:relative !important;overflow:hidden !important;
-  border:1px solid var(--qa-border) !important;border-radius:14px !important;
-  background:#fff !important;box-shadow:var(--qa-shadow) !important;
-}
-.kpi::before,.kpi-grid .kpi::before,.kpis .kpi::before{
-  content:"" !important;position:absolute !important;left:0 !important;right:0 !important;top:0 !important;bottom:auto !important;
-  width:auto !important;height:4px !important;background:#CF002E !important;
-}
-.kpi.accent::before,.kpi.k-accent::before,.kpi.yellow::before{background:#FDD000 !important}
-.kpi.green::before,.kpi.k-ok::before{background:#1B8A3A !important}
-.kpi.dark::before,.kpi.k-deep::before{background:#6E0018 !important}
-.kpi.blue::before{background:#2563EB !important}
-.kpi:hover,.kpi-grid .kpi:hover,.kpis .kpi:hover{box-shadow:var(--qa-shadow-hover) !important;transform:none !important}
-
-/* Consistent cards / chart containers */
-.card,.chart-card,.criticidad-card{border-color:var(--qa-border) !important;box-shadow:var(--qa-shadow) !important}
-.card:hover,.chart-card:hover{box-shadow:var(--qa-shadow-hover) !important}
-
-/* Do not hide the update box on tablet/mobile; compress it instead */
-@media(max-width:900px){
-  .update-box{min-width:130px !important;padding:5px 8px !important}
-  .update-value{font-size:10px !important}
-}
-@media(max-width:700px){
-  .appbar,#mainHeader{padding:9px 10px !important;gap:7px !important}
-  .appbar .titles,#mainHeader .titles{min-width:110px !important;max-width:150px !important}
-  .appbar .t2,#mainHeader .t2{font-size:13px !important}
-  .nav-dash{gap:3px !important}
-  .nav-dash a{min-height:32px !important;padding:0 8px !important;font-size:9px !important}
-  .appbar .badge,#mainHeader .badge{min-height:32px !important;padding:0 8px !important;font-size:9px !important}
-  .appbar .back,.appbar .fy,#mainHeader .back,#mainHeader .fy{min-height:32px !important;padding:0 8px !important;font-size:9px !important}
-  .update-box{min-width:112px !important;padding:4px 7px !important}
-  .update-label{font-size:7px !important}
-  .update-value{font-size:9px !important}
-  .filter-actions,.acciones-filtros{justify-content:stretch !important}
-  .filter-actions .btn,.acciones-filtros .btn,.btn-field .btn{flex:1 !important;min-width:0 !important}
-}
-@media(max-width:560px){
-  .appbar .titles,#mainHeader .titles{max-width:115px !important;min-width:90px !important}
-  .nav-dash a{font-size:0 !important;width:32px !important;padding:0 !important}
-  .nav-dash a:first-child::first-letter,.nav-dash a:nth-child(2)::first-letter,.nav-dash a:nth-child(3)::first-letter{font-size:14px !important}
-  .appbar .badge,#mainHeader .badge,.appbar .back,#mainHeader .back,.appbar .fy,#mainHeader .fy{display:none !important}
-  .update-box{min-width:96px !important;max-width:112px !important}
-}
-
-</style>
-  
-<style id="qa-unified-filters-final">
-/* ===== QA: ESTILO FINAL UNIFICADO DE FILTROS ===== */
-.filter-card, .card:has(.filtros-grid){
-  border:1px solid #e3e7eb !important;
-  border-radius:14px !important;
-  box-shadow:0 4px 14px rgba(0,0,0,.06) !important;
-}
-.filter-card .card-head, .card:has(.filtros-grid) .card-head{
-  min-height:48px !important;
-  padding:0 18px !important;
-  border-bottom:1px solid #edf0f2 !important;
-}
-.filter-card .card-head h3, .card:has(.filtros-grid) .card-head h3{
-  font-size:14px !important;
-  font-weight:800 !important;
-  margin:0 !important;
-}
-.filter-card .head-meta, .filter-card .filter-summary, .card:has(.filtros-grid) .filter-summary{
-  display:none !important;
-}
-.filter-body, .card:has(.filtros-grid) .card-body{
-  padding:18px !important;
-}
-.filter-actions, .acciones-filtros{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:8px !important;
-  margin-top:14px !important;
-  padding-top:12px !important;
-  border-top:1px solid #edf0f2 !important;
-}
-.filter-actions .btn, .acciones-filtros .btn{
-  width:132px !important;
-  min-width:132px !important;
-  max-width:132px !important;
-  height:38px !important;
-  min-height:38px !important;
-  padding:0 12px !important;
   border-radius:9px !important;
-  font-size:12px !important;
-  font-weight:800 !important;
-  line-height:1 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  box-sizing:border-box !important;
-  white-space:nowrap !important;
-  box-shadow:none !important;
-  transform:none !important;
-}
-.filter-actions .btn-primary, .acciones-filtros .btn-primary{
-  background:linear-gradient(180deg,#D40511,#A9000D) !important;
-  border:1px solid #A9000D !important;
-  color:#fff !important;
-}
-.filter-actions .btn-secondary, .acciones-filtros .btn-secondary{
-  background:#fff !important;
-  border:1px solid #D1D5DB !important;
-  color:#34383D !important;
-}
-.filter-actions .btn:hover, .acciones-filtros .btn:hover{
-  transform:none !important;
-  filter:none !important;
-}
-@media(max-width:700px){
-  .filter-actions, .acciones-filtros{justify-content:stretch !important;}
-  .filter-actions .btn, .acciones-filtros .btn{flex:1 1 0 !important; width:auto !important; min-width:0 !important; max-width:none !important;}
-}
-</style>
-
-<style>
-/* === QA UNIFIED FILTER BUTTONS — FINAL === */
-.filter-actions, .acciones-filtros{
-  display:flex !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:8px !important;
-  width:100% !important;
-  margin-top:14px !important;
-  padding-top:12px !important;
-  border-top:1px solid #E9ECEF !important;
-  box-sizing:border-box !important;
-}
-.filter-actions .btn, .acciones-filtros .btn{
-  width:132px !important;
-  min-width:132px !important;
-  max-width:132px !important;
-  height:38px !important;
-  min-height:38px !important;
-  max-height:38px !important;
-  padding:0 12px !important;
-  margin:0 !important;
-  border-radius:9px !important;
-  border:1px solid transparent !important;
-  box-sizing:border-box !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:0 !important;
   font-family:inherit !important;
   font-size:12px !important;
   font-weight:800 !important;
   line-height:1 !important;
-  letter-spacing:.1px !important;
-  white-space:nowrap !important;
-  text-align:center !important;
-  box-shadow:none !important;
-  transform:none !important;
+  cursor:pointer !important;
+  box-sizing:border-box !important;
+  transition:transform .15s,filter .15s,box-shadow .15s,background .15s !important;
 }
-.filter-actions .btn-primary, .acciones-filtros .btn-primary{
+.btn-primary{
   color:#fff !important;
-  background:linear-gradient(180deg,#D40511,#A9000D) !important;
-  border-color:#A9000D !important;
+  background:linear-gradient(180deg,#CF002E,#A00023) !important;
+  border-color:#A00023 !important;
+  box-shadow:0 2px 5px rgba(207,0,46,.18) !important;
 }
-.filter-actions .btn-secondary, .acciones-filtros .btn-secondary,
-.filter-actions .btn-ghost, .acciones-filtros .btn-ghost{
-  color:#34383D !important;
+.btn-secondary,.btn-ghost{
+  color:#333 !important;
+  background:#F1F1F1 !important;
+  border-color:#D8D8D8 !important;
+  box-shadow:none !important;
+}
+.btn:hover{
+  filter:brightness(.98) !important;
+  transform:translateY(-1px) !important;
+  box-shadow:0 2px 6px rgba(0,0,0,.08) !important;
+}
+.btn:active{transform:translateY(1px) !important;}
+.filter-actions,.acciones-filtros{
+  display:flex !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex-wrap:wrap !important;
+  margin-top:12px !important;
+}
+.filter-actions .btn,.acciones-filtros .btn{
+  width:auto !important;
+  min-width:128px !important;
+}
+.btn-field .btn{
+  width:auto !important;
+  min-width:128px !important;
+}
+/* Indicadores de estado: misma caja y tipografía; el color depende del estado real */
+.live-pill,.status{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:7px !important;
+  min-height:34px !important;
+  padding:8px 12px !important;
+  border-radius:10px !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  box-sizing:border-box !important;
+}
+.live-pill{
+  background:#EAF7EE !important;
+  border:1px solid #BFE4C9 !important;
+  color:#167332 !important;
+}
+.status{
   background:#fff !important;
-  border-color:#D1D5DB !important;
+  border:1px solid #E5E5E5 !important;
+  color:#4A4A4A !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.05) !important;
 }
-.filter-actions .btn:hover, .acciones-filtros .btn:hover,
-.filter-actions .btn:focus, .acciones-filtros .btn:focus{
-  transform:none !important;
-  filter:none !important;
-  box-shadow:0 3px 8px rgba(0,0,0,.07) !important;
+.status-dot{
+  width:8px !important; height:8px !important; border-radius:50% !important; flex:none !important;
 }
-.filter-actions .btn:active, .acciones-filtros .btn:active{
-  transform:translateY(1px) !important;
-}
-@media(max-width:700px){
-  .filter-actions, .acciones-filtros{
-    display:grid !important;
-    grid-template-columns:1fr 1fr !important;
-    gap:8px !important;
-    justify-content:stretch !important;
-  }
-  .filter-actions .btn, .acciones-filtros .btn{
-    width:100% !important; min-width:0 !important; max-width:none !important;
-  }
+@media(max-width:760px){
+  .btn{min-height:38px !important;height:38px !important;padding:8px 13px !important;font-size:11px !important;}
+  .filter-actions .btn,.acciones-filtros .btn,.btn-field .btn{min-width:120px !important;}
 }
 </style>
+
 </head>
-
-  <body>
-
-  <header class="appbar">
-  <div class="logo">QA</div>
-  <div class="titles">
-    <div class="t1">Sistema de Gestión de Calidad</div>
-    <div class="t2">Dashboard de Alertas</div>
-  </div>
-  <div class="spacer"></div>
-  <nav class="nav-dash">
-    <a href="dashboard.html" class="active">📊 Calidad</a>
-    <a href="dashboard-auditorias.html">📋 Auditorías</a>
-    <a href="dashboard-incidencias.html">⚠️ Incidencias</a>
-  </nav>
-  <div class="badge">FY2627</div>
-  <div class="update-box">
-    <div class="update-label">Última actualización</div>
-    <div class="update-value" id="ultimaActualizacion">Cargando...</div>
-  </div>
-  <a href="index.html" class="back">🏠 Home</a>
+<body>
+<header class="appbar qa-unified-header" id="mainHeader">
+<div class="logo">QA</div>
+<div class="titles">
+<div class="t1">Sistema de Gestión de Calidad</div>
+<div class="t2">Dashboard de Alertas</div>
+</div>
+<div class="spacer header-spacer"></div>
+<nav class="nav-dash qa-unified-nav">
+<a class="active" href="dashboard.html">📊 Calidad</a>
+<a href="dashboard-auditorias.html">📋 Auditorías</a>
+<a href="dashboard-incidencias.html">⚠️ Incidencias</a>
+<a href="Dashboard_Quejas.html">📝 Quejas</a>
+</nav>
+<div class="badge">FY2627</div>
+<div class="update-box qa-header-update">
+<div class="update-label">Última actualización</div>
+<div class="update-value" id="qaHeaderUpdate">—</div>
+</div>
+<a class="back qa-home" href="index.html">🏠 Home</a>
 </header>
-
-
-  <main class="wrap">
-
-  <!-- =======================================================
+<main class="wrap">
+<!-- =======================================================
       FILA 1
   ======================================================= -->
-
-  <section class="row-1">
-
-    <!-- FILTROS -->
-
-    <div class="card">
-
-      <div class="card-head">
-
-        <div class="dot"></div>
-
-        <h3>Filtros</h3>
-
-      </div>
-
-      <div class="card-body">
-
-        <div class="filtros-grid">
-
-          <div class="field multi-field">
-
-            <label>Persona</label>
-
-            <div
-              class="multi-select"
-              id="personaSelect"
-            >
-
-              <div
-                class="multi-select-box"
-                onclick="abrirMulti('persona')"
-              >
-
-                <span id="personaTexto">
+<section class="row-1">
+<!-- FILTROS -->
+<div class="card">
+<div class="card-head">
+<div class="dot"></div>
+<h3>Filtros</h3>
+</div>
+<div class="card-body">
+<div class="filtros-grid">
+<div class="field multi-field">
+<label>Persona</label>
+<div class="multi-select" id="personaSelect">
+<div class="multi-select-box" onclick="abrirMulti('persona')">
+<span id="personaTexto">
                   Todas las personas
                 </span>
-
-                <span class="multi-arrow">▼</span>
-
-              </div>
-
-              <div class="multi-dropdown">
-
-                <input
-                  id="personaBusqueda"
-                  class="multi-search"
-                  type="text"
-                  placeholder="Buscar persona..."
-                  oninput="buscarMulti('persona')"
-                >
-
-                <div id="personaOpciones"></div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="field">
-
-            <label>Fecha inicio</label>
-
-            <input
-              type="date"
-              id="inicio"
-              title="Selecciona la fecha inicial"
-            >
-
-          </div>
-
-
-          <div class="field">
-
-            <label>Fecha fin</label>
-
-            <input
-              type="date"
-              id="fin"
-              title="Selecciona la fecha final"
-            >
-
-          </div>
-
-
-          <div class="field multi-field">
-
-            <label>Clasificación</label>
-
-            <div
-              class="multi-select"
-              id="clasificacionSelect"
-            >
-
-              <div
-                class="multi-select-box"
-                onclick="abrirMulti('clasificacion')"
-              >
-
-                <span id="clasificacionTexto">
+<span class="multi-arrow">▼</span>
+</div>
+<div class="multi-dropdown">
+<input class="multi-search" id="personaBusqueda" oninput="buscarMulti('persona')" placeholder="Buscar persona..." type="text"/>
+<div id="personaOpciones"></div>
+</div>
+</div>
+</div>
+<div class="field">
+<label>Fecha inicio</label>
+<input id="inicio" title="Selecciona la fecha inicial" type="date"/>
+</div>
+<div class="field">
+<label>Fecha fin</label>
+<input id="fin" title="Selecciona la fecha final" type="date"/>
+</div>
+<div class="field multi-field">
+<label>Clasificación</label>
+<div class="multi-select" id="clasificacionSelect">
+<div class="multi-select-box" onclick="abrirMulti('clasificacion')">
+<span id="clasificacionTexto">
                   Todas las clasificaciones
                 </span>
-
-                <span class="multi-arrow">▼</span>
-
-              </div>
-
-              <div class="multi-dropdown">
-
-  <input
-    id="clasificacionBusqueda"
-    class="multi-search"
-    type="text"
-    placeholder="Buscar clasificación..."
-    oninput="buscarMulti('clasificacion')"
-  >
-
-  <div id="clasificacionOpciones"></div>
-
+<span class="multi-arrow">▼</span>
 </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="field multi-field">
-
-            <label>Hallazgo</label>
-
-            <div
-              class="multi-select"
-              id="hallazgoSelect"
-            >
-
-              <div
-                class="multi-select-box"
-                onclick="abrirMulti('hallazgo')"
-              >
-
-                <span id="hallazgoTexto">
+<div class="multi-dropdown">
+<input class="multi-search" id="clasificacionBusqueda" oninput="buscarMulti('clasificacion')" placeholder="Buscar clasificación..." type="text"/>
+<div id="clasificacionOpciones"></div>
+</div>
+</div>
+</div>
+<div class="field multi-field">
+<label>Hallazgo</label>
+<div class="multi-select" id="hallazgoSelect">
+<div class="multi-select-box" onclick="abrirMulti('hallazgo')">
+<span id="hallazgoTexto">
                   Todos los hallazgos
                 </span>
-
-                <span class="multi-arrow">▼</span>
-
-              </div>
-
-              <div class="multi-dropdown">
-
-                <input
-                  id="hallazgoBusqueda"
-                  class="multi-search"
-                  type="text"
-                  placeholder="Buscar hallazgo..."
-                  oninput="buscarMulti('hallazgo')"
-                >
-
-                <div id="hallazgoOpciones"></div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="field multi-field">
-
-            <label>Área</label>
-
-            <div
-              class="multi-select"
-              id="areaSelect"
-            >
-
-              <div
-                class="multi-select-box"
-                onclick="abrirMulti('area')"
-              >
-
-                <span id="areaTexto">
+<span class="multi-arrow">▼</span>
+</div>
+<div class="multi-dropdown">
+<input class="multi-search" id="hallazgoBusqueda" oninput="buscarMulti('hallazgo')" placeholder="Buscar hallazgo..." type="text"/>
+<div id="hallazgoOpciones"></div>
+</div>
+</div>
+</div>
+<div class="field multi-field">
+<label>Área</label>
+<div class="multi-select" id="areaSelect">
+<div class="multi-select-box" onclick="abrirMulti('area')">
+<span id="areaTexto">
                   Todas las áreas
                 </span>
-
-                <span class="multi-arrow">▼</span>
-
-              </div>
-
-              <div class="multi-dropdown">
-
-                <div id="areaOpciones"></div>
-
-              </div>
-
-            </div>
-
-          </div>
-
+<span class="multi-arrow">▼</span>
+</div>
+<div class="multi-dropdown">
+<div id="areaOpciones"></div>
+</div>
+</div>
+</div>
 <div class="field multi-field">
-
-  <label>Cuadrilla</label>
-
-  <div
-    class="multi-select"
-    id="cuadrillaSelect"
-  >
-
-    <div
-      class="multi-select-box"
-      onclick="abrirMulti('cuadrilla')"
-    >
-
-      <span id="cuadrillaTexto">
+<label>Cuadrilla</label>
+<div class="multi-select" id="cuadrillaSelect">
+<div class="multi-select-box" onclick="abrirMulti('cuadrilla')">
+<span id="cuadrillaTexto">
         Todas las cuadrillas
       </span>
-
-      <span class="multi-arrow">▼</span>
-
-    </div>
-
-    <div class="multi-dropdown">
-
-      <input
-        id="cuadrillaBusqueda"
-        class="multi-search"
-        type="text"
-        placeholder="Buscar cuadrilla..."
-        oninput="buscarMulti('cuadrilla')"
-      >
-
-      <div id="cuadrillaOpciones"></div>
-
-    </div>
-
-  </div>
-
+<span class="multi-arrow">▼</span>
 </div>
-
-        </div>
-
-        <div class="acciones-filtros">
-
-          <button
-            class="btn btn-primary"
-            onclick="aplicarFiltros()"
-          >
+<div class="multi-dropdown">
+<input class="multi-search" id="cuadrillaBusqueda" oninput="buscarMulti('cuadrilla')" placeholder="Buscar cuadrilla..." type="text"/>
+<div id="cuadrillaOpciones"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="acciones-filtros">
+<button class="btn btn-primary" onclick="aplicarFiltros()">
             Aplicar filtros
           </button>
-
-          <button
-            class="btn btn-secondary"
-            onclick="limpiarFiltros()"
-          >
+<button class="btn btn-secondary" onclick="limpiarFiltros()">
             Limpiar filtros
           </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- SEMAFORO + RISK SCORE -->
-
-    <div class="card semaforo-card">
-
-      <div class="card-head">
-
-        <div class="dot"></div>
-
-        <h3>Semáforo de riesgo (Risk Score)</h3>
-
-      </div>
-
-      <div class="card-body">
-
-        <div class="semaforo-horizontal">
-
-          <div class="criticidad-card critico">
-
-            <div class="criticidad-label">
+</div>
+</div>
+</div>
+<!-- SEMAFORO + RISK SCORE -->
+<div class="card semaforo-card">
+<div class="card-head">
+<div class="dot"></div>
+<h3>Semáforo de riesgo (Risk Score)</h3>
+</div>
+<div class="card-body">
+<div class="semaforo-horizontal">
+<div class="criticidad-card critico">
+<div class="criticidad-label">
               Alertas críticas
             </div>
-
-            <div
-              class="criticidad-value"
-              id="semCritico"
-            >
+<div class="criticidad-value" id="semCritico">
               0
             </div>
-
-          </div>
-
-          <div class="criticidad-card mayor">
-
-            <div class="criticidad-label">
+</div>
+<div class="criticidad-card mayor">
+<div class="criticidad-label">
               Alertas mayores
             </div>
-
-            <div
-              class="criticidad-value"
-              id="semMayor"
-            >
+<div class="criticidad-value" id="semMayor">
               0
             </div>
-
-          </div>
-
-
-          <div class="criticidad-card menor">
-
-            <div class="criticidad-label">
+</div>
+<div class="criticidad-card menor">
+<div class="criticidad-label">
               Alertas menores
             </div>
-
-            <div
-              class="criticidad-value"
-              id="semMenor"
-            >
+<div class="criticidad-value" id="semMenor">
               0
             </div>
-
-          </div>
-
-
-          <div class="criticidad-card score">
-
-            <div class="risk-score-inline">
-
-              <div class="risk-score-inline-circle">
-
-                <canvas id="grafRiskScore"></canvas>
-
-                <div class="risk-score-inline-center">
-
-                  <div
-                    id="riskScoreNumero"
-                    class="risk-score-inline-number"
-                  >
+</div>
+<div class="criticidad-card score">
+<div class="risk-score-inline">
+<div class="risk-score-inline-circle">
+<canvas id="grafRiskScore"></canvas>
+<div class="risk-score-inline-center">
+<div class="risk-score-inline-number" id="riskScoreNumero">
                     0%
                   </div>
-
-                 
-
-                </div>
-
-              </div>
-
-
-              <div class="risk-score-inline-info">
-
-                <div class="risk-score-inline-title">
+</div>
+</div>
+<div class="risk-score-inline-info">
+<div class="risk-score-inline-title">
                   Risk Score
                 </div>
-
-                <div
-                  id="riskScoreStatus"
-                  class="risk-score-inline-status risk-score-riesgo"
-                >
+<div class="risk-score-inline-status risk-score-riesgo" id="riskScoreStatus">
                   Sin datos
                 </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- COMPONENTE EXISTENTE CONSERVADO -->
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
+</div>
+</div>
+</div>
+</div>
+<!-- COMPONENTE EXISTENTE CONSERVADO -->
+</div>
+</div>
+</section>
+<!-- =======================================================
       FILA 2 - 6 KPIs
   ======================================================= -->
-
-  <div class="section-title">
-
-    <div class="dot"></div>
-
-    <h2>Indicadores principales</h2>
-
-  </div>
-
-
-  <section class="kpi-grid">
-
-    <div class="kpi">
-
-      <div class="kpi-label">
+<div class="section-title">
+<div class="dot"></div>
+<h2>Indicadores principales</h2>
+</div>
+<section class="kpi-grid">
+<div class="kpi">
+<div class="kpi-label">
         Total alertas
       </div>
-
-      <div
-        class="kpi-value"
-        id="kTotal"
-      >
+<div class="kpi-value" id="kTotal">
         0
       </div>
-
-    </div>
-
-
-    <div class="kpi">
-
-      <div class="kpi-label">
+</div>
+<div class="kpi">
+<div class="kpi-label">
         Hallazgos críticos
       </div>
-
-      <div
-        class="kpi-value"
-        id="kCriticos"
-      >
+<div class="kpi-value" id="kCriticos">
         0
       </div>
-
-    </div>
-
-
-    <div class="kpi accent">
-
-      <div class="kpi-label">
+</div>
+<div class="kpi accent">
+<div class="kpi-label">
         OBSERVADORES
       </div>
-
-      <div
-        class="kpi-value"
-        id="kPersonas"
-      >
+<div class="kpi-value" id="kPersonas">
         0
       </div>
-
-    </div>
-
-
-    <div class="kpi dark">
-
-      <div class="kpi-label">
+</div>
+<div class="kpi dark">
+<div class="kpi-label">
         Áreas
       </div>
-
-      <div
-        class="kpi-value"
-        id="kAreas"
-      >
+<div class="kpi-value" id="kAreas">
         0
       </div>
-
-    </div>
-
-
-    <div class="kpi">
-
-      <div class="kpi-label">
+</div>
+<div class="kpi">
+<div class="kpi-label">
         Alertas por observador
       </div>
-
-      <div
-        class="kpi-value"
-        id="kPromedio"
-      >
+<div class="kpi-value" id="kPromedio">
         0
       </div>
-
-      <div class="kpi-sub">
+<div class="kpi-sub">
         Total Alertas / Personas
       </div>
-
-    </div>
-
-
-    <div class="kpi green">
-
-      <div class="kpi-label">
+</div>
+<div class="kpi green">
+<div class="kpi-label">
         Índice de Salud Operativa
       </div>
-
-      <div
-        class="kpi-value"
-        id="kIOS"
-      >
+<div class="kpi-value" id="kIOS">
         0%
       </div>
-
-      <div
-        class="kpi-sub"
-        id="kIOSStatus"
-      >
+<div class="kpi-sub" id="kIOSStatus">
         —
       </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
+</div>
+</section>
+<!-- =======================================================
       FILA 3
   ======================================================= -->
-
-  <div class="section-title">
-
-    <div class="dot"></div>
-
-    <h2>Análisis de alertas</h2>
-
-  </div>
-
-
-  <section class="charts-grid">
-
-
-    <div class="chart-card">
-
-      <div class="chart-title">
-
-        <span class="dot"></span>
+<div class="section-title">
+<div class="dot"></div>
+<h2>Análisis de alertas</h2>
+</div>
+<section class="charts-grid">
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
         Clasificación de alertas
 
       </div>
-
-      <div class="chart-wrap">
-
-        <canvas id="grafClasificacion"></canvas>
-
-      </div>
-
-    </div>
-
-    <div class="chart-card">
-
-    <div class="chart-title">
-
-      <span class="dot"></span>
+<div class="chart-wrap">
+<canvas id="grafClasificacion"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
       Top Hallazgos
 
     </div>
-
-    <div class="chart-wrap">
-
-      <canvas id="grafHallazgos"></canvas>
-
-    </div>
-
-  </div>
-
-    <div class="chart-card">
-
-      <div class="chart-title">
-
-        <span class="dot"></span>
+<div class="chart-wrap">
+<canvas id="grafHallazgos"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
         Top personas
 
       </div>
-
-      <div class="chart-wrap">
-
-        <canvas id="grafPersonas"></canvas>
-
-      </div>
-
-    </div>
-
-
-    <div class="chart-card">
-
-      <div class="chart-title">
-
-        <span class="dot"></span>
+<div class="chart-wrap">
+<canvas id="grafPersonas"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
         Hallazgos por área
 
       </div>
-
-      <div class="chart-wrap">
-
-        <canvas id="grafAreas"></canvas>
-
-      </div>
-
-    </div>
-
-
-    <div class="chart-card">
-
-      <div class="chart-title">
-
-        <span class="dot"></span>
+<div class="chart-wrap">
+<canvas id="grafAreas"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
         % participación por área
 
       </div>
-
-  <div id="participacionAreaContainer"></div>
-
-    </div>
-
-  <div class="chart-card">
-
-    <div class="chart-title">
-
-      <span class="dot"></span>
+<div id="participacionAreaContainer"></div>
+</div>
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
       Top 5 Riesgos
 
     </div>
-
-    <div
-      id="riskList"
-      class="risk-list"
-    ></div>
-
-  </div>
-
-  </section>
-
-
-  <!-- =======================================================
+<div class="risk-list" id="riskList"></div>
+</div>
+</section>
+<!-- =======================================================
       FILA 4
   ======================================================= -->
-
-  <div class="section-title">
-
-    <div class="dot"></div>
-
-    <h2>Tendencia y operación</h2>
-
-  </div>
-
-
-  <section class="charts-grid">
-
-
-    <div class="chart-card">
-
-      <div class="chart-title">
-
-        <span class="dot"></span>
+<div class="section-title">
+<div class="dot"></div>
+<h2>Tendencia y operación</h2>
+</div>
+<section class="charts-grid">
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
         Tendencia de alertas
 
       </div>
-
-      <div class="chart-wrap">
-
-        <canvas id="grafTendencia"></canvas>
-
-      </div>
-
-    </div>
-
-
-    <div class="chart-card">
-
-      <div class="chart-title">
-
-        <span class="dot"></span>
+<div class="chart-wrap">
+<canvas id="grafTendencia"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-title">
+<span class="dot"></span>
 
         Hallazgos emergentes
 
       </div>
-
-      <div
-        id="grafEmergentes"
-        class="emergentes-list"
-      ></div>
-
-    </div>
-
+<div class="emergentes-list" id="grafEmergentes"></div>
+</div>
 <div class="chart-card">
-
 <div class="chart-title">
-
-  <span class="dot"></span>
+<span class="dot"></span>
 
   Mapa de calor por horario
 
-  <button
-    class="heatmap-expand"
-    onclick="toggleHeatmap()"
-    title="Expandir mapa"
-  >
+  <button class="heatmap-expand" onclick="toggleHeatmap()" title="Expandir mapa">
     ⛶
   </button>
-
 </div>
-
-  <div
-    id="heatmapContainer"
-    class="heatmap-wrap"
-  ></div>
-
+<div class="heatmap-wrap" id="heatmapContainer"></div>
 </div>
-
-  </section>
-
-
-  <!-- =======================================================
+</section>
+<!-- =======================================================
       FILA 5 - TRANSPORTE
   ======================================================= -->
-
-  <section class="charts-grid transport-section">
-
-    <div class="chart-card transport-main">
-      <div class="chart-title">
-        <span class="dot"></span>
+<section class="charts-grid transport-section">
+<div class="chart-card transport-main">
+<div class="chart-title">
+<span class="dot"></span>
         Alertas por transportista
-        <button class="transport-top-btn" type="button" onclick="abrirTransportistas()" title="Ver top 30">Top 30</button>
-      </div>
-      <div class="chart-wrap">
-        <canvas id="grafTransportistas"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-card transport-side">
-      <div class="chart-title">
-        <span class="dot"></span>
+        <button class="transport-top-btn" onclick="abrirTransportistas()" title="Ver top 30" type="button">Top 30</button>
+</div>
+<div class="chart-wrap">
+<canvas id="grafTransportistas"></canvas>
+</div>
+</div>
+<div class="chart-card transport-side">
+<div class="chart-title">
+<span class="dot"></span>
         Principales desviaciones de transporte
       </div>
-      <div class="chart-wrap">
-        <canvas id="grafDesviacionesTransporte"></canvas>
-      </div>
-    </div>
-
-  </section>
-
-
-
-  <div id="transportistasModal" class="transport-modal" aria-hidden="true">
-    <div class="transport-modal-content" role="dialog" aria-modal="true" aria-labelledby="transportistasModalTitle">
-      <div class="transport-modal-head">
-        <h3 id="transportistasModalTitle">Top 30 transportistas</h3>
-        <small id="transportistasModalSub">Filtros actuales</small>
-        <button class="transport-modal-close" type="button" onclick="cerrarTransportistas()" aria-label="Cerrar">×</button>
-      </div>
-      <div id="transportistasModalBody" class="transport-modal-body"></div>
-    </div>
-  </div>
-
-
-  <!-- =======================================================
+<div class="chart-wrap">
+<canvas id="grafDesviacionesTransporte"></canvas>
+</div>
+</div>
+</section>
+<div aria-hidden="true" class="transport-modal" id="transportistasModal">
+<div aria-labelledby="transportistasModalTitle" aria-modal="true" class="transport-modal-content" role="dialog">
+<div class="transport-modal-head">
+<h3 id="transportistasModalTitle">Top 30 transportistas</h3>
+<small id="transportistasModalSub">Filtros actuales</small>
+<button aria-label="Cerrar" class="transport-modal-close" onclick="cerrarTransportistas()" type="button">×</button>
+</div>
+<div class="transport-modal-body" id="transportistasModalBody"></div>
+</div>
+</div>
+<!-- =======================================================
        EVIDENCIAS RECOLECTADAS — ACCESO COMPACTO
   ======================================================= -->
-  <div class="evidencias-card">
-    <div class="evidencias-info">
-      <div class="evidencias-title">Evidencias recabadas <span id="evidenciasCount" class="evidencias-count">0</span></div>
-      <div id="evidenciasSub" class="evidencias-sub">Disponibles para las alertas filtradas.</div>
-    </div>
-    <button id="btnEvidencias" class="evidencias-btn" type="button" onclick="abrirEvidencias()" disabled>
+<div class="evidencias-card">
+<div class="evidencias-info">
+<div class="evidencias-title">Evidencias recabadas <span class="evidencias-count" id="evidenciasCount">0</span></div>
+<div class="evidencias-sub" id="evidenciasSub">Disponibles para las alertas filtradas.</div>
+</div>
+<button class="evidencias-btn" disabled="" id="btnEvidencias" onclick="abrirEvidencias()" type="button">
       Ver evidencias
     </button>
-  </div>
-
-  <div id="evidenciasModal" class="evidencias-modal" aria-hidden="true">
-    <div class="evidencias-modal-content" role="dialog" aria-modal="true" aria-labelledby="evidenciasModalTitle">
-      <div class="evidencias-modal-head">
-        <h3 id="evidenciasModalTitle">Evidencias recabadas</h3>
-        <small id="evidenciasModalSub">0 alertas con evidencia</small>
-        <button class="evidencias-close" type="button" onclick="cerrarEvidencias()" aria-label="Cerrar">×</button>
-      </div>
-      <div id="evidenciasModalBody" class="evidencias-modal-body"></div>
-    </div>
-  </div>
-
-  <div id="evidenciaLightbox" class="evidencia-lightbox" onclick="cerrarEvidenciaImagen()" aria-hidden="true">
-    <button class="evidencia-lightbox-close" type="button" aria-label="Cerrar">×</button>
-    <img id="evidenciaLightboxImg" src="" alt="Evidencia ampliada" onclick="event.stopPropagation()">
-  </div>
-
-
-  <!-- =======================================================
+</div>
+<div aria-hidden="true" class="evidencias-modal" id="evidenciasModal">
+<div aria-labelledby="evidenciasModalTitle" aria-modal="true" class="evidencias-modal-content" role="dialog">
+<div class="evidencias-modal-head">
+<h3 id="evidenciasModalTitle">Evidencias recabadas</h3>
+<small id="evidenciasModalSub">0 alertas con evidencia</small>
+<button aria-label="Cerrar" class="evidencias-close" onclick="cerrarEvidencias()" type="button">×</button>
+</div>
+<div class="evidencias-modal-body" id="evidenciasModalBody"></div>
+</div>
+</div>
+<div aria-hidden="true" class="evidencia-lightbox" id="evidenciaLightbox" onclick="cerrarEvidenciaImagen()">
+<button aria-label="Cerrar" class="evidencia-lightbox-close" type="button">×</button>
+<img alt="Evidencia ampliada" id="evidenciaLightboxImg" onclick="event.stopPropagation()" src=""/>
+</div>
+<!-- =======================================================
       FILA 5
   ======================================================= -->
-
-  <div
-    id="emptyState"
-    class="card"
-  >
-
-    <div class="empty-card">
+<div class="card" id="emptyState">
+<div class="empty-card">
       No hay resultados con los filtros seleccionados.
     </div>
-
-  </div>
-
-  </main>
-
-
-  <div
-    id="toast"
-    class="toast"
-  ></div>
-
-  <div id="heatmapModal" class="heatmap-modal">
-
-  <div class="heatmap-modal-content">
-
-    <button
-      class="heatmap-close"
-      onclick="toggleHeatmap()"
-    >
+</div>
+</main>
+<div class="toast" id="toast"></div>
+<div class="heatmap-modal" id="heatmapModal">
+<div class="heatmap-modal-content">
+<button class="heatmap-close" onclick="toggleHeatmap()">
       ×
     </button>
-
-    <div id="heatmapModalBody"></div>
-
-  </div>
-
+<div id="heatmapModalBody"></div>
 </div>
-
-  <script>
+</div>
+<script>
 
   /* =========================================================
     CONFIGURACION SUPABASE
@@ -7358,12 +6290,6 @@ function crearGraficaDesviacionesTransporte(datos){
           ...datosOriginales
         ];
 
-      const ultima = document.getElementById("ultimaActualizacion");
-      if(ultima){
-        const ahora = new Date();
-        ultima.textContent = ahora.toLocaleDateString("es-MX", {day:"2-digit", month:"short", year:"numeric"}) + " · " + ahora.toLocaleTimeString("es-MX", {hour:"2-digit", minute:"2-digit"});
-      }
-
 
       inicializarMultiselects();
 
@@ -7382,6 +6308,15 @@ function crearGraficaDesviacionesTransporte(datos){
 
       aplicarFiltros();
 
+      const headerUpdate = document.getElementById("qaHeaderUpdate");
+      if(headerUpdate){
+        const ahora = new Date();
+        headerUpdate.textContent = ahora.toLocaleDateString("es-MX", {
+          day:"2-digit", month:"short", year:"numeric"
+        }) + " · " + ahora.toLocaleTimeString("es-MX", {
+          hour:"2-digit", minute:"2-digit"
+        });
+      }
 
       if(
         datosOriginales.length === 0
@@ -7693,6 +6628,5 @@ function toggleHeatmap(){
   });
 
 </script>
-
-  </body>
-  </html>
+<script>document.addEventListener("DOMContentLoaded",function(){const e=document.getElementById("qaHeaderUpdate");const old=document.getElementById("ultimaActualizacion");if(e&&old){const sync=()=>{e.textContent=old.textContent||"—"};sync();new MutationObserver(sync).observe(old,{childList:true,subtree:true,characterData:true});}});</script></body>
+</html>
