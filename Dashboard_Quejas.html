@@ -7,6 +7,7 @@
 <title>QA · Dashboard de Quejas</title>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
     --dhl-yellow:#FFCC00;
@@ -3407,6 +3408,31 @@ let fechaCargaExcel = null;
 const charts = {};
 
 /* =========================================================
+   PERSISTENCIA CENTRAL DEL EXCEL — SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+    "https://wpitemofrqzjcsetmmim.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+const SUPABASE_BUCKET =
+    "quejas-excel";
+
+const SUPABASE_EXCEL_PATH =
+    "actual.xlsx";
+
+const SUPABASE_METADATA_TABLE =
+    "quejas_excel_actual";
+
+/* =========================================================
    PERSISTENCIA DEL EXCEL — INDEXEDDB
 ========================================================= */
 
@@ -3616,7 +3642,202 @@ async function eliminarExcelLocal(){
     db.close();
 }
 
+async function guardarExcelCentral(
+    file,
+    uploadAt
+){
+
+    const contentType =
+        file.type ||
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+    const {
+        error: uploadError
+    } =
+        await supabaseClient.storage
+            .from(SUPABASE_BUCKET)
+            .upload(
+                SUPABASE_EXCEL_PATH,
+                file,
+                {
+                    upsert:true,
+                    contentType:contentType,
+                    cacheControl:"0"
+                }
+            );
+
+    if(uploadError){
+        throw uploadError;
+    }
+
+    const uploadedAt =
+        new Date(
+            uploadAt || Date.now()
+        ).toISOString();
+
+    const {
+        error: metadataError
+    } =
+        await supabaseClient
+            .from(SUPABASE_METADATA_TABLE)
+            .upsert(
+                {
+                    id:1,
+                    bucket_id:SUPABASE_BUCKET,
+                    file_path:SUPABASE_EXCEL_PATH,
+                    file_name:file.name || "Quejas.xlsx",
+                    uploaded_at:uploadedAt,
+                    updated_at:uploadedAt
+                },
+                {
+                    onConflict:"id"
+                }
+            );
+
+    if(metadataError){
+        throw metadataError;
+    }
+}
+
+async function obtenerExcelCentral(){
+
+    const {
+        data:metadata,
+        error:metadataError
+    } =
+        await supabaseClient
+            .from(SUPABASE_METADATA_TABLE)
+            .select(
+                "id,bucket_id,file_path,file_name,uploaded_at"
+            )
+            .eq(
+                "id",
+                1
+            )
+            .maybeSingle();
+
+    if(metadataError){
+        throw metadataError;
+    }
+
+    if(
+        !metadata ||
+        !metadata.file_path
+    ){
+        return null;
+    }
+
+    const {
+        data:blob,
+        error:downloadError
+    } =
+        await supabaseClient.storage
+            .from(SUPABASE_BUCKET)
+            .download(
+                metadata.file_path
+            );
+
+    if(downloadError){
+        throw downloadError;
+    }
+
+    if(!blob){
+        return null;
+    }
+
+    return {
+        file:new File(
+            [blob],
+            metadata.file_name || "Quejas.xlsx",
+            {
+                type:
+                    blob.type ||
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                lastModified:Date.now()
+            }
+        ),
+        uploadAt:
+            metadata.uploaded_at
+                ? new Date(
+                    metadata.uploaded_at
+                  ).getTime()
+                : null
+    };
+}
+
+async function eliminarExcelCentral(){
+
+    const {
+        error:removeError
+    } =
+        await supabaseClient.storage
+            .from(SUPABASE_BUCKET)
+            .remove(
+                [SUPABASE_EXCEL_PATH]
+            );
+
+    if(removeError){
+        throw removeError;
+    }
+
+    const {
+        error:metadataError
+    } =
+        await supabaseClient
+            .from(SUPABASE_METADATA_TABLE)
+            .delete()
+            .eq(
+                "id",
+                1
+            );
+
+    if(metadataError){
+        throw metadataError;
+    }
+}
+
 async function restaurarExcelGuardado(){
+
+    let restoredFromCentral = false;
+
+    try{
+
+        const central =
+            await obtenerExcelCentral();
+
+        if(
+            central &&
+            central.file
+        ){
+
+            await processFile(
+                central.file,
+                true,
+                central.uploadAt || null
+            );
+
+            restoredFromCentral = true;
+            return;
+        }
+
+    }catch(error){
+
+        console.error(
+            "Error restaurando Excel desde Supabase:",
+            error
+        );
+    }
+
+    /*
+       Respaldo local:
+       si Supabase no está disponible o todavía no
+       contiene un archivo, se intenta recuperar la
+       copia local del navegador.
+    */
+
+    if(restoredFromCentral){
+        return;
+    }
 
     try{
 
@@ -3653,7 +3874,7 @@ async function restaurarExcelGuardado(){
     }catch(error){
 
         console.error(
-            "Error restaurando Excel guardado:",
+            "Error restaurando Excel local:",
             error
         );
     }
@@ -3907,7 +4128,21 @@ if(deleteExcelButton){
 
             try{
 
-                await eliminarExcelLocal();
+                /*
+                   Eliminar primero del almacenamiento central.
+                   La copia local solo se elimina después de
+                   confirmar que Supabase fue actualizado.
+                */
+                await eliminarExcelCentral();
+
+                try{
+                    await eliminarExcelLocal();
+                }catch(localError){
+                    console.warn(
+                        "No se pudo eliminar la copia local:",
+                        localError
+                    );
+                }
 
                 fileInput.value = "";
 
@@ -4214,6 +4449,33 @@ async function processFile(
 
         if(!restoring){
 
+            let centralSaved = false;
+
+            try{
+
+                /*
+                   Supabase es la fuente central.
+                   Se usa la misma fecha de carga que muestra
+                   el encabezado para conservar la fecha real.
+                */
+                await guardarExcelCentral(
+                    file,
+                    fechaCargaExcel
+                );
+
+                centralSaved = true;
+
+            }catch(storageError){
+
+                console.error(
+                    "No se pudo guardar el Excel en Supabase:",
+                    storageError
+                );
+            }
+
+            /*
+               Se conserva IndexedDB como respaldo local.
+            */
             try{
 
                 await guardarExcelLocal(
@@ -4221,16 +4483,26 @@ async function processFile(
                     fechaCargaExcel
                 );
 
-            }catch(storageError){
+            }catch(localStorageError){
 
                 console.error(
-                    "No se pudo guardar el Excel localmente:",
-                    storageError
+                    "No se pudo guardar el respaldo local:",
+                    localStorageError
                 );
+            }
+
+            if(centralSaved){
 
                 showMessage(
-                    "El archivo se cargó, pero no pudo guardarse para conservarlo al volver a abrir el dashboard.",
-                    "info"
+                    "Archivo cargado correctamente. El Excel quedó guardado de forma central en Supabase y estará disponible desde otros dispositivos.",
+                    "success"
+                );
+
+            }else{
+
+                showMessage(
+                    "El archivo se cargó, pero no pudo guardarse en Supabase. Se conservó únicamente en este dispositivo.",
+                    "error"
                 );
             }
         }
@@ -7141,10 +7413,14 @@ function resetDashboard(){
             </div>`;
     }
 
-    setText(
-        "vencimientosInfo",
-        "—"
-    );
+    const vencimientosInfo =
+        document.getElementById(
+            "vencimientosInfo"
+        );
+
+    if(vencimientosInfo){
+        vencimientosInfo.textContent = "—";
+    }
 
     Object.keys(charts)
         .forEach(
