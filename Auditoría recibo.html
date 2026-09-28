@@ -1927,7 +1927,14 @@ button{
 
           </div>
 
+          <button
+            class="btn btn-primary"
+            type="button"
+            onclick="calcularMuestra()">
 
+            Recalcular
+
+          </button>
 
         </div>
 
@@ -2879,9 +2886,17 @@ async function obtenerAuditoriasEnProceso(){
     if(indice<0){
       combinadas.push(remota);
     }else{
-      const localFecha=new Date(combinadas[indice]?.actualizado||0).getTime();
-      const remotaFecha=new Date(remota.actualizado||0).getTime();
-      if(remotaFecha>=localFecha)combinadas[indice]=remota;
+      const localActual=Array.isArray(combinadas[indice]?.auditoriaActual)?combinadas[indice].auditoriaActual:[];
+      const remotoActual=Array.isArray(remota.auditoriaActual)?remota.auditoriaActual:[];
+      // Nunca sustituir un borrador completo local por una cabecera remota
+      // que todavía no tenga sus bloques/LPN.
+      if(remotoActual.length>localActual.length){
+        combinadas[indice]=remota;
+      }else if(remotoActual.length===localActual.length){
+        const localFecha=new Date(combinadas[indice]?.actualizado||0).getTime();
+        const remotaFecha=new Date(remota.actualizado||0).getTime();
+        if(remotaFecha>=localFecha)combinadas[indice]=remota;
+      }
     }
   }
 
@@ -2913,12 +2928,58 @@ function sincronizarDatosAntesDeGuardar(){
   }
 }
 
+function asegurarIdBorradorUUID(){
+  const actual=String(auditoriaId||"").trim();
+  if(esUUIDValido(actual)) return actual;
+
+  const anterior=actual;
+  const nuevo=generarIdUnico();
+  auditoriaId=nuevo;
+
+  // Si venimos de una versión anterior que creó IDs qa-xxxx, migramos
+  // también la copia local al UUID nuevo para que no se vuelva a generar
+  // un UUID diferente en cada guardado.
+  try{
+    const raw=localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]";
+    const lista=JSON.parse(raw);
+    if(Array.isArray(lista)){
+      let cambio=false;
+      for(const estado of lista){
+        if(String(estado?.auditoriaId||"")!==anterior) continue;
+        estado.auditoriaId=nuevo;
+        if(estado.excelLocalId===`excel:${anterior}`) estado.excelLocalId=`excel:${nuevo}`;
+        cambio=true;
+      }
+      if(cambio) localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(lista));
+    }
+  }catch(error){
+    console.warn("No fue posible migrar el ID local del borrador:",error);
+  }
+
+  try{
+    const raw=localStorage.getItem(QA_DRAFT_STATE_KEY);
+    if(raw){
+      const estado=JSON.parse(raw);
+      if(String(estado?.auditoriaId||"")===anterior){
+        estado.auditoriaId=nuevo;
+        if(estado.excelLocalId===`excel:${anterior}`) estado.excelLocalId=`excel:${nuevo}`;
+        localStorage.setItem(QA_DRAFT_STATE_KEY,JSON.stringify(estado));
+      }
+    }
+  }catch(error){
+    console.warn("No fue posible migrar el estado local activo:",error);
+  }
+
+  return nuevo;
+}
+
 function guardarRespaldoEmergencia(){
   if(!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal) return false;
   try{
+    asegurarIdBorradorUUID();
     sincronizarDatosAntesDeGuardar();
     const estado={
-      auditoriaId:auditoriaId||generarIdUnico(),
+      auditoriaId,
       propietario:window.qaBorradorPropietario || usuarioQA?.nombre || "",
       tipoAuditoria:obtenerTipoAuditoria(),
       tipoRecibo:obtenerTipoRecibo(),
@@ -2938,7 +2999,6 @@ function guardarRespaldoEmergencia(){
       actualizado:new Date().toISOString(),
       respaldoEmergencia:true
     };
-    auditoriaId=estado.auditoriaId;
     localStorage.setItem(QA_DRAFT_STATE_KEY,JSON.stringify(estado));
     let lista=[];
     try{const raw=localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]";const parsed=JSON.parse(raw);lista=Array.isArray(parsed)?parsed:[];}catch(e){lista=[];}
@@ -2956,9 +3016,7 @@ async function guardarBorradorLocal(){
   if(!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal){
     return null;
   }
-  if(!auditoriaId){
-    auditoriaId=generarIdUnico();
-  }
+  asegurarIdBorradorUUID();
   try{
     sincronizarDatosAntesDeGuardar();
     const auditoriaSerializada=prepararAuditoriaParaBorrador(auditoriaActual);
@@ -3106,15 +3164,11 @@ async function guardarBorradorRemoto(estado){
   const propietario=String(estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre || "").trim();
   let auditoriaIdRemota=String(estado.auditoriaId||"").trim();
 
-  // Supabase define auditoria_id como UUID. Nunca enviar IDs tipo qa-xxxx.
   if(!esUUIDValido(auditoriaIdRemota)){
-    console.warn("Borrador remoto no guardado: auditoriaId inválido.", auditoriaIdRemota);
     if(!auditoriaEnEdicion)return false;
-    auditoriaIdRemota=generarIdUnico();
-    auditoriaId=auditoriaIdRemota;
+    auditoriaIdRemota=asegurarIdBorradorUUID();
     estado.auditoriaId=auditoriaIdRemota;
   }
-
   if(!propietario || !esUUIDValido(auditoriaIdRemota))return false;
 
   const items=Array.isArray(estado.auditoriaActual)?estado.auditoriaActual:[];
@@ -3130,17 +3184,11 @@ async function guardarBorradorRemoto(estado){
   }));
 
   try{
-    /*
-      GUARDADO CRÍTICO: máximo 4 peticiones de red, sin recorrer LPN por LPN.
-      Las fotos NO forman parte del camino crítico del botón Guardar avance.
-    */
-
-    // 1) La cabecera DEBE existir antes de insertar los bloques.
-    // La FK auditoria_recibo_borrador_bloques_fk apunta a
-    // Auditoria_Recibo_Borrador(auditoria_id), por lo que primero hacemos
-    // UPSERT de la cabecera y después reemplazamos los bloques.
+    // PRIMERO se crea/actualiza la cabecera. La tabla de bloques tiene FK
+    // hacia esta cabecera y por eso nunca debe insertarse antes.
     const cabecera={
       ...estado,
+      auditoriaId:auditoriaIdRemota,
       auditoriaActual:[],
       cantidadBloques:items.length,
       propietario,
@@ -3162,8 +3210,7 @@ async function guardarBorradorRemoto(estado){
     );
     if(headerError)throw headerError;
 
-    // 2) Reemplazamos todos los bloques de esta auditoría de una sola vez.
-    // El registro padre ya existe, así que la FK no puede fallar por orden.
+    // Ahora sí: reemplazamos TODOS los bloques.
     const {error:deleteBlocksError}=await qaSupabaseConTimeout(
       supabaseClient
         .from(QA_DRAFT_BLOCKS_TABLE)
@@ -3175,19 +3222,18 @@ async function guardarBorradorRemoto(estado){
     );
     if(deleteBlocksError)throw deleteBlocksError;
 
-    // 3) Insertamos TODOS los bloques en una sola operación.
     if(bloqueRows.length){
       const {error:insertBlocksError}=await qaSupabaseConTimeout(
         supabaseClient
           .from(QA_DRAFT_BLOCKS_TABLE)
           .insert(bloqueRows),
         `Guardado de ${bloqueRows.length} LPN`,
-        20000
+        30000
       );
       if(insertBlocksError)throw insertBlocksError;
     }
 
-    // 4) Confirmación rápida. No volvemos a descargar estados JSON gigantes.
+    // Confirmamos la cantidad real guardada, no solamente la cabecera.
     const {data:confirmados,error:confirmError}=await qaSupabaseConTimeout(
       supabaseClient
         .from(QA_DRAFT_BLOCKS_TABLE)
@@ -3207,13 +3253,10 @@ async function guardarBorradorRemoto(estado){
 
     window.qaUltimoErrorGuardado="";
 
-    /*
-      LAS EVIDENCIAS SE PROCESAN DESPUÉS.
-      No bloquean el botón ni hacen que una auditoría con muchas fotos parezca
-      quedarse eternamente en GUARDANDO. Si Storage falla, las LPN ya quedaron
-      guardadas y las fotos permanecen en IndexedDB para el siguiente intento.
-    */
-    prepararBorradorCompartido({...estado,propietario,auditoriaActual:items})
+    // Las fotos se suben después; no impiden que el avance completo quede
+    // guardado. Los archivos originales permanecen en IndexedDB mientras
+    // exista el borrador.
+    prepararBorradorCompartido({...estado,auditoriaId:auditoriaIdRemota,propietario,auditoriaActual:items})
       .then(async compartido=>{
         try{
           const bloquesCompartidos=compartido?.auditoriaActual||[];
@@ -3366,7 +3409,15 @@ async function restaurarEstadoBorrador(estado){
   }
   if(auditoriaActual.length){
     renderizarAuditoria();
-    auditoriaActual.forEach((item,index)=>{actualizarVistaLpn(index);actualizarEstadoLpn(index);evaluarLpn(index);});
+    auditoriaActual.forEach((item,index)=>{
+      actualizarVistaLpn(index);
+      evaluarLpn(index);
+      actualizarVisibilidadEvidencias(index);
+      ["generales","inventario","pallet","granel"].forEach(categoria=>{
+        Object.keys(item?.evidencia_campos?.[categoria]||{}).forEach(campo=>renderizarEvidenciaCampo(index,categoria,campo));
+      });
+      actualizarEstadoLpn(index);
+    });
     actualizarResultadoGeneral();
   }
 }
@@ -3493,21 +3544,23 @@ async function eliminarAuditoriaEnProceso(id){
   if(!confirmar)return;
 
   try{
-    // Primero eliminamos bloques. Si no existen, no es un error.
-    const {error:bloquesError}=await supabaseClient
-      .from(QA_DRAFT_BLOCKS_TABLE)
-      .delete()
-      .eq("auditoria_id",id);
-    if(bloquesError)throw bloquesError;
+    // Las auditorías antiguas de versiones previas pueden tener IDs qa-*.
+    // Esos IDs NO existen en Supabase (la columna es UUID), por lo que en
+    // ese caso eliminamos la copia local y NO hacemos ninguna consulta UUID.
+    const idEsUUID=esUUIDValido(id);
+    if(idEsUUID){
+      const {error:bloquesError}=await supabaseClient
+        .from(QA_DRAFT_BLOCKS_TABLE)
+        .delete()
+        .eq("auditoria_id",id);
+      if(bloquesError)throw bloquesError;
 
-    // Después eliminamos la cabecera. Si no existe, Supabase devuelve éxito
-    // con 0 filas afectadas; eso también se considera una eliminación válida.
-    const {error:headerError}=await supabaseClient
-      .from("Auditoria_Recibo_Borrador")
-      .delete()
-      .eq("auditoria_id",id);
-    if(headerError)throw headerError;
-
+      const {error:headerError}=await supabaseClient
+        .from("Auditoria_Recibo_Borrador")
+        .delete()
+        .eq("auditoria_id",id);
+      if(headerError)throw headerError;
+    }
     // Limpieza local siempre, aunque el registro remoto ya no existiera.
     let nueva=[];
     try{
@@ -3611,7 +3664,6 @@ function iniciarAuditoriaNueva(){
 
 
 async function guardarAvance(){
-  const ahora=Date.now();
 
   // El guardado manual toma primero una fotografía consistente de los datos
   // que están actualmente en pantalla. No es necesario esperar al usuario.
@@ -3622,7 +3674,6 @@ async function guardarAvance(){
   // Un clic durante un guardado en curso no genera otra alerta ni otra petición.
   if(qaAvanceGuardando || qaGuardandoFinal || qaDraftFinalizando)return;
 
-  qaUltimoIntentoAvance=ahora;
   qaAvanceGuardando=true;
   auditoriaEnEdicion=true;
 
@@ -4172,7 +4223,6 @@ function actualizarLpn(index,campo,valor){
     actualizarResultadoGeneral();
   }
 
-  guardarRespaldoEmergencia();
   guardarBorrador();
 }
 
@@ -4528,6 +4578,12 @@ function renderizarAuditoria(){
       restaurarValoresLpn(index);
 
       evaluarLpn(index);
+      actualizarVisibilidadEvidencias(index);
+      ["generales","inventario","pallet","granel"].forEach(categoria=>{
+        Object.keys(item?.evidencia_campos?.[categoria]||{}).forEach(campo=>{
+          renderizarEvidenciaCampo(index,categoria,campo);
+        });
+      });
 
       actualizarEstadoLpn(index);
 
@@ -5052,6 +5108,12 @@ function crearLpnCard(item,index){
 
         </div>
 
+        <div
+          class="evidencia-positiva-item hidden"
+          id="positiveEvidence_${index}"
+          style="margin-top:12px">
+        </div>
+
       </div>
 
     </details>
@@ -5117,6 +5179,9 @@ function preguntaQA(
   const actual =
     auditoriaActual[index]?.[categoria]?.[campo] || "";
 
+  const evidencia =
+    auditoriaActual[index]?.evidencia_campos?.[categoria]?.[campo] || [];
+
   return `
 
     <div class="qa-question">
@@ -5154,6 +5219,60 @@ function preguntaQA(
           MAL
 
         </button>
+
+      </div>
+
+      <div class="field-evidence ${actual === "ERROR" ? "" : "hidden"}" id="fieldEvidence_${index}_${categoria}_${campo}">
+
+        <div class="field-evidence-head">
+          <span>📷 Evidencia (solo si MAL)</span>
+          <strong id="fieldEvidenceCount_${index}_${categoria}_${campo}">
+            (${evidencia.length})
+          </strong>
+        </div>
+
+        <div class="field-evidence-actions">
+
+          <label
+            class="evidence-mini"
+            for="fieldCam_${index}_${categoria}_${campo}">
+            Cámara
+          </label>
+
+          <label
+            class="evidence-mini secondary"
+            for="fieldFile_${index}_${categoria}_${campo}">
+            Archivos
+          </label>
+
+        </div>
+
+        <input
+          id="fieldCam_${index}_${categoria}_${campo}"
+          class="hidden"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          multiple
+          onchange="manejarEvidenciaCampo(event,${index},'${categoria}','${campo}')">
+
+        <input
+          id="fieldFile_${index}_${categoria}_${campo}"
+          class="hidden"
+          type="file"
+          accept="image/*"
+          multiple
+          onchange="manejarEvidenciaCampo(event,${index},'${categoria}','${campo}')">
+
+        <div
+          class="field-evidence-preview"
+          id="fieldEvidencePreview_${index}_${categoria}_${campo}">
+          ${evidencia.map((_,i)=>`
+            <div class="field-evidence-thumb">
+              ${i+1}
+            </div>
+          `).join("")}
+        </div>
 
       </div>
 
@@ -5559,7 +5678,6 @@ function limpiarExcel(){
   });
 
   actualizarResultadoGeneral();
-  guardarRespaldoEmergencia();
   guardarBorrador();
 }
 
@@ -5804,8 +5922,16 @@ function marcarQA(
     `fieldEvidence_${index}_${categoria}_${campo}`
   );
 
+  item.evidencia_campos=item.evidencia_campos||{};
+  item.evidencia_campos[categoria]=item.evidencia_campos[categoria]||{};
+  item.evidencia_campos[categoria][campo]=item.evidencia_campos[categoria][campo]||[];
+
   if(evidenceBox){
     evidenceBox.classList.toggle("hidden", valor !== "ERROR");
+  }
+
+  if(valor === "ERROR"){
+    renderizarEvidenciaCampo(index,categoria,campo);
   }
 
   if(valor === "OK" && item.evidencia_campos?.[categoria]?.[campo]){
@@ -5819,8 +5945,6 @@ function marcarQA(
   }
 
   evaluarLpn(index);
-  guardarRespaldoEmergencia();
-  guardarRespaldoEmergencia();
   guardarBorrador();
 
 }
@@ -5887,7 +6011,6 @@ function manejarEvidenciaPositiva(event,index){
   item.evidencia_positiva.push(...seleccion);
   if(event?.target)event.target.value="";
   renderizarEvidenciaPositiva();
-  guardarRespaldoEmergencia();
   guardarBorrador();
   if(archivos.length>disponibles){
     mostrarAlertaQA("Solo se agregaron las fotografías necesarias para completar el máximo de 3 por LPN.","warning","Máximo de fotografías");
@@ -9156,18 +9279,14 @@ async function generarPDFdesdeReporte(indice){
       const urls=[];
       if(Array.isArray(item.evidencia_campos_urls)){urls.push(...item.evidencia_campos_urls.filter(Boolean));}
       if(item.evidencia_campos_urls&&typeof item.evidencia_campos_urls==="object"){Object.values(item.evidencia_campos_urls).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(u=>{if(u)urls.push(typeof u==="string"?u:u.url);})));}
-      if(Array.isArray(item.evidencia_positiva_urls)){urls.push(...item.evidencia_positiva_urls.filter(Boolean));}
-      if(Array.isArray(item.imagenes_evidencia)){urls.push(...item.imagenes_evidencia.filter(Boolean));}
       if(i===0 && urls.length===0){const generales=obtenerImagenesRegistro(r);urls.push(...generales);}
       y=bloque("EVIDENCIA FOTOGRÁFICA",y);
       y=await agregarEvidencias([...new Set(urls)],y);
       if(i<codigos.length-1){doc.addPage();header();y=28;}
     }
     if(!codigos.length){
-      const urlsGlobales=[...obtenerImagenesRegistro(r)];
-      if(Array.isArray(r.evidencia_positiva_urls))urlsGlobales.push(...r.evidencia_positiva_urls.filter(Boolean));
       y=bloque("EVIDENCIA FOTOGRÁFICA",y);
-      y=await agregarEvidencias([...new Set(urlsGlobales)],y);
+      y=await agregarEvidencias(obtenerImagenesRegistro(r),y);
     }
     const total=doc.getNumberOfPages();
     for(let page=1;page<=total;page++){doc.setPage(page);footer(page,total);}
@@ -9408,8 +9527,8 @@ setInterval(() => {
     ["cortina","sto","origen","turno","cuadrilla","coordinador","observaciones"].forEach(id=>{
       const el=document.getElementById(id);
       if(el){
-        el.addEventListener("input",()=>{guardarRespaldoEmergencia();guardarBorrador();});
-        el.addEventListener("change",()=>{guardarRespaldoEmergencia();guardarBorrador();});
+        el.addEventListener("input",()=>guardarBorrador());
+        el.addEventListener("change",()=>guardarBorrador());
       }
     });
 
@@ -9429,24 +9548,31 @@ setInterval(() => {
     }
 
     document.addEventListener("visibilitychange",()=>{
-      if(document.visibilityState==="hidden" && auditoriaEnEdicion){
-        guardarRespaldoEmergencia();
-        guardarBorradorLocal();
-      }
+      if(document.visibilityState==="hidden" && auditoriaEnEdicion) guardarBorradorLocal();
     });
     window.addEventListener("pagehide",()=>{
-      if(auditoriaEnEdicion){
-        guardarRespaldoEmergencia();
-        guardarBorradorLocal();
-      }
-    });
-    window.addEventListener("beforeunload",()=>{
-      if(auditoriaEnEdicion) guardarRespaldoEmergencia();
+      if(auditoriaEnEdicion) guardarBorradorLocal();
     });
 
   }
 );
 
+
+(function instalarRespaldoQA(){
+  if(window.__qaRespaldoInstalado)return;
+  window.__qaRespaldoInstalado=true;
+  document.addEventListener("input",function(e){
+    if(e?.target?.matches?.("input,select,textarea")) guardarRespaldoEmergencia();
+  },true);
+  document.addEventListener("change",function(e){
+    if(e?.target?.matches?.("input,select,textarea")) guardarRespaldoEmergencia();
+  },true);
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="hidden") guardarRespaldoEmergencia();
+  });
+  window.addEventListener("pagehide",function(){guardarRespaldoEmergencia();});
+  window.addEventListener("beforeunload",function(){guardarRespaldoEmergencia();});
+})();
 </script>
 
 <!-- =========================================================
