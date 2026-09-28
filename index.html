@@ -625,6 +625,394 @@ box-shadow:
 
 }
 
+
+/* =========================================================
+   HOME — DISEÑO RESPONSIVE
+   No modifica login, usuarios, permisos ni funciones.
+   ========================================================= */
+
+.home-shell{
+  width:calc(100% - 32px);
+  max-width:1180px;
+  margin:26px auto 34px;
+  padding:0;
+  overflow:hidden;
+  border-radius:26px;
+  background:#fff;
+  text-align:left;
+  box-shadow:0 18px 50px rgba(0,0,0,.09);
+}
+
+.home-header{
+  min-height:145px;
+  padding:28px 34px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 88% 18%,rgba(253,208,0,.18),transparent 28%),
+    linear-gradient(110deg,#6E0018 0%,#A00023 48%,#CF002E 100%);
+}
+
+.home-brand{
+  display:flex;
+  align-items:center;
+  gap:17px;
+  min-width:0;
+}
+
+.home-logo{
+  width:62px;
+  height:62px;
+  flex:0 0 62px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:17px;
+  background:#FDD000;
+  color:#6E0018;
+  font-size:22px;
+  font-weight:900;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.home-kicker{
+  margin-bottom:5px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.3px;
+  opacity:.82;
+}
+
+.home-title{
+  margin:0 !important;
+  color:#fff !important;
+  font-size:29px !important;
+  line-height:1.1;
+  font-weight:800;
+}
+
+.home-user{
+  margin-top:7px;
+  color:rgba(255,255,255,.88);
+  font-size:13px;
+  font-weight:600;
+}
+
+.home-fy{
+  flex:0 0 auto;
+  padding:8px 14px;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  font-size:12px;
+  font-weight:800;
+}
+
+.home-body{
+  padding:28px 34px 22px;
+}
+
+.home-section{
+  margin-bottom:28px;
+}
+
+.home-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+
+.home-section-kicker{
+  margin-bottom:4px;
+  color:#CF002E;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.5px;
+}
+
+.home-section-head h2{
+  margin:0 !important;
+  color:#1f2937;
+  font-size:17px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+
+.home-number{
+  min-width:31px;
+  height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 8px;
+  border-radius:999px;
+  background:#FFF4CC;
+  color:#A00023;
+  font-size:10px;
+  font-weight:900;
+}
+
+.home-grid{
+  display:grid;
+  gap:12px;
+}
+
+.home-grid-templates{grid-template-columns:repeat(3,minmax(0,1fr));}
+.home-grid-dashboards{grid-template-columns:repeat(4,minmax(0,1fr));}
+.home-grid-data{grid-template-columns:repeat(3,minmax(0,1fr));}
+
+.home-card{
+  position:relative;
+  width:100%;
+  min-height:100px;
+  margin:0 !important;
+  padding:15px;
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) 16px;
+  align-items:center;
+  gap:11px;
+  border:1px solid #e7e9ed;
+  border-left:5px solid #CF002E;
+  border-radius:16px;
+  background:#fff;
+  color:#1f2937;
+  text-align:left;
+  box-shadow:0 5px 16px rgba(15,23,42,.055);
+  cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+
+.home-card:hover{
+  transform:translateY(-3px);
+  border-color:#d7dae0;
+  box-shadow:0 13px 27px rgba(15,23,42,.11);
+}
+
+.home-card-icon{
+  width:40px;
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  background:#FFF4CC;
+  color:#A00023;
+  font-size:15px;
+  font-weight:900;
+}
+
+.home-alerta{border-left-color:#FDD000;}
+.home-auditoria{border-left-color:#1976d2;}
+.home-incidencia{border-left-color:#e53935;}
+.home-dashboard{border-left-color:#00a884;}
+.home-data{border-left-color:#CF002E;}
+
+.home-auditoria .home-card-icon{background:#e8f1ff;color:#1976d2;}
+.home-incidencia .home-card-icon{background:#fee8e8;color:#c62828;}
+.home-dashboard .home-card-icon{background:#e3f7f1;color:#08785f;}
+.home-data .home-card-icon{background:#fde9ee;color:#A00023;}
+
+.home-card-text{min-width:0;}
+
+.home-card .tituloBoton{
+  display:block;
+  margin:0 0 5px;
+  color:#1f2937;
+  font-size:13.5px;
+  line-height:1.2;
+  font-weight:850;
+}
+
+.home-card .subtituloBoton{
+  display:block;
+  color:#6b7280;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:500;
+}
+
+.home-arrow{
+  color:#CF002E;
+  font-size:25px;
+  line-height:1;
+  font-weight:500;
+}
+
+.home-footer{
+  padding-top:18px;
+  border-top:1px solid #eef0f3;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+
+.home-status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#6b7280;
+  font-size:11px;
+  font-weight:700;
+}
+
+.home-status span{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#1B8A3A;
+  box-shadow:0 0 0 4px rgba(27,138,58,.10);
+}
+
+.home-footer .btn-salir{
+  width:auto;
+  min-width:150px;
+  margin:0 !important;
+  padding:10px 16px;
+  border:1px solid #eadde1;
+  border-radius:11px;
+  background:#fff;
+  color:#A00023;
+  font-size:12px;
+  font-weight:800;
+}
+
+.home-footer .btn-salir:hover{
+  background:#fff5f7;
+  border-color:#CF002E;
+}
+
+/* En administrador: aprovecha el espacio de escritorio */
+.home-shell.home-admin{
+  max-width:1280px;
+}
+
+.home-shell.home-admin .home-grid-templates{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.home-shell.home-admin .home-grid-dashboards{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+
+.home-shell.home-admin .home-grid-data{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+/* Tablets */
+@media(max-width:900px){
+  .home-shell,
+  .home-shell.home-admin{
+    width:calc(100% - 24px);
+    max-width:720px;
+  }
+
+  .home-grid-templates,
+  .home-grid-dashboards,
+  .home-grid-data,
+  .home-shell.home-admin .home-grid-templates,
+  .home-shell.home-admin .home-grid-dashboards,
+  .home-shell.home-admin .home-grid-data{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+/* Celular */
+@media(max-width:600px){
+  .home-shell,
+  .home-shell.home-admin{
+    width:95%;
+    margin:15px auto 24px;
+    border-radius:21px;
+  }
+
+  .home-header{
+    min-height:0;
+    padding:20px 16px;
+  }
+
+  .home-logo{
+    width:47px;
+    height:47px;
+    flex-basis:47px;
+    border-radius:13px;
+    font-size:17px;
+  }
+
+  .home-brand{gap:11px;}
+
+  .home-kicker{
+    font-size:8px;
+    letter-spacing:1px;
+  }
+
+  .home-title{
+    font-size:21px !important;
+  }
+
+  .home-user{
+    font-size:11px;
+  }
+
+  .home-fy{
+    padding:6px 9px;
+    font-size:9px;
+  }
+
+  .home-body{
+    padding:21px 14px 18px;
+  }
+
+  .home-section{
+    margin-bottom:23px;
+  }
+
+  .home-section-head h2{
+    font-size:14px;
+  }
+
+  .home-grid-templates,
+  .home-grid-dashboards,
+  .home-grid-data,
+  .home-shell.home-admin .home-grid-templates,
+  .home-shell.home-admin .home-grid-dashboards,
+  .home-shell.home-admin .home-grid-data{
+    grid-template-columns:1fr;
+    gap:9px;
+  }
+
+  .home-card{
+    min-height:73px;
+    padding:12px;
+    grid-template-columns:37px minmax(0,1fr) 14px;
+    gap:9px;
+    border-radius:14px;
+  }
+
+  .home-card-icon{
+    width:37px;
+    height:37px;
+    border-radius:10px;
+  }
+
+  .home-card .tituloBoton{font-size:12.5px;}
+  .home-card .subtituloBoton{font-size:10.5px;}
+  .home-arrow{font-size:23px;}
+
+  .home-footer{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .home-footer .btn-salir{
+    width:100%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -875,126 +1263,138 @@ INGRESAR
 </div>
 
 <!-- HOME -->
+<div id="homeBox" class="card hidden home-shell">
 
-<div id="homeBox" class="card hidden">
+  <div class="home-header">
+    <div class="home-brand">
+      <div class="home-logo">QA</div>
+      <div>
+        <div class="home-kicker">SISTEMA DE GESTIÓN DE CALIDAD</div>
+        <h1 class="home-title">Portal de Calidad</h1>
+        <div id="usuarioActual" class="home-user"></div>
+      </div>
+    </div>
+    <div class="home-fy">FY2627</div>
+  </div>
 
-<h1 style="margin-bottom:10px;">
-Portal de Calidad
-</h1>
+  <div class="home-body">
 
-<div
-id="usuarioActual"
-style="
-font-size:20px;
-font-weight:600;
-color:#374151;
-margin-bottom:25px;
-">
+    <section class="home-section">
+      <div class="home-section-head">
+        <div>
+          <div class="home-section-kicker">OPERACIÓN</div>
+          <h2 id="tituloTemplates">Templates</h2>
+        </div>
+      </div>
+
+      <div class="home-grid home-grid-templates">
+        <button id="btnAlertas" class="home-card home-alerta" onclick="location.href='Alertas de calidad.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Sistema Alertas</span>
+            <span class="subtituloBoton">Registrar hallazgos de calidad</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnAuditoria" class="home-card home-auditoria" onclick="location.href='Auditoría recibo.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Sistema Auditorías</span>
+            <span class="subtituloBoton">Captura de auditorías de recibo</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnIncidencia" class="home-card home-incidencia" onclick="location.href='Incidencia en Recibo.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Sistema Incidencias</span>
+            <span class="subtituloBoton">Registro de incidencias operativas</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="home-section">
+      <div class="home-section-head">
+        <div>
+          <div class="home-section-kicker">MONITOREO</div>
+          <h2 id="tituloDashboards">Dashboards</h2>
+        </div>
+      </div>
+
+      <div class="home-grid home-grid-dashboards">
+        <button id="btnDashboardAlertas" class="home-card home-dashboard" onclick="location.href='dashboard.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Dashboard Alertas</span>
+            <span class="subtituloBoton">Indicadores y tendencias</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnDashboardAuditorias" class="home-card home-dashboard" onclick="location.href='dashboard-auditorias.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Dashboard Auditorías</span>
+            <span class="subtituloBoton">Resultados de auditorías</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnDashboardIncidencias" class="home-card home-dashboard" onclick="location.href='dashboard-incidencias.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Dashboard Incidencias</span>
+            <span class="subtituloBoton">Seguimiento de incidencias</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnDashboardQuejas" class="home-card home-dashboard" onclick="location.href='Dashboard_Quejas.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Dashboard Quejas</span>
+            <span class="subtituloBoton">Seguimiento y análisis de quejas</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="home-section">
+      <div class="home-section-head">
+        <div>
+          <div class="home-section-kicker">DATOS</div>
+          <h2 id="tituloConcentrados">Concentrados</h2>
+        </div>
+      </div>
+
+      <div class="home-grid home-grid-data">
+        <button id="btnExcelAlertas" class="home-card home-data" onclick="descargarExcelAlertas()">
+          <span class="home-card-text">
+            <span class="tituloBoton">Excel Alertas</span>
+            <span class="subtituloBoton">Descargar base completa</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnExcelAuditorias" class="home-card home-data" onclick="descargarExcelAuditorias()">
+          <span class="home-card-text">
+            <span class="tituloBoton">Excel Auditorías</span>
+            <span class="subtituloBoton">Descargar base completa</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnExcelIncidencias" class="home-card home-data" onclick="descargarExcelIncidencias()">
+          <span class="home-card-text">
+            <span class="tituloBoton">Excel Incidencias</span>
+            <span class="subtituloBoton">Descargar base completa</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+  </div>
 </div>
 
-<div class="menu">
-
-<!-- BLOQUE 1 -->
-
-<h3 id="tituloTemplates"
-style="text-align:left;margin:20px 0 10px 0;">
-📁 TEMPLATES
-</h3>
-
-<button
-id="btnAlertas"
-class="btn-alerta"
-onclick="location.href='Alertas de calidad.html'">
-<div class='tituloBoton'>Sistema Alertas</div><div class='subtituloBoton'>Registrar hallazgos de calidad</div>
-</button>
-
-<button
-id="btnAuditoria"
-class="btn-auditoria"
-onclick="location.href='Auditoría recibo.html'">
-<div class='tituloBoton'>Sistema Auditorías</div><div class='subtituloBoton'>Captura de auditorías de recibo</div>
-</button>
-
-<button
-id="btnIncidencia"
-class="btn-incidencia"
-onclick="location.href='Incidencia en Recibo.html'">
-<div class='tituloBoton'>Sistema Incidencias</div><div class='subtituloBoton'>Registro de incidencias operativas</div>
-</button>
-
-
-<!-- BLOQUE 2 -->
-
-<h3 id="tituloDashboards"
-style="text-align:left;margin:25px 0 10px 0;">
-📊 DASHBOARDS
-</h3>
-
-<button
-id="btnDashboardAlertas"
-class="btn-dashboard"
-onclick="location.href='dashboard.html'">
-<div class='tituloBoton'>Dashboard Alertas</div><div class='subtituloBoton'>Indicadores y tendencias</div>
-</button>
-
-<button
-id="btnDashboardAuditorias"
-class="btn-dashboard"
-onclick="location.href='dashboard-auditorias.html'">
-<div class='tituloBoton'>Dashboard Auditorías</div><div class='subtituloBoton'>Resultados de auditorías</div>
-</button>
-
-<button
-id="btnDashboardIncidencias"
-class="btn-dashboard"
-onclick="location.href='dashboard-incidencias.html'">
-<div class='tituloBoton'>Dashboard Incidencias</div><div class='subtituloBoton'>Seguimiento de incidencias</div>
-</button>
-
-<button
-id="btnDashboardQuejas"
-class="btn-dashboard"
-onclick="location.href='Dashboard_Quejas.html'">
-<div class='tituloBoton'>Dashboard Quejas</div>
-<div class='subtituloBoton'>Seguimiento y análisis de quejas</div>
-</button>
-
-<h3
-id="tituloConcentrados"
-style="text-align:left;margin:25px 0 10px 0;">
-📥 CONCENTRADOS
-</h3>
-
-<button
-id="btnExcelAlertas"
-class="btn-dashboard"
-onclick="descargarExcelAlertas()">
-<div class='tituloBoton'>Excel Alertas</div><div class='subtituloBoton'>Descargar base completa</div>
-</button>
-
-<button
-id="btnExcelAuditorias"
-class="btn-dashboard"
-onclick="descargarExcelAuditorias()">
-<div class='tituloBoton'>Excel Auditorías</div><div class='subtituloBoton'>Descargar base completa</div>
-</button>
-
-<button
-id="btnExcelIncidencias"
-class="btn-dashboard"
-onclick="descargarExcelIncidencias()">
-<div class='tituloBoton'>Excel Incidencias</div><div class='subtituloBoton'>Descargar base completa</div>
-</button>
-
-<button
-class="btn-salir"
-onclick="logout()">
-🚪 Cerrar sesión
-</button>
-
-</div>
-
-</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -1388,6 +1788,9 @@ mostrarHome(usuario);
 function mostrarHome(usuario){
 
 const info = personal[usuario];
+
+    /* Solo clase visual: no cambia permisos ni navegación */
+    document.getElementById("homeBox").classList.toggle("home-admin", !!(info && info.admin));
 
 document.getElementById("loginBox")
 .classList.add("hidden");
