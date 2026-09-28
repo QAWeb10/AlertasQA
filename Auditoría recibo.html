@@ -1927,14 +1927,7 @@ button{
 
           </div>
 
-          <button
-            class="btn btn-primary"
-            type="button"
-            onclick="calcularMuestra()">
 
-            Recalcular
-
-          </button>
 
         </div>
 
@@ -2920,6 +2913,42 @@ function sincronizarDatosAntesDeGuardar(){
   }
 }
 
+function guardarRespaldoEmergencia(){
+  if(!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal) return false;
+  try{
+    sincronizarDatosAntesDeGuardar();
+    const estado={
+      auditoriaId:auditoriaId||generarIdUnico(),
+      propietario:window.qaBorradorPropietario || usuarioQA?.nombre || "",
+      tipoAuditoria:obtenerTipoAuditoria(),
+      tipoRecibo:obtenerTipoRecibo(),
+      cortina:document.getElementById("cortina")?.value||"",
+      sto:document.getElementById("sto")?.value||"",
+      origen:document.getElementById("origen")?.value||"",
+      turno:document.getElementById("turno")?.value||"",
+      cuadrilla:document.getElementById("cuadrilla")?.value||"",
+      coordinador:document.getElementById("coordinador")?.value||"",
+      observaciones:document.getElementById("observaciones")?.value||"",
+      muestraCalculada,
+      codigoLetraMuestra,
+      excelStoragePath,
+      excelArchivoNombre,
+      excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
+      auditoriaActual:prepararAuditoriaParaBorrador(auditoriaActual),
+      actualizado:new Date().toISOString(),
+      respaldoEmergencia:true
+    };
+    auditoriaId=estado.auditoriaId;
+    localStorage.setItem(QA_DRAFT_STATE_KEY,JSON.stringify(estado));
+    let lista=[];
+    try{const raw=localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]";const parsed=JSON.parse(raw);lista=Array.isArray(parsed)?parsed:[];}catch(e){lista=[];}
+    const idx=lista.findIndex(x=>String(x?.auditoriaId||"")===String(estado.auditoriaId));
+    if(idx>=0)lista[idx]=estado;else lista.push(estado);
+    localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(lista));
+    return true;
+  }catch(error){console.error("Error en respaldo de emergencia:",error);return false;}
+}
+
 async function guardarBorradorLocal(){
   // IMPORTANTE: entrar a la página NO crea una auditoría.
   // Solo se guarda un borrador cuando el usuario eligió "AUDITORIA NUEVA"
@@ -3106,7 +3135,35 @@ async function guardarBorradorRemoto(estado){
       Las fotos NO forman parte del camino crítico del botón Guardar avance.
     */
 
-    // 1) Reemplazamos todos los bloques de esta auditoría de una sola vez.
+    // 1) La cabecera DEBE existir antes de insertar los bloques.
+    // La FK auditoria_recibo_borrador_bloques_fk apunta a
+    // Auditoria_Recibo_Borrador(auditoria_id), por lo que primero hacemos
+    // UPSERT de la cabecera y después reemplazamos los bloques.
+    const cabecera={
+      ...estado,
+      auditoriaActual:[],
+      cantidadBloques:items.length,
+      propietario,
+      ultimaEdicionPor:usuarioQA.nombre,
+      actualizado
+    };
+
+    const {error:headerError}=await qaSupabaseConTimeout(
+      supabaseClient
+        .from("Auditoria_Recibo_Borrador")
+        .upsert({
+          auditoria_id:auditoriaIdRemota,
+          usuario:propietario,
+          estado:cabecera,
+          actualizado
+        },{onConflict:"auditoria_id"}),
+      "Guardado de cabecera",
+      12000
+    );
+    if(headerError)throw headerError;
+
+    // 2) Reemplazamos todos los bloques de esta auditoría de una sola vez.
+    // El registro padre ya existe, así que la FK no puede fallar por orden.
     const {error:deleteBlocksError}=await qaSupabaseConTimeout(
       supabaseClient
         .from(QA_DRAFT_BLOCKS_TABLE)
@@ -3118,7 +3175,7 @@ async function guardarBorradorRemoto(estado){
     );
     if(deleteBlocksError)throw deleteBlocksError;
 
-    // 2) Insertamos TODOS los bloques en una sola operación.
+    // 3) Insertamos TODOS los bloques en una sola operación.
     if(bloqueRows.length){
       const {error:insertBlocksError}=await qaSupabaseConTimeout(
         supabaseClient
@@ -3129,41 +3186,6 @@ async function guardarBorradorRemoto(estado){
       );
       if(insertBlocksError)throw insertBlocksError;
     }
-
-    // 3) Cabecera pequeña, también en una sola sustitución.
-    const cabecera={
-      ...estado,
-      auditoriaActual:[],
-      cantidadBloques:items.length,
-      propietario,
-      ultimaEdicionPor:usuarioQA.nombre,
-      actualizado
-    };
-
-    const {error:headerDeleteError}=await qaSupabaseConTimeout(
-      supabaseClient
-        .from("Auditoria_Recibo_Borrador")
-        .delete()
-        .eq("auditoria_id",auditoriaIdRemota)
-        .eq("usuario",propietario),
-      "Eliminación de cabecera",
-      10000
-    );
-    if(headerDeleteError)throw headerDeleteError;
-
-    const {error:headerError}=await qaSupabaseConTimeout(
-      supabaseClient
-        .from("Auditoria_Recibo_Borrador")
-        .insert({
-          auditoria_id:auditoriaIdRemota,
-          usuario:propietario,
-          estado:cabecera,
-          actualizado
-        }),
-      "Guardado de cabecera",
-      12000
-    );
-    if(headerError)throw headerError;
 
     // 4) Confirmación rápida. No volvemos a descargar estados JSON gigantes.
     const {data:confirmados,error:confirmError}=await qaSupabaseConTimeout(
@@ -3599,9 +3621,6 @@ async function guardarAvance(){
 
   // Un clic durante un guardado en curso no genera otra alerta ni otra petición.
   if(qaAvanceGuardando || qaGuardandoFinal || qaDraftFinalizando)return;
-
-  // Deja un intervalo mínimo entre intentos manuales de guardado.
-  if(ahora-qaUltimoIntentoAvance < QA_INTERVALO_MIN_AVANCE)return;
 
   qaUltimoIntentoAvance=ahora;
   qaAvanceGuardando=true;
@@ -4153,6 +4172,7 @@ function actualizarLpn(index,campo,valor){
     actualizarResultadoGeneral();
   }
 
+  guardarRespaldoEmergencia();
   guardarBorrador();
 }
 
@@ -5032,12 +5052,6 @@ function crearLpnCard(item,index){
 
         </div>
 
-        <div
-          class="evidencia-positiva-item hidden"
-          id="positiveEvidence_${index}"
-          style="margin-top:12px">
-        </div>
-
       </div>
 
     </details>
@@ -5103,9 +5117,6 @@ function preguntaQA(
   const actual =
     auditoriaActual[index]?.[categoria]?.[campo] || "";
 
-  const evidencia =
-    auditoriaActual[index]?.evidencia_campos?.[categoria]?.[campo] || [];
-
   return `
 
     <div class="qa-question">
@@ -5143,60 +5154,6 @@ function preguntaQA(
           MAL
 
         </button>
-
-      </div>
-
-      <div class="field-evidence ${actual === "ERROR" ? "" : "hidden"}" id="fieldEvidence_${index}_${categoria}_${campo}">
-
-        <div class="field-evidence-head">
-          <span>📷 Evidencia (solo si MAL)</span>
-          <strong id="fieldEvidenceCount_${index}_${categoria}_${campo}">
-            (${evidencia.length})
-          </strong>
-        </div>
-
-        <div class="field-evidence-actions">
-
-          <label
-            class="evidence-mini"
-            for="fieldCam_${index}_${categoria}_${campo}">
-            Cámara
-          </label>
-
-          <label
-            class="evidence-mini secondary"
-            for="fieldFile_${index}_${categoria}_${campo}">
-            Archivos
-          </label>
-
-        </div>
-
-        <input
-          id="fieldCam_${index}_${categoria}_${campo}"
-          class="hidden"
-          type="file"
-          accept="image/*"
-          capture="environment"
-          multiple
-          onchange="manejarEvidenciaCampo(event,${index},'${categoria}','${campo}')">
-
-        <input
-          id="fieldFile_${index}_${categoria}_${campo}"
-          class="hidden"
-          type="file"
-          accept="image/*"
-          multiple
-          onchange="manejarEvidenciaCampo(event,${index},'${categoria}','${campo}')">
-
-        <div
-          class="field-evidence-preview"
-          id="fieldEvidencePreview_${index}_${categoria}_${campo}">
-          ${evidencia.map((_,i)=>`
-            <div class="field-evidence-thumb">
-              ${i+1}
-            </div>
-          `).join("")}
-        </div>
 
       </div>
 
@@ -5602,6 +5559,7 @@ function limpiarExcel(){
   });
 
   actualizarResultadoGeneral();
+  guardarRespaldoEmergencia();
   guardarBorrador();
 }
 
@@ -5861,6 +5819,8 @@ function marcarQA(
   }
 
   evaluarLpn(index);
+  guardarRespaldoEmergencia();
+  guardarRespaldoEmergencia();
   guardarBorrador();
 
 }
@@ -5927,6 +5887,7 @@ function manejarEvidenciaPositiva(event,index){
   item.evidencia_positiva.push(...seleccion);
   if(event?.target)event.target.value="";
   renderizarEvidenciaPositiva();
+  guardarRespaldoEmergencia();
   guardarBorrador();
   if(archivos.length>disponibles){
     mostrarAlertaQA("Solo se agregaron las fotografías necesarias para completar el máximo de 3 por LPN.","warning","Máximo de fotografías");
@@ -9195,14 +9156,18 @@ async function generarPDFdesdeReporte(indice){
       const urls=[];
       if(Array.isArray(item.evidencia_campos_urls)){urls.push(...item.evidencia_campos_urls.filter(Boolean));}
       if(item.evidencia_campos_urls&&typeof item.evidencia_campos_urls==="object"){Object.values(item.evidencia_campos_urls).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(u=>{if(u)urls.push(typeof u==="string"?u:u.url);})));}
+      if(Array.isArray(item.evidencia_positiva_urls)){urls.push(...item.evidencia_positiva_urls.filter(Boolean));}
+      if(Array.isArray(item.imagenes_evidencia)){urls.push(...item.imagenes_evidencia.filter(Boolean));}
       if(i===0 && urls.length===0){const generales=obtenerImagenesRegistro(r);urls.push(...generales);}
       y=bloque("EVIDENCIA FOTOGRÁFICA",y);
       y=await agregarEvidencias([...new Set(urls)],y);
       if(i<codigos.length-1){doc.addPage();header();y=28;}
     }
     if(!codigos.length){
+      const urlsGlobales=[...obtenerImagenesRegistro(r)];
+      if(Array.isArray(r.evidencia_positiva_urls))urlsGlobales.push(...r.evidencia_positiva_urls.filter(Boolean));
       y=bloque("EVIDENCIA FOTOGRÁFICA",y);
-      y=await agregarEvidencias(obtenerImagenesRegistro(r),y);
+      y=await agregarEvidencias([...new Set(urlsGlobales)],y);
     }
     const total=doc.getNumberOfPages();
     for(let page=1;page<=total;page++){doc.setPage(page);footer(page,total);}
@@ -9443,8 +9408,8 @@ setInterval(() => {
     ["cortina","sto","origen","turno","cuadrilla","coordinador","observaciones"].forEach(id=>{
       const el=document.getElementById(id);
       if(el){
-        el.addEventListener("input",()=>guardarBorrador());
-        el.addEventListener("change",()=>guardarBorrador());
+        el.addEventListener("input",()=>{guardarRespaldoEmergencia();guardarBorrador();});
+        el.addEventListener("change",()=>{guardarRespaldoEmergencia();guardarBorrador();});
       }
     });
 
@@ -9464,10 +9429,19 @@ setInterval(() => {
     }
 
     document.addEventListener("visibilitychange",()=>{
-      if(document.visibilityState==="hidden" && auditoriaEnEdicion) guardarBorradorLocal();
+      if(document.visibilityState==="hidden" && auditoriaEnEdicion){
+        guardarRespaldoEmergencia();
+        guardarBorradorLocal();
+      }
     });
     window.addEventListener("pagehide",()=>{
-      if(auditoriaEnEdicion) guardarBorradorLocal();
+      if(auditoriaEnEdicion){
+        guardarRespaldoEmergencia();
+        guardarBorradorLocal();
+      }
+    });
+    window.addEventListener("beforeunload",()=>{
+      if(auditoriaEnEdicion) guardarRespaldoEmergencia();
     });
 
   }
