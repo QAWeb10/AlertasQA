@@ -694,6 +694,12 @@ box-shadow:
   font-weight:800;
 }
 
+.home-user-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.home-logout{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 12px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font:700 12px/1 Arial,sans-serif;cursor:pointer;transition:.18s ease;box-shadow:0 4px 12px rgba(0,0,0,.10)}
+.home-logout:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);transform:translateY(-1px)}
+.home-logout:active{transform:translateY(0)}
+.home-logout-icon{font-size:17px;line-height:1}
+@media(max-width:600px){.home-user-row{gap:8px}.home-logout{min-height:34px;padding:7px 10px;font-size:11px}}
 .home-user{
   margin-top:7px;
   color:rgba(255,255,255,.88);
@@ -1017,6 +1023,28 @@ box-shadow:
 </head>
 <body>
 
+<div class="appbar">
+
+    <div class="logoQA">
+        QA
+    </div>
+
+    <div class="tituloSistema">
+        <div class="titulo1">
+            SISTEMA DE GESTIÓN DE CALIDAD
+        </div>
+
+        <div class="titulo2">
+            Portal de Calidad
+        </div>
+    </div>
+
+    <div class="fy">
+        FY2627
+    </div>
+
+</div>
+
 <!-- LOGIN -->
 
 <div id="loginBox" class="card card-login">
@@ -1249,7 +1277,9 @@ INGRESAR
       <div>
         <div class="home-kicker">SISTEMA DE GESTIÓN DE CALIDAD</div>
         <h1 class="home-title">Portal de Calidad</h1>
-        <div id="usuarioActual" class="home-user"></div>
+        <div class="home-user-row">
+          <div id="usuarioActual" class="home-user"></div>
+        </div>
       </div>
     </div>
     <div class="home-fy">FY2627</div>
@@ -1345,6 +1375,7 @@ INGRESAR
 
       <div class="home-grid home-grid-data">
         <button id="btnExcelAlertas" class="home-card home-data" onclick="descargarExcelAlertas()">
+          <span class="home-card-icon">↓</span>
           <span class="home-card-text">
             <span class="tituloBoton">Excel Alertas</span>
             <span class="subtituloBoton">Descargar base completa</span>
@@ -1353,6 +1384,7 @@ INGRESAR
         </button>
 
         <button id="btnExcelAuditorias" class="home-card home-data" onclick="descargarExcelAuditorias()">
+          <span class="home-card-icon">↓</span>
           <span class="home-card-text">
             <span class="tituloBoton">Excel Auditorías</span>
             <span class="subtituloBoton">Descargar base completa</span>
@@ -1361,6 +1393,7 @@ INGRESAR
         </button>
 
         <button id="btnExcelIncidencias" class="home-card home-data" onclick="descargarExcelIncidencias()">
+          <span class="home-card-icon">↓</span>
           <span class="home-card-text">
             <span class="tituloBoton">Excel Incidencias</span>
             <span class="subtituloBoton">Descargar base completa</span>
@@ -1369,6 +1402,11 @@ INGRESAR
         </button>
       </div>
     </section>
+
+    <div class="home-footer">
+      <span class="home-status"><span></span> Sistema operativo</span>
+      <button class="btn-salir" onclick="logout()">🚪 Cerrar sesión</button>
+    </div>
 
   </div>
 </div>
@@ -1767,117 +1805,84 @@ function mostrarHome(usuario){
 
 const info = personal[usuario];
 
-    /* Solo clase visual: no cambia permisos ni navegación */
-    document.getElementById("homeBox").classList.toggle("home-admin", !!(info && info.admin));
+/* Solo clase visual: no cambia permisos ni navegación */
+document.getElementById("homeBox").classList.toggle("home-admin", !!(info && info.admin));
 
-document.getElementById("loginBox")
-.classList.add("hidden");
-
-document.getElementById("homeBox")
-.classList.remove("hidden");
-
-document.getElementById("usuarioActual")
-.innerText = usuario;
+document.getElementById("loginBox").classList.add("hidden");
+document.getElementById("homeBox").classList.remove("hidden");
+document.getElementById("usuarioActual").innerText = usuario;
 
 /* OCULTAR TODO */
-
 const botones = [
-
-"btnAlertas",
-"btnAuditoria",
-"btnIncidencia",
-
-"btnDashboardAlertas",
-"btnDashboardAuditorias",
-"btnDashboardIncidencias",
-"btnDashboardQuejas",
-
-"btnExcelAlertas",
-"btnExcelAuditorias",
-"btnExcelIncidencias",
-
-"tituloTemplates",
-"tituloDashboards",
-"tituloConcentrados"
-
+"btnAlertas","btnAuditoria","btnIncidencia",
+"btnDashboardAlertas","btnDashboardAuditorias","btnDashboardIncidencias","btnDashboardQuejas",
+"btnExcelAlertas","btnExcelAuditorias","btnExcelIncidencias",
+"tituloTemplates","tituloDashboards","tituloConcentrados"
 ];
 
 botones.forEach(id=>{
-
-const elemento =
-document.getElementById(id);
-
-if(elemento){
- elemento.style.display="none";
-}
-
+  const elemento = document.getElementById(id);
+  if(elemento) elemento.style.display="none";
 });
 
+/* Ocultar también las secciones cuyo contenido no está autorizado,
+   para que no quede visible el encabezado MONITOREO/DATOS. */
+const seccionDashboards = document.getElementById("tituloDashboards").closest(".home-section");
+const seccionConcentrados = document.getElementById("tituloConcentrados").closest(".home-section");
+if(seccionDashboards) seccionDashboards.style.display="none";
+if(seccionConcentrados) seccionConcentrados.style.display="none";
+
+/* TEMPLATES: disponibles para los perfiles que ya tenían acceso */
+const tituloTemplates = document.getElementById("tituloTemplates");
+if(tituloTemplates) tituloTemplates.style.display="block";
+
 /* ADMIN */
-
 if(info.admin){
+  document.getElementById("tituloDashboards").style.display="block";
+  document.getElementById("tituloConcentrados").style.display="block";
+  if(seccionDashboards) seccionDashboards.style.display="block";
+  if(seccionConcentrados) seccionConcentrados.style.display="block";
 
-document.getElementById("tituloTemplates").style.display="block";
-document.getElementById("tituloDashboards").style.display="block";
-document.getElementById("tituloConcentrados").style.display="block";
+  document.getElementById("btnAlertas").style.display="block";
+  document.getElementById("btnAuditoria").style.display="block";
+  document.getElementById("btnIncidencia").style.display="block";
 
-document.getElementById("tituloTemplates").style.display="block";
+  document.getElementById("btnDashboardAlertas").style.display="block";
+  document.getElementById("btnDashboardAuditorias").style.display="block";
+  document.getElementById("btnDashboardIncidencias").style.display="block";
+  document.getElementById("btnDashboardQuejas").style.display="block";
 
-document.getElementById("btnAlertas").style.display="block";
-document.getElementById("btnAuditoria").style.display="block";
-document.getElementById("btnIncidencia").style.display="block";
-
-document.getElementById("btnDashboardAlertas").style.display="block";
-document.getElementById("btnDashboardAuditorias").style.display="block";
-document.getElementById("btnDashboardIncidencias").style.display="block";
-document.getElementById("btnDashboardQuejas").style.display="block";
-
-document.getElementById("btnExcelAlertas").style.display="block";
-document.getElementById("btnExcelAuditorias").style.display="block";
-document.getElementById("btnExcelIncidencias").style.display="block";
-
-return;
-
+  document.getElementById("btnExcelAlertas").style.display="block";
+  document.getElementById("btnExcelAuditorias").style.display="block";
+  document.getElementById("btnExcelIncidencias").style.display="block";
+  return;
 }
 
-/* VISUALIZADOR */
-
+/* VISUALIZADOR: Dashboard sí, Concentrados no */
 if(info.rol === "VISUALIZADOR"){
+  document.getElementById("tituloDashboards").style.display="block";
+  if(seccionDashboards) seccionDashboards.style.display="block";
 
-    document.getElementById("tituloTemplates").style.display="block";
-    document.getElementById("tituloDashboards").style.display="block";
-
-    document.getElementById("btnAlertas").style.display="block";
-
-    document.getElementById("btnDashboardAlertas").style.display="block";
-    document.getElementById("btnDashboardAuditorias").style.display="block";
-    document.getElementById("btnDashboardIncidencias").style.display="block";
-    document.getElementById("btnDashboardQuejas").style.display="block";
-
-    return;
+  document.getElementById("btnAlertas").style.display="block";
+  document.getElementById("btnDashboardAlertas").style.display="block";
+  document.getElementById("btnDashboardAuditorias").style.display="block";
+  document.getElementById("btnDashboardIncidencias").style.display="block";
+  document.getElementById("btnDashboardQuejas").style.display="block";
+  return;
 }
 
-/* COORDINADORES */
-
-if(
-usuario.startsWith("COORDINADOR") ||
-usuario.startsWith("HS&E")
-){
-
-document.getElementById("btnAlertas").style.display="block";
-
-return;
-
+/* COORDINADORES / HS&E */
+if(usuario.startsWith("COORDINADOR") || usuario.startsWith("HS&E")){
+  document.getElementById("btnAlertas").style.display="block";
+  return;
 }
 
 /* RESTO DEL PERSONAL */
-
 document.getElementById("btnAlertas").style.display="block";
 document.getElementById("btnAuditoria").style.display="block";
 document.getElementById("btnIncidencia").style.display="block";
 
 }
-
 function logout(){
 
 localStorage.removeItem("usuarioPortal");
