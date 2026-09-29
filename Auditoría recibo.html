@@ -377,6 +377,19 @@ button{
    ARCHIVO DE RECIBO / EXCEL
 ========================================================= */
 
+.qa-file-input-mobile{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+  opacity:0 !important;
+}
+
 .file-drop{
   border:2px dashed var(--line);
   border-radius:12px;
@@ -1852,7 +1865,8 @@ button{
           id="archivoExcel"
           type="file"
           accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          style="display:none">
+          class="qa-file-input-mobile"
+          aria-label="Seleccionar archivo Excel">
 
       </div>
 
@@ -2694,6 +2708,7 @@ let qaDraftRemotePromise = Promise.resolve();
 let qaDraftVersion = 0;
 let qaAvanceGuardando = false;
 let qaUltimoIntentoAvance = 0;
+let qaUltimoGuardadoRemoto = { guardadas:0, total:0, actualizado:"" };
 const QA_DRAFT_BLOCKS_TABLE = "Auditoria_Recibo_Borrador_Bloques";
 let auditoriaEnEdicion = false;
 let qaGuardadoUltimoTexto = "";
@@ -2832,7 +2847,8 @@ function borradorTieneContenido(estado){
   const tieneDatos=campos.some(k=>String(estado[k]??"").trim()!=="");
   const tieneExcel=!!String(estado.excelArchivoNombre||estado.excelStoragePath||estado.excelLocalId||"").trim();
   const tieneItems=items.length>0;
-  return tieneDatos || tieneExcel || tieneItems;
+  const tieneBloquesRemotos=Number(estado.cantidadBloques||0)>0;
+  return tieneDatos || tieneExcel || tieneItems || tieneBloquesRemotos;
 }
 
 function limpiarBorradoresLocalesVacios(){
@@ -3298,6 +3314,15 @@ async function guardarBorradorRemoto(estado){
       throw new Error(`Supabase confirmó ${items.length-faltantes.length} de ${items.length} LPN. Faltan ${faltantes.length}.`);
     }
 
+    const lpnRemotasConfirmadas=(confirmados||[]).filter(row=>{
+      const bloque=bloqueRows.find(x=>x.bloque_id===row.bloque_id);
+      return String(bloque?.lpn||"").trim()!=="";
+    }).length;
+    qaUltimoGuardadoRemoto={
+      guardadas:lpnRemotasConfirmadas,
+      total:items.length,
+      actualizado
+    };
     window.qaUltimoErrorGuardado="";
 
     // Las fotos se suben después; no impiden que el avance completo quede
@@ -3766,9 +3791,15 @@ async function guardarAvance(){
     }
     window.qaUltimoErrorGuardado="";
 
-    mostrarAlertaQA(`La auditoría quedó guardada en avance y sincronizada con el servidor.
+    const lpnConDato=auditoriaActual.filter(item=>String(item?.lpn||"").trim()).length;
+    const guardadasServidor=Number(qaUltimoGuardadoRemoto.guardadas||0);
+    const totalServidor=Number(qaUltimoGuardadoRemoto.total||lpnConDato);
+    mostrarAlertaQA(`Avance guardado correctamente.
 
-LPN guardadas: ${auditoriaActual.length}.`,"success","Avance guardado");
+LPN guardadas en el servidor: ${guardadasServidor} de ${totalServidor}.
+LPN con número capturado en esta auditoría: ${lpnConDato}.
+
+Las fotografías continúan sincronizándose en segundo plano si están pendientes.`,"success","Avance guardado");
   }catch(error){
     console.error("Error guardando avance:",error);
     mostrarAlertaQA("No fue posible guardar el avance. La información permanece en este dispositivo.","warning","Avance no sincronizado");
@@ -5666,9 +5697,28 @@ async function asegurarSheetJS(){
 
 function seleccionarArchivoExcel(){
   const input=document.getElementById("archivoExcel");
-  if(!input) return;
-  input.value="";
-  input.click();
+  if(!input)return;
+
+  // En iPhone/iPad y algunos Android, un input file con display:none
+  // puede no abrir el selector. El input ahora es visualmente oculto y
+  // usamos showPicker cuando el navegador lo soporta.
+  try{input.value="";}catch(e){}
+
+  try{
+    if(typeof input.showPicker==="function"){
+      input.showPicker();
+      return;
+    }
+  }catch(error){
+    console.warn("showPicker no disponible; se usará click():",error);
+  }
+
+  try{
+    input.click();
+  }catch(error){
+    console.error("No fue posible abrir el selector de Excel:",error);
+    actualizarEstadoExcel("error","No se pudo abrir el selector de archivos. Toca nuevamente Seleccionar Excel.");
+  }
 }
 
 async function subirExcelStorage(file){
@@ -9418,6 +9468,16 @@ document.addEventListener(
     limpiarBorradoresLocalesVacios();
     mostrarInicioAuditorias();
 
+    // Sincronización inicial: la lista de auditorías en proceso se consulta
+    // desde Supabase en cada dispositivo, no depende del localStorage del equipo.
+    try{
+      await mostrarAuditoriasEnProceso();
+      const panelInicial=document.getElementById("auditoriasEnProcesoPanel");
+      if(panelInicial)panelInicial.classList.add("hidden");
+    }catch(error){
+      console.warn("No fue posible sincronizar auditorías en proceso al iniciar:",error);
+    }
+
     const btnAuditoriaNueva=document.getElementById("btnAuditoriaNueva");
     const btnAuditoriasEnProceso=document.getElementById("btnAuditoriasEnProceso");
 
@@ -9457,12 +9517,18 @@ setInterval(() => {
       );
 
     if(excelInput){
-      excelInput.addEventListener("change",e=>{
+      excelInput.addEventListener("change",async e=>{
         const file=e.target.files && e.target.files[0];
-        if(file){
-          procesarArchivoExcel(file);
-        }else{
+        if(!file){
           actualizarEstadoExcel("empty","No se ha cargado ningún archivo.");
+          return;
+        }
+        try{
+          await procesarArchivoExcel(file);
+        }catch(error){
+          console.error("Error cargando Excel:",error);
+          actualizarEstadoExcel("error",`⚠ No fue posible cargar el Excel: ${error?.message||error}`);
+          mostrarAlertaQA(`No fue posible cargar el archivo Excel. ${error?.message||error}`,"error","Excel no cargado");
         }
       });
     }
