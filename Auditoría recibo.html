@@ -2406,15 +2406,6 @@ button{
         </button>
 
         <button
-          class="btn btn-secondary"
-          type="button"
-          onclick="limpiarFormulario()">
-
-          Limpiar
-
-        </button>
-
-        <button
           class="btn btn-primary"
           type="button"
           onclick="guardarAuditoria()">
@@ -2423,6 +2414,10 @@ button{
 
         </button>
 
+      </div>
+
+      <div id="qaGuardadoEstado" class="qa-guardado-estado" aria-live="polite">
+        Sin cambios guardados todavía
       </div>
 
     </div>
@@ -2566,6 +2561,22 @@ button{
   © Sistema QA · Desarrollado por Félix Montoya
 </footer>
 
+<style>
+.qa-guardado-estado{
+  margin-top:10px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:#f5f6f8;
+  color:#555;
+  font-size:12px;
+  font-weight:600;
+  text-align:center;
+}
+.qa-guardado-estado.guardado{background:#eef8f0;color:#176b2d}
+.qa-guardado-estado.sincronizando{background:#fff8e6;color:#8a5a00}
+.qa-guardado-estado.error{background:#fff0f0;color:#9b1c1c}
+</style>
+
 <script>
 
 /* =========================================================
@@ -2683,9 +2694,43 @@ let qaDraftRemotePromise = Promise.resolve();
 let qaDraftVersion = 0;
 let qaAvanceGuardando = false;
 let qaUltimoIntentoAvance = 0;
-const QA_INTERVALO_MIN_AVANCE = 2500;
 const QA_DRAFT_BLOCKS_TABLE = "Auditoria_Recibo_Borrador_Bloques";
 let auditoriaEnEdicion = false;
+let qaGuardadoUltimoTexto = "";
+
+function actualizarIndicadorGuardado(texto, tipo="guardado") {
+  const el=document.getElementById("qaGuardadoEstado");
+  if(!el)return;
+  qaGuardadoUltimoTexto=String(texto||"");
+  el.textContent=qaGuardadoUltimoTexto;
+  el.classList.remove("guardado","sincronizando","error");
+  if(tipo)el.classList.add(tipo);
+}
+
+function horaGuardado(fecha=new Date()){
+  try{
+    return fecha.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit",hour12:false})+" hrs";
+  }catch(e){
+    return `${String(fecha.getHours()).padStart(2,"0")}:${String(fecha.getMinutes()).padStart(2,"0")} hrs`;
+  }
+}
+
+function marcarGuardadoLocal(estado){
+  const fecha=estado?.actualizado?new Date(estado.actualizado):new Date();
+  actualizarIndicadorGuardado(`Guardado a las ${horaGuardado(fecha)} · respaldo en este dispositivo`,"guardado");
+}
+
+function marcarSincronizacionCompleta(fecha=new Date()){
+  actualizarIndicadorGuardado(`Guardado a las ${horaGuardado(fecha)} · Sincronización completa`,"guardado");
+}
+
+function marcarSincronizando(){
+  actualizarIndicadorGuardado("Guardado localmente · sincronizando con el servidor…","sincronizando");
+}
+
+function marcarErrorGuardado(){
+  actualizarIndicadorGuardado("Guardado localmente · sincronización pendiente","error");
+}
 
 function abrirBaseBorrador(){
   if(qaDraftDbPromise) return qaDraftDbPromise;
@@ -2828,7 +2873,8 @@ async function obtenerAuditoriasEnProceso(){
         propietario:row.estado?.propietario || row.usuario || "",
         usuario:row.usuario || row.estado?.propietario || "",
         actualizado:row.actualizado || row.estado?.actualizado || "",
-        auditoriaActual:Array.isArray(row.estado?.auditoriaActual)?row.estado.auditoriaActual:[]
+        auditoriaActual:Array.isArray(row.estado?.auditoriaActual)?row.estado.auditoriaActual:[],
+        _qaOrigenRemoto:true
       })).filter(x=>x.auditoriaId);
     }
 
@@ -3073,6 +3119,7 @@ async function guardarBorradorLocal(){
     if(indice>=0) lista[indice]=estado; else lista.push(estado);
     localStorage.setItem(QA_DRAFTS_STATE_KEY,JSON.stringify(lista));
     localStorage.setItem(QA_DRAFT_STATE_KEY,JSON.stringify(estado));
+    marcarGuardadoLocal(estado);
     return estado;
   }catch(error){console.error("Error guardando borrador local:",error);return null;}
 }
@@ -3256,31 +3303,40 @@ async function guardarBorradorRemoto(estado){
     // Las fotos se suben después; no impiden que el avance completo quede
     // guardado. Los archivos originales permanecen en IndexedDB mientras
     // exista el borrador.
+    // El estado completo ya está protegido localmente. Las fotografías se suben
+    // en segundo plano para no bloquear el uso del teléfono.
+    marcarSincronizando();
     prepararBorradorCompartido({...estado,auditoriaId:auditoriaIdRemota,propietario,auditoriaActual:items})
       .then(async compartido=>{
         try{
           const bloquesCompartidos=compartido?.auditoriaActual||[];
-          if(!bloquesCompartidos.length)return;
-          const rows=bloquesCompartidos.map((item,index)=>({
-            auditoria_id:auditoriaIdRemota,
-            usuario:propietario,
-            bloque_id:`${auditoriaIdRemota}:bloque:${index}`,
-            indice:index,
-            lpn:String(item?.lpn||""),
-            estado:item,
-            actualizado:new Date().toISOString()
-          }));
-          const {error}=await qaSupabaseConTimeout(
-            supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).upsert(rows,{onConflict:"auditoria_id,usuario,bloque_id"}),
-            "Sincronización de evidencias",
-            30000
-          );
-          if(error)console.warn("LPN guardadas; evidencias pendientes:",error);
+          if(bloquesCompartidos.length){
+            const rows=bloquesCompartidos.map((item,index)=>({
+              auditoria_id:auditoriaIdRemota,
+              usuario:propietario,
+              bloque_id:`${auditoriaIdRemota}:bloque:${index}`,
+              indice:index,
+              lpn:String(item?.lpn||""),
+              estado:item,
+              actualizado:new Date().toISOString()
+            }));
+            const {error}=await qaSupabaseConTimeout(
+              supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).upsert(rows,{onConflict:"auditoria_id,usuario,bloque_id"}),
+              "Sincronización de evidencias",
+              30000
+            );
+            if(error)throw error;
+          }
+          marcarSincronizacionCompleta(new Date());
         }catch(errorEvidencias){
-          console.warn("LPN guardadas; evidencias pendientes:",errorEvidencias);
+          console.warn("Sincronización posterior de evidencias pendiente:",errorEvidencias);
+          marcarErrorGuardado();
         }
       })
-      .catch(errorEvidencias=>console.warn("Sincronización posterior de evidencias pendiente:",errorEvidencias));
+      .catch(errorEvidencias=>{
+        console.warn("Sincronización posterior de evidencias pendiente:",errorEvidencias);
+        marcarErrorGuardado();
+      });
 
     return true;
   }catch(error){
@@ -3300,6 +3356,11 @@ async function guardarBorradorAhora(sincronizar=true){
     const promesa=guardarBorradorRemoto(estado);
     qaDraftRemotePromise=promesa;
     const remoto=await promesa;
+    if(remoto===true){
+      marcarSincronizando();
+    }else{
+      marcarErrorGuardado();
+    }
     return remoto===true;
   }catch(error){
     console.error("Error en guardado seguro del avance:",error);
@@ -3460,6 +3521,7 @@ async function cargarAuditoriaEnProceso(id){
     auditoriaEnEdicion=true;
     mostrarSistemaAuditoria();
     await guardarBorradorLocal();
+    marcarSincronizacionCompleta(new Date(estado.actualizado||Date.now()));
   }catch(error){
     console.error("Error restaurando auditoría en proceso:",error);
     auditoriaEnEdicion=false;
@@ -5108,12 +5170,6 @@ function crearLpnCard(item,index){
 
         </div>
 
-        <div
-          class="evidencia-positiva-item hidden"
-          id="positiveEvidence_${index}"
-          style="margin-top:12px">
-        </div>
-
       </div>
 
     </details>
@@ -5990,7 +6046,7 @@ function lpnAprobada100(index){
   const checks=checksRequeridosParaItem(item);
   return checks.length>0&&checks.every(([categoria,campo])=>item[categoria]?.[campo]==="OK");
 }
-function manejarEvidenciaPositiva(event,index){
+async function manejarEvidenciaPositiva(event,index){
   const item=auditoriaActual[index];
   const archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
   if(!item||!archivos.length){if(event?.target)event.target.value="";return;}
@@ -6006,16 +6062,21 @@ function manejarEvidenciaPositiva(event,index){
     mostrarAlertaQA("Cada LPN puede tener máximo 3 fotografías de evidencia positiva.","warning","Máximo de fotografías");
     return;
   }
-  const seleccion=archivos.slice(0,disponibles);
-  seleccion.forEach(archivo=>{try{archivo.__qaEvidenceId=`evidencia:${auditoriaId}:${generarIdUnico()}`;}catch(e){}});
-  item.evidencia_positiva.push(...seleccion);
   if(event?.target)event.target.value="";
+  marcarSincronizando();
+  const seleccion=archivos.slice(0,disponibles);
+  for(const archivo of seleccion){
+    const foto=await prepararFotoParaGuardadoLocal(archivo);
+    if(foto)item.evidencia_positiva.push(foto);
+  }
   renderizarEvidenciaPositiva();
   guardarBorrador();
+  guardarRespaldoEmergencia();
   if(archivos.length>disponibles){
     mostrarAlertaQA("Solo se agregaron las fotografías necesarias para completar el máximo de 3 por LPN.","warning","Máximo de fotografías");
   }
 }
+
 
 function eliminarEvidenciaPositiva(index,evidenciaIndex){
   const item=auditoriaActual[index],arr=item?.evidencia_positiva;if(!arr||!arr[evidenciaIndex])return;
@@ -6034,60 +6095,10 @@ function revocarObjectURLsEnElemento(elemento){
 function renderizarEvidenciaPositiva(){
   const section=document.getElementById("evidenciaPositivaSection");
   const lista=document.getElementById("evidenciaPositivaLista");
-  const alert=document.getElementById("evidenciaPositivaAlert");
-
-  // La evidencia positiva ahora vive dentro de cada LPN aprobada.
-  // El panel global se conserva oculto para no romper referencias existentes.
   if(section) section.classList.add("hidden");
   if(lista){revocarObjectURLsEnElemento(lista);lista.innerHTML="";}
-
-  let aprobadas=0;
-
-  auditoriaActual.forEach((item,index)=>{
-    const contenedor=document.getElementById(`positiveEvidence_${index}`);
-    if(!contenedor) return;
-
-    const habilitada=lpnAprobada100(index);
-    if(!habilitada){
-      revocarObjectURLsEnElemento(contenedor);
-      contenedor.classList.add("hidden");
-      contenedor.innerHTML="";
-      return;
-    }
-
-    aprobadas++;
-    const evidencias=item.evidencia_positiva||[];
-    const previews=evidencias.map((archivo,i)=>{
-      let url="";
-      if(typeof archivo==="string") url=archivo;
-      else if(archivo?.tipo==="url") url=archivo.url||"";
-      else if(archivo instanceof Blob){
-        try{url=URL.createObjectURL(archivo);}catch(e){}
-      }
-      return `<div class="evidencia-positiva-thumb"><img src="${escapeHtml(url)}" ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}" onload="this.dataset.qaObjectUrl&&URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl" onerror="this.dataset.qaObjectUrl&&URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl"`:""} alt="Evidencia positiva de ${escapeHtml(item.lpn)}"><button type="button" onclick="eliminarEvidenciaPositiva(${index},${i})">×</button></div>`;
-    }).join("");
-
-    contenedor.classList.remove("hidden");
-    contenedor.innerHTML=`
-      <div class="evidencia-positiva-item-title">✓ LPN ${escapeHtml(item.lpn)} — 100% APROBADO</div>
-      <div class="evidencia-positiva-subtitle">Puedes registrar aquí mismo la evidencia de que esta LPN está correcta. Máximo 3 fotografías.</div>
-      <div class="evidencia-positiva-actions">
-        <label class="evidence-mini" for="positiveCam_${index}">Cámara</label>
-        <label class="evidence-mini secondary" for="positiveFile_${index}">Archivos</label>
-      </div>
-      <input id="positiveCam_${index}" class="hidden" type="file" accept="image/*" capture="environment" multiple onchange="manejarEvidenciaPositiva(event,${index})">
-      <input id="positiveFile_${index}" class="hidden" type="file" accept="image/*" multiple onchange="manejarEvidenciaPositiva(event,${index})">
-      ${previews?`<div class="evidencia-positiva-preview">${previews}</div>`:`<div class="evidencia-positiva-empty">Sin evidencia cargada. Agrega la fotografía cuando termines esta LPN.</div>`}
-    `;
-  });
-
-  if(alert){
-    alert.className=aprobadas?"alert alert-success":"alert alert-info";
-    alert.textContent=aprobadas
-      ? `${aprobadas} LPN con 100% de aprobación tienen su evidencia disponible dentro de la propia LPN.`
-      : "La evidencia positiva se habilita dentro de cada LPN cuando todas sus verificaciones estén aprobadas y no exista ninguna desviación.";
-  }
 }
+
 function evaluarLpn(
   index
 ){
@@ -6505,58 +6516,41 @@ function actualizarResultadoGeneral(){
    FOTOS / EVIDENCIAS
 ========================================================= */
 
-function manejarEvidenciaCampo(
+async function manejarEvidenciaCampo(
   event,
   index,
   categoria,
   campo
 ){
-
-  const archivos =
-    Array.from(
-      event.target.files || []
-    ).filter(
-      f =>
-        f.type?.startsWith("image/")
-    );
-
-  const item =
-    auditoriaActual[index];
-
-  if(!item || !archivos.length){
-    event.target.value = "";
+  const archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
+  const item=auditoriaActual[index];
+  if(!item||!archivos.length){
+    if(event?.target)event.target.value="";
     return;
   }
 
-  item.evidencia_campos =
-    item.evidencia_campos || {};
+  item.evidencia_campos=item.evidencia_campos||{};
+  item.evidencia_campos[categoria]=item.evidencia_campos[categoria]||{};
+  item.evidencia_campos[categoria][campo]=item.evidencia_campos[categoria][campo]||[];
 
-  item.evidencia_campos[categoria] =
-    item.evidencia_campos[categoria] || {};
+  if(event?.target)event.target.value="";
+  marcarSincronizando();
 
-  item.evidencia_campos[categoria][campo] =
-    item.evidencia_campos[categoria][campo] || [];
+  const preparadas=[];
+  for(const archivo of archivos){
+    const foto=await prepararFotoParaGuardadoLocal(archivo);
+    if(foto)preparadas.push(foto);
+  }
 
-  archivos.forEach(archivo=>{
-    try{archivo.__qaEvidenceId=`evidencia:${auditoriaId}:${generarIdUnico()}`;}catch(e){}
-  });
+  item.evidencia_campos[categoria][campo].push(...preparadas);
+  fotosSeleccionadas.push(...preparadas);
 
-  item.evidencia_campos[categoria][campo]
-    .push(...archivos);
-
-  fotosSeleccionadas.push(...archivos);
-
-  event.target.value = "";
-
-  renderizarEvidenciaCampo(
-    index,
-    categoria,
-    campo
-  );
-
+  renderizarEvidenciaCampo(index,categoria,campo);
   actualizarResultadoGeneral();
-  guardarBorrador();
 
+  // Primero queda físicamente en IndexedDB/local; después se sincroniza en segundo plano.
+  guardarBorrador();
+  guardarRespaldoEmergencia();
 }
 
 
@@ -6820,6 +6814,25 @@ function comprimirImagen(
     }
   );
 
+}
+
+
+async function prepararFotoParaGuardadoLocal(file){
+  if(!file)return null;
+  try{
+    const blob=await comprimirImagen(file,1280,0.65);
+    const nombreBase=String(file.name||"evidencia.jpg").replace(/\.[^.]+$/i,"");
+    const comprimida=new File([blob],`${nombreBase}.jpg`,{
+      type:"image/jpeg",
+      lastModified:Date.now()
+    });
+    comprimida.__qaEvidenceId=file.__qaEvidenceId || `evidencia:${auditoriaId}:${generarIdUnico()}`;
+    return comprimida;
+  }catch(error){
+    console.warn("No fue posible comprimir la fotografía; se conservará el original:",error);
+    try{file.__qaEvidenceId=file.__qaEvidenceId || `evidencia:${auditoriaId}:${generarIdUnico()}`;}catch(e){}
+    return file;
+  }
 }
 
 
@@ -9424,9 +9437,13 @@ document.addEventListener(
       });
     }
 
+const QA_AUTOGUARDADO_MS = 30000;
 setInterval(() => {
-  if (auditoriaEnEdicion) guardarBorrador();
-}, 30000);
+  if (!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal) return;
+  // Cada 30 s toma una fotografía completa del estado actual y la sincroniza.
+  guardarRespaldoEmergencia();
+  guardarBorrador();
+}, QA_AUTOGUARDADO_MS);
 
 
     const excelInput =
