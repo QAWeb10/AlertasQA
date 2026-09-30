@@ -2557,7 +2557,7 @@ button{
     </div>
     <div class="auditorias-inicio-body">
       <button type="button" class="btn btn-primary auditorias-inicio-btn" id="btnAuditoriaNueva" onclick="iniciarAuditoriaNueva(); return false;">AUDITORIA NUEVA</button>
-      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso" onclick="mostrarAuditoriasEnProceso(); return false;">AUDITORIA EN PROCESO</button>
+      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso">AUDITORIA EN PROCESO</button>
       <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnReportesInicio" onclick="abrirReportes(); return false;">REPORTES</button>
       <a href="index.html" class="btn btn-secondary auditorias-inicio-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">INICIO</a>
       <div id="auditoriasEnProcesoPanel" class="auditorias-proceso-panel hidden">
@@ -4033,14 +4033,12 @@ async function eliminarAuditoriaEnProceso(id){
   }
 }
 
-async function mostrarAuditoriasEnProceso(ocultarMenu=true){
-  // Al seleccionar AUDITORIA EN PROCESO se cierra el menú inicial.
-  // En la carga inicial se pasa false para conservarlo visible.
-  if(ocultarMenu) mostrarSistemaAuditoria();
+async function mostrarAuditoriasEnProceso(){
   const panel=document.getElementById("auditoriasEnProcesoPanel");
   const listaEl=document.getElementById("auditoriasEnProcesoLista");
   if(!panel||!listaEl)return;
   panel.classList.remove("hidden");
+  listaEl.innerHTML='<div class="alert alert-info">Consultando auditorías en proceso…</div>';
   const lista=await obtenerAuditoriasEnProceso();
   lista.sort((a,b)=>new Date(b.actualizado||0)-new Date(a.actualizado||0));
   if(!lista.length){
@@ -4050,9 +4048,42 @@ async function mostrarAuditoriasEnProceso(ocultarMenu=true){
   listaEl.innerHTML=lista.map((x)=>{
     const fecha=x.actualizado?new Date(x.actualizado).toLocaleString("es-MX"):"";
     const lpn=Array.isArray(x.auditoriaActual)?x.auditoriaActual.length:0;
-    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">Iniciada por: ${escapeHtml(x.propietario||x.usuario||"—")}<br>Última edición: ${escapeHtml(x.ultimaEdicionPor||x.propietario||"—")}<br>STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small" onclick="cargarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">CONTINUAR</button>${esUsuarioAdministrador()?`<button type="button" class="btn btn-secondary btn-small" onclick="eliminarAuditoriaEnProceso('${escapeHtml(x.auditoriaId)}')">ELIMINAR</button>`:""}</div></div>`;
+    return `<div class="auditoria-proceso-item"><strong>${escapeHtml(x.tipoAuditoria||"")}</strong><div class="auditoria-proceso-meta">Iniciada por: ${escapeHtml(x.propietario||x.usuario||"—")}<br>Última edición: ${escapeHtml(x.ultimaEdicionPor||x.propietario||"—")}<br>STO: ${escapeHtml(x.sto||"—")}<br>Origen: ${escapeHtml(x.origen||"—")}<br>Cortina: ${escapeHtml(x.cortina||"—")}<br>LPN: ${lpn}<br>Último avance: ${escapeHtml(fecha)}</div><div class="auditoria-proceso-actions"><button type="button" class="btn btn-primary btn-small btn-continuar-auditoria" data-auditoria-id="${escapeHtml(x.auditoriaId)}">CONTINUAR</button>${esUsuarioAdministrador()?`<button type="button" class="btn btn-secondary btn-small btn-eliminar-auditoria" data-auditoria-id="${escapeHtml(x.auditoriaId)}">ELIMINAR</button>`:""}</div></div>`;
   }).join("");
 }
+
+// La selección de una auditoría en proceso es independiente de "AUDITORIA NUEVA".
+// Se maneja por delegación para evitar que el botón dinámico dispare cualquier
+// comportamiento del menú inicial y para garantizar que se cargue el ID elegido.
+document.addEventListener("click",async function manejarClickAuditoriaEnProceso(event){
+  const continuar=event.target.closest?.(".btn-continuar-auditoria");
+  if(continuar){
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    const id=String(continuar.dataset.auditoriaId||"").trim();
+    if(!id)return;
+    continuar.disabled=true;
+    const textoOriginal=continuar.textContent;
+    continuar.textContent="CARGANDO…";
+    try{
+      await cargarAuditoriaEnProceso(id);
+    }finally{
+      continuar.disabled=false;
+      continuar.textContent=textoOriginal;
+    }
+    return;
+  }
+
+  const eliminar=event.target.closest?.(".btn-eliminar-auditoria");
+  if(eliminar){
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    const id=String(eliminar.dataset.auditoriaId||"").trim();
+    if(id)await eliminarAuditoriaEnProceso(id);
+  }
+});
 
 function mostrarSistemaAuditoria(){
   const overlay=document.getElementById("auditoriasInicioOverlay");
@@ -9444,8 +9475,8 @@ const REPORTES_POR_PAGINA=20;
 function abrirReportes(){
   const inicio=document.getElementById("auditoriasInicioOverlay");
   if(inicio){
-    // Reportes es una ventana independiente: el menú inicial se oculta
-    // mientras Reportes está abierto y vuelve al cerrarlo.
+    // Reportes es una ventana independiente. Ocultamos el menú mientras está abierto
+    // y cerrar Reportes lo restaura, sin crear una auditoría nueva.
     inicio.classList.add("hidden");
     inicio.setAttribute("aria-hidden","true");
   }
@@ -9817,7 +9848,7 @@ document.addEventListener(
     // Sincronización inicial: la lista de auditorías en proceso se consulta
     // desde Supabase en cada dispositivo, no depende del localStorage del equipo.
     try{
-      await mostrarAuditoriasEnProceso(false);
+      await mostrarAuditoriasEnProceso();
       const panelInicial=document.getElementById("auditoriasEnProcesoPanel");
       if(panelInicial)panelInicial.classList.add("hidden");
     }catch(error){
@@ -9839,6 +9870,7 @@ document.addEventListener(
       btnAuditoriasEnProceso.addEventListener("click",async e=>{
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation?.();
         await mostrarAuditoriasEnProceso();
       });
     }
