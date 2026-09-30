@@ -1713,7 +1713,7 @@ button{
 .qa-scan-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000000;display:none;align-items:center;justify-content:center;padding:16px}
 .qa-scan-overlay.show{display:flex}
 .qa-scan-box{width:min(520px,100%);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-.qa-scan-video{width:100%;aspect-ratio:4/3;background:#111;border-radius:12px;object-fit:cover}
+.qa-scan-video{width:100%;aspect-ratio:4/3;background:#111;border-radius:12px;object-fit:cover}.qa-scan-frame{position:absolute;inset:25% 10%;border:3px solid #fff;border-radius:14px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.18)}.qa-scan-stage{position:relative}
 .qa-scan-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 .qa-dictamen{font-size:16px;font-weight:900;padding:12px 14px;border-radius:10px;margin-top:10px}
 .qa-dictamen.aceptado{background:#e9f8ef;color:#14733c;border:1px solid #bfe5cc}
@@ -2436,15 +2436,6 @@ button{
 
         <button
           class="btn btn-secondary"
-          type="button"
-          onclick="abrirReportes()">
-
-          REPORTES
-
-        </button>
-
-        <button
-          class="btn btn-secondary"
           id="btnGuardarAvance"
           type="button"
           onclick="guardarAvance()">
@@ -2566,7 +2557,8 @@ button{
     </div>
     <div class="auditorias-inicio-body">
       <button type="button" class="btn btn-primary auditorias-inicio-btn" id="btnAuditoriaNueva" onclick="iniciarAuditoriaNueva(); return false;">AUDITORIA NUEVA</button>
-      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso" onclick="mostrarAuditoriasEnProceso(); return false;">AUDITORIAS EN PROCESO</button>
+      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso" onclick="mostrarAuditoriasEnProceso(); return false;">AUDITORIA EN PROCESO</button>
+      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnReportesInicio" onclick="abrirReportes(); return false;">REPORTES</button>
       <a href="index.html" class="btn btn-secondary auditorias-inicio-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">INICIO</a>
       <div id="auditoriasEnProcesoPanel" class="auditorias-proceso-panel hidden">
         <div id="auditoriasEnProcesoLista"></div>
@@ -2579,7 +2571,7 @@ button{
   <div class="qa-scan-box">
     <strong>Escanear LPN</strong>
     <div id="qaScanMensaje" style="font-size:12px;color:#666;margin:6px 0 10px">Apunta la cámara al código.</div>
-    <video id="qaScanVideo" class="qa-scan-video" playsinline muted></video>
+    <div class="qa-scan-stage"><video id="qaScanVideo" class="qa-scan-video" playsinline muted></video><div class="qa-scan-frame"></div></div>
     <div class="qa-scan-actions"><button type="button" class="btn btn-secondary" onclick="cerrarScannerLpn()">Cancelar</button></div>
   </div>
 </div>
@@ -2706,6 +2698,8 @@ let fotosGeneralesAuditoria = [];
 let qaScannerStream = null;
 let qaScannerIndex = null;
 let qaUltimaSincronizacion = "";
+let qaSincronizacionPolling = null;
+let qaUltimoEstadoRemotoAplicado = "";
 
 let tareasAuditoriaLpn = [];
 
@@ -3031,35 +3025,53 @@ async function escanearLpn(index){
   const mensaje=document.getElementById("qaScanMensaje");
   if(!overlay||!video)return;
   if(!("BarcodeDetector" in window)){
-    mostrarAlertaQA("Este navegador no dispone del lector de códigos integrado. Puedes usar el botón de cámara del campo LPN o capturar la LPN manualmente.","warning","Lector no disponible");
-    return;
+    mostrarAlertaQA("Este navegador no dispone del lector de códigos integrado. Captura la LPN manualmente.","warning","Lector no disponible");return;
   }
   try{
     const formatos=await BarcodeDetector.getSupportedFormats();
-    const preferidos=["code_128","code_39","ean_13","ean_8","qr_code","data_matrix","itf","upc_a","upc_e"].filter(x=>formatos.includes(x));
+    const preferidos=["code_128","code_39","ean_13","ean_8","itf","qr_code","data_matrix","upc_a","upc_e"].filter(x=>formatos.includes(x));
     const detector=new BarcodeDetector(preferidos.length?{formats:preferidos}:undefined);
     qaScannerIndex=index;
-    qaScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
-    video.srcObject=qaScannerStream;await video.play();overlay.classList.add("show");mensaje.textContent="Apunta la cámara al código de barras o QR…";
+    qaScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
+    video.srcObject=qaScannerStream;await video.play();overlay.classList.add("show");
+    mensaje.textContent="Centra la etiqueta dentro del recuadro y mantén el teléfono quieto…";
+    let candidato="",veces=0,ultimoTiempo=0;
     const ciclo=async()=>{
       if(!qaScannerStream||qaScannerIndex!==index)return;
       try{
         const resultados=await detector.detect(video);
-        const r=resultados?.find(x=>String(x.rawValue||"").trim());
+        const vw=video.videoWidth||1,vh=video.videoHeight||1;
+        const centroX=vw/2,centroY=vh/2;
+        const r=resultados?.map(x=>({x,raw:normalizarLpn(x.rawValue||""),box:x.boundingBox})).filter(x=>x.raw&&x.raw.length>=5).sort((a,b)=>{
+          const da=a.box?Math.hypot((a.box.x+a.box.width/2)-centroX,(a.box.y+a.box.height/2)-centroY):999999;
+          const db=b.box?Math.hypot((b.box.x+b.box.width/2)-centroX,(b.box.y+b.box.height/2)-centroY):999999;
+          return da-db;
+        })[0];
         if(r){
-          const valor=normalizarLpn(r.rawValue);
-          cerrarScannerLpn();
-          const input=document.getElementById(`lpn_${index}`);if(input){input.value=valor;actualizarLpnEntrada(index,valor);await buscarLpnExcel(index,false);}
-          return;
+          const ahora=Date.now();
+          if(r.raw===candidato && ahora-ultimoTiempo<1200)veces++;else{candidato=r.raw;veces=1;}
+          ultimoTiempo=ahora;
+          mensaje.textContent=`Código detectado: ${r.raw} · confirmación ${Math.min(veces,3)}/3`;
+          if(veces>=3){
+            let valor=r.raw;
+            if(excelCargado&&excelIndexLpn?.size){
+              const exacto=clavesLpn(valor).map(k=>excelIndexLpn.get(k)).find(Boolean);
+              if(!exacto){mensaje.textContent="Código no coincide con una LPN del Excel. Acerca y centra la etiqueta correcta.";requestAnimationFrame(ciclo);return;}
+              valor=normalizarLpn(exacto.lpn||valor);
+            }
+            cerrarScannerLpn();
+            const input=document.getElementById(`lpn_${index}`);
+            if(input){input.value=valor;actualizarLpnEntrada(index,valor);await buscarLpnExcel(index,false);}
+            return;
+          }
+        }else{
+          candidato="";veces=0;mensaje.textContent="Centra la etiqueta dentro del recuadro…";
         }
-      }catch(e){}
+      }catch(e){console.warn("Lectura de código pendiente:",e);}
       requestAnimationFrame(ciclo);
     };
     requestAnimationFrame(ciclo);
-  }catch(error){
-    cerrarScannerLpn();
-    mostrarAlertaQA(`No fue posible abrir la cámara. ${error?.message||"Verifica el permiso de cámara."}`,"warning","Cámara no disponible");
-  }
+  }catch(error){cerrarScannerLpn();mostrarAlertaQA(`No fue posible abrir la cámara. ${error?.message||"Verifica el permiso de cámara."}`,"warning","Cámara no disponible");}
 }
 function cerrarScannerLpn(){
   qaScannerIndex=null;
@@ -3071,28 +3083,20 @@ function cerrarScannerLpn(){
 async function forzarSincronizacionAuditoria(){
   if(!auditoriaEnEdicion||!auditoriaId){
     await mostrarAuditoriasEnProceso();
-    marcarUltimaSincronizacion(new Date());
     return;
   }
-  const estadoLocal=await guardarBorradorLocal();
-  if(!estadoLocal)return;
+  marcarSincronizando();
   try{
-    const {data,error}=await supabaseClient.from("Auditoria_Recibo_Borrador").select("auditoria_id,estado,actualizado").eq("auditoria_id",auditoriaId).maybeSingle();
-    if(error)throw error;
-    const fechaLocal=new Date(estadoLocal.actualizado||0).getTime();
-    const fechaRemota=new Date(data?.actualizado||0).getTime();
-    if(data&&fechaRemota>fechaLocal){
-      const remota={...(data.estado||{}),auditoriaId:data.auditoria_id,actualizado:data.actualizado,propietario:data.estado?.propietario||usuarioQA?.nombre||""};
-      const lista=await obtenerAuditoriasEnProceso();
-      const completa=lista.find(x=>String(x.auditoriaId)===String(auditoriaId));
-      if(completa)await restaurarEstadoBorrador(completa);
-    }else{
-      const ok=await guardarBorradorRemoto(estadoLocal);
-      if(!ok)throw new Error(window.qaUltimoErrorGuardado||"No fue posible sincronizar.");
-    }
-    marcarUltimaSincronizacion(new Date());marcarSincronizacionCompleta(new Date());
+    const local=await guardarBorradorLocal();
+    if(!local)throw new Error("No fue posible crear el respaldo local antes de sincronizar.");
+    if(!esUUIDValido(auditoriaId))asegurarIdBorradorUUID();
+    const ok=await sincronizarRemotoConFusion(local);
+    if(!ok)throw new Error(window.qaUltimoErrorGuardado||"El servidor no confirmó el avance.");
+    marcarSincronizacionCompleta(new Date());
   }catch(error){
-    console.error("Forzar sincronización:",error);marcarErrorGuardado();mostrarAlertaQA(`No fue posible completar la sincronización. ${error?.message||error}`,"warning","Sincronización pendiente");
+    console.error("Forzar sincronización:",error);
+    marcarErrorGuardado();
+    mostrarAlertaQA(`La información permanece guardada en este dispositivo, pero el servidor no confirmó la sincronización. ${error?.message||error}`,"warning","Sincronización pendiente");
   }
 }
 
@@ -3198,17 +3202,8 @@ async function obtenerAuditoriasEnProceso(){
     if(indice<0){
       combinadas.push(remota);
     }else{
-      const localActual=Array.isArray(combinadas[indice]?.auditoriaActual)?combinadas[indice].auditoriaActual:[];
-      const remotoActual=Array.isArray(remota.auditoriaActual)?remota.auditoriaActual:[];
-      // Nunca sustituir un borrador completo local por una cabecera remota
-      // que todavía no tenga sus bloques/LPN.
-      if(remotoActual.length>localActual.length){
-        combinadas[indice]=remota;
-      }else if(remotoActual.length===localActual.length){
-        const localFecha=new Date(combinadas[indice]?.actualizado||0).getTime();
-        const remotaFecha=new Date(remota.actualizado||0).getTime();
-        if(remotaFecha>=localFecha)combinadas[indice]=remota;
-      }
+      combinadas[indice]=fusionarEstadosAuditoria(combinadas[indice],remota,remota.actualizado||"");
+      combinadas[indice]._qaOrigenRemoto=true;
     }
   }
 
@@ -3495,194 +3490,188 @@ async function qaSupabaseConTimeout(promise, etiqueta="Supabase", ms=15000){
   }
 }
 
+
+function contarDatosCompletosLpn(item){
+  if(!item)return 0;
+  let score=0;
+  if(String(item.lpn||"").trim())score+=4;
+  if(item.excel_encontrada)score+=2;
+  ["sto","gcas","lote","sistema_cantidad","descripcion","cliente","storage_location"].forEach(k=>{if(String(item?.[k]??"").trim()!=="")score+=1;});
+  for(const [categoria,campo] of checksRequeridosParaItem(item)){
+    if(["OK","ERROR"].includes(item?.[categoria]?.[campo]))score+=2;
+  }
+  if(existeErrorObjetivo(item)){
+    if(String(item.error_detalle||"").trim())score+=1;
+    if(["PLANTA","OPERACION"].includes(item.error_tipo))score+=1;
+    if(String(item.responsable_usuario||"").trim())score+=1;
+    if(String(item.responsable_cuadrilla||"").trim())score+=1;
+    if(String(item.responsable_coordinador||"").trim())score+=1;
+    if(["SI","NO"].includes(item.desviacion_corregida))score+=1;
+  }
+  return score;
+}
+
+function fusionarItemLpn(localItem, remotoItem, localFecha=0, remotoFecha=0){
+  if(!localItem)return remotoItem||{};
+  if(!remotoItem)return localItem;
+  const ls=contarDatosCompletosLpn(localItem);
+  const rs=contarDatosCompletosLpn(remotoItem);
+  if(ls>rs)return localItem;
+  if(rs>ls)return remotoItem;
+  return localFecha>=remotoFecha?localItem:remotoItem;
+}
+
+function fusionarEstadosAuditoria(localEstado, remotoEstado, remotoActualizado=""){
+  const local=localEstado||{};
+  const remoto=remotoEstado||{};
+  const lf=new Date(local.actualizado||0).getTime();
+  const rf=new Date(remotoActualizado||remoto.actualizado||0).getTime();
+  const localItems=Array.isArray(local.auditoriaActual)?local.auditoriaActual:[];
+  const remotoItems=Array.isArray(remoto.auditoriaActual)?remoto.auditoriaActual:[];
+  const max=Math.max(localItems.length,remotoItems.length);
+  const items=[];
+  for(let i=0;i<max;i++)items.push(fusionarItemLpn(localItems[i],remotoItems[i],lf,rf));
+  const out={...remoto,...local};
+  ["cortina","sto","origen","turno","cuadrilla","coordinador","observaciones","excelStoragePath","excelArchivoNombre","excelLocalId","tipoAuditoria","tipoRecibo","muestraCalculada","codigoLetraMuestra"].forEach(k=>{
+    if(String(local[k]??"").trim()!=="")out[k]=local[k];
+    else if(String(remoto[k]??"").trim()!=="")out[k]=remoto[k];
+  });
+  out.auditoriaId=local.auditoriaId||remoto.auditoriaId;
+  out.propietario=local.propietario||remoto.propietario||local.usuario||remoto.usuario||usuarioQA?.nombre||"";
+  out.usuario=local.usuario||remoto.usuario||out.propietario;
+  out.auditoriaActual=items;
+  out.cantidadBloques=items.length;
+  out.actualizado=new Date(Math.max(lf,rf,Date.now())).toISOString();
+  return out;
+}
+
+async function leerEstadoRemotoCompleto(id){
+  if(!esUUIDValido(id))return null;
+  const {data:header,error:headerError}=await qaSupabaseConTimeout(
+    supabaseClient.from("Auditoria_Recibo_Borrador").select("auditoria_id,usuario,estado,actualizado").eq("auditoria_id",id).maybeSingle(),
+    "Lectura de cabecera remota",12000
+  );
+  if(headerError)throw headerError;
+  if(!header)return null;
+  const {data:rows,error:rowsError}=await qaSupabaseConTimeout(
+    supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).select("auditoria_id,usuario,bloque_id,indice,lpn,estado,actualizado").eq("auditoria_id",id).order("indice",{ascending:true}),
+    "Lectura de bloques remotos",12000
+  );
+  if(rowsError)throw rowsError;
+  const estado={...(header.estado||{}),auditoriaId:header.auditoria_id,propietario:header.estado?.propietario||header.usuario||"",usuario:header.usuario||header.estado?.propietario||"",actualizado:header.actualizado||header.estado?.actualizado||"",_qaOrigenRemoto:true};
+  estado.auditoriaActual=(rows||[]).sort((a,b)=>Number(a.indice||0)-Number(b.indice||0)).map(r=>({...((r&&r.estado)||{}),lpn:r?.estado?.lpn||r?.lpn||""}));
+  estado.cantidadBloques=estado.auditoriaActual.length;
+  return estado;
+}
+
+function firmaLpn(item){
+  return JSON.stringify(item||{});
+}
+
+async function verificarGuardadoRemotoExacto(id, itemsEsperados){
+  const remoto=await leerEstadoRemotoCompleto(id);
+  if(!remoto)return false;
+  const actual=Array.isArray(remoto.auditoriaActual)?remoto.auditoriaActual:[];
+  if(actual.length!==itemsEsperados.length)return false;
+  for(let i=0;i<itemsEsperados.length;i++){
+    if(firmaLpn(actual[i])!==firmaLpn(itemsEsperados[i]))return false;
+  }
+  return true;
+}
+
+async function sincronizarRemotoConFusion(estado){
+  if(!estado||!esUUIDValido(estado.auditoriaId))return false;
+  const id=estado.auditoriaId;
+  const propietario=String(estado.propietario||window.qaBorradorPropietario||usuarioQA?.nombre||"").trim();
+  if(!propietario)return false;
+  const remoto=await leerEstadoRemotoCompleto(id).catch(error=>{console.warn("Lectura remota previa no disponible:",error);return null;});
+  const fusion=fusionarEstadosAuditoria(estado,remoto,remoto?.actualizado||"");
+  const items=Array.isArray(fusion.auditoriaActual)?fusion.auditoriaActual:[];
+  const actualizado=new Date().toISOString();
+  const cabecera={...fusion,auditoriaId:id,auditoriaActual:[],cantidadBloques:items.length,propietario,ultimaEdicionPor:usuarioQA?.nombre||propietario,actualizado};
+  const {error:headerError}=await qaSupabaseConTimeout(
+    supabaseClient.from("Auditoria_Recibo_Borrador").upsert({auditoria_id:id,usuario:propietario,estado:cabecera,actualizado},{onConflict:"auditoria_id"}),
+    "Guardado de cabecera fusionada",15000
+  );
+  if(headerError)throw headerError;
+
+  const rows=items.map((item,index)=>({
+    auditoria_id:id,usuario:propietario,bloque_id:`${id}:bloque:${index}`,indice:index,lpn:String(item?.lpn||""),estado:item,actualizado
+  }));
+  if(rows.length){
+    const {error:insertError}=await qaSupabaseConTimeout(
+      supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).upsert(rows,{onConflict:"auditoria_id,usuario,bloque_id"}),
+      `Sincronización de ${rows.length} LPN`,30000
+    );
+    if(insertError)throw insertError;
+  }
+  const ok=await verificarGuardadoRemotoExacto(id,items);
+  if(!ok)throw new Error("El servidor no confirmó exactamente el mismo avance que quedó en este dispositivo.");
+  qaUltimoGuardadoRemoto={guardadas:items.filter(x=>String(x?.lpn||"").trim()).length,total:items.length,actualizado:new Date().toISOString()};
+  marcarUltimaSincronizacion(new Date());
+  return true;
+}
+
+async function sincronizarDesdeServidorSiHayAvance(){
+  if(!auditoriaEnEdicion||qaDraftRestoring||qaDraftFinalizando||qaGuardandoFinal||!esUUIDValido(auditoriaId))return;
+  try{
+    sincronizarDatosAntesDeGuardar();
+    const local=sincronizarFotoFinalLocal();
+    if(!local)return;
+    const remoto=await leerEstadoRemotoCompleto(auditoriaId);
+    if(!remoto)return;
+    const fusion= fusionarEstadosAuditoria(local,remoto,remoto.actualizado||"");
+    const localSig=JSON.stringify(local.auditoriaActual||[]);
+    const fusionSig=JSON.stringify(fusion.auditoriaActual||[]);
+    const remoteSig=JSON.stringify(remoto.auditoriaActual||[]);
+    if(fusionSig!==localSig && fusionSig===remoteSig){
+      qaDraftRestoring=true;
+      try{
+        await restaurarEstadoBorrador(fusion);
+        qaUltimoEstadoRemotoAplicado=remoteSig;
+        await guardarBorradorLocal();
+        marcarSincronizacionCompleta(new Date());
+      }finally{qaDraftRestoring=false;}
+    }else if(fusionSig!==remoteSig){
+      await sincronizarRemotoConFusion(local);
+      marcarSincronizacionCompleta(new Date());
+    }
+  }catch(error){
+    console.warn("Sincronización automática entre dispositivos pendiente:",error);
+    marcarErrorGuardado();
+  }
+}
+
 async function guardarBorradorRemoto(estado){
   if(qaDraftRestoring||qaDraftFinalizando||!usuarioQA?.nombre||!estado)return false;
-
-  const propietario=String(estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre || "").trim();
-  const versionGuard=qaDraftVersion;
-  let auditoriaIdRemota=String(estado.auditoriaId||"").trim();
-
-  if(!esUUIDValido(auditoriaIdRemota)){
+  if(!esUUIDValido(String(estado.auditoriaId||""))){
     if(!auditoriaEnEdicion)return false;
-    auditoriaIdRemota=asegurarIdBorradorUUID();
-    estado.auditoriaId=auditoriaIdRemota;
+    asegurarIdBorradorUUID();
+    estado.auditoriaId=auditoriaId;
   }
-  if(!propietario || !esUUIDValido(auditoriaIdRemota))return false;
-
-  const items=Array.isArray(estado.auditoriaActual)?estado.auditoriaActual:[];
-  const actualizado=new Date().toISOString();
-  const bloqueRows=items.map((item,index)=>({
-    auditoria_id:auditoriaIdRemota,
-    usuario:propietario,
-    bloque_id:`${auditoriaIdRemota}:bloque:${index}`,
-    indice:index,
-    lpn:String(item?.lpn||""),
-    estado:item,
-    actualizado
-  }));
-
   try{
-    // PRIMERO se crea/actualiza la cabecera. La tabla de bloques tiene FK
-    // hacia esta cabecera y por eso nunca debe insertarse antes.
-    const cabecera={
-      ...estado,
-      auditoriaId:auditoriaIdRemota,
-      auditoriaActual:[],
-      cantidadBloques:items.length,
-      propietario,
-      ultimaEdicionPor:usuarioQA.nombre,
-      actualizado
-    };
-
-    const {error:headerError}=await qaSupabaseConTimeout(
-      supabaseClient
-        .from("Auditoria_Recibo_Borrador")
-        .upsert({
-          auditoria_id:auditoriaIdRemota,
-          usuario:propietario,
-          estado:cabecera,
-          actualizado
-        },{onConflict:"auditoria_id"}),
-      "Guardado de cabecera",
-      12000
-    );
-    if(headerError)throw headerError;
-
-    // Ahora sí: reemplazamos TODOS los bloques.
-    const {error:deleteBlocksError}=await qaSupabaseConTimeout(
-      supabaseClient
-        .from(QA_DRAFT_BLOCKS_TABLE)
-        .delete()
-        .eq("auditoria_id",auditoriaIdRemota)
-        .eq("usuario",propietario),
-      "Eliminación de bloques",
-      12000
-    );
-    if(deleteBlocksError)throw deleteBlocksError;
-
-    if(bloqueRows.length){
-      const {error:insertBlocksError}=await qaSupabaseConTimeout(
-        supabaseClient
-          .from(QA_DRAFT_BLOCKS_TABLE)
-          .insert(bloqueRows),
-        `Guardado de ${bloqueRows.length} LPN`,
-        30000
-      );
-      if(insertBlocksError)throw insertBlocksError;
-    }
-
-    // Confirmamos la cantidad real guardada, no solamente la cabecera.
-    const {data:confirmados,error:confirmError}=await qaSupabaseConTimeout(
-      supabaseClient
-        .from(QA_DRAFT_BLOCKS_TABLE)
-        .select("bloque_id")
-        .eq("auditoria_id",auditoriaIdRemota)
-        .eq("usuario",propietario),
-      "Confirmación de bloques",
-      12000
-    );
-    if(confirmError)throw confirmError;
-
-    const idsConfirmados=new Set((confirmados||[]).map(x=>x.bloque_id));
-    const faltantes=bloqueRows.filter(x=>!idsConfirmados.has(x.bloque_id));
-    if(faltantes.length){
-      throw new Error(`Supabase confirmó ${items.length-faltantes.length} de ${items.length} LPN. Faltan ${faltantes.length}.`);
-    }
-
-    const lpnRemotasConfirmadas=(confirmados||[]).filter(row=>{
-      const bloque=bloqueRows.find(x=>x.bloque_id===row.bloque_id);
-      return String(bloque?.lpn||"").trim()!=="";
-    }).length;
-    qaUltimoGuardadoRemoto={
-      guardadas:lpnRemotasConfirmadas,
-      total:items.length,
-      actualizado
-    };
-    window.qaUltimoErrorGuardado="";
-    marcarUltimaSincronizacion(new Date(actualizado));
-
-    // Las fotos se suben después; no impiden que el avance completo quede
-    // guardado. Los archivos originales permanecen en IndexedDB mientras
-    // exista el borrador.
-    // El estado completo ya está protegido localmente. Las fotografías se suben
-    // en segundo plano para no bloquear el uso del teléfono.
-    marcarSincronizando();
-    prepararBorradorCompartido({...estado,auditoriaId:auditoriaIdRemota,propietario,auditoriaActual:items})
-      .then(async compartido=>{
+    const ok=await sincronizarRemotoConFusion(estado);
+    if(ok){
+      window.qaUltimoErrorGuardado="";
+      marcarSincronizacionCompleta(new Date());
+      // Las evidencias se suben después, pero jamás vuelven a escribir bloques
+      // completos con un snapshot antiguo.
+      const versionGuard=qaDraftVersion;
+      prepararBorradorCompartido(estado).then(async compartido=>{
+        if(versionGuard!==qaDraftVersion)return;
         try{
-          if(versionGuard!==qaDraftVersion)return;
-          const {data:versionActual,error:versionError}=await qaSupabaseConTimeout(
-            supabaseClient.from("Auditoria_Recibo_Borrador").select("actualizado").eq("auditoria_id",auditoriaIdRemota).maybeSingle(),
-            "Verificación de versión de evidencias",
-            12000
+          const remotoActual=await leerEstadoRemotoCompleto(estado.auditoriaId);
+          if(!remotoActual)return;
+          const estadoEvidencias={...remotoActual,evidencias_generales:compartido?.evidencias_generales||remotoActual.evidencias_generales||[]};
+          const {error}=await qaSupabaseConTimeout(
+            supabaseClient.from("Auditoria_Recibo_Borrador").update({estado:{...estadoEvidencias,auditoriaActual:[]}}).eq("auditoria_id",estado.auditoriaId),
+            "Sincronización de evidencias",15000
           );
-          if(versionError)throw versionError;
-          const remotoActualMs=new Date(versionActual?.actualizado||0).getTime();
-          const snapshotMs=new Date(actualizado).getTime();
-          if(remotoActualMs>snapshotMs){
-            // Otro guardado más reciente ya escribió los bloques. No permitir
-            // que esta sincronización antigua vuelva a colocar datos viejos.
-            return;
-          }
-          // Actualizar las fotos generales en la cabecera mediante control
-          // optimista de versión. Si otro guardado ya avanzó, abandonamos
-          // esta sincronización antigua y nunca sobrescribimos el avance nuevo.
-          if(Array.isArray(compartido?.evidencias_generales)){
-            const estadoCabeceraCompartida={...estado,
-              auditoriaId:auditoriaIdRemota,
-              auditoriaActual:[],
-              evidencias_generales:compartido.evidencias_generales,
-              cantidadBloques:items.length,
-              propietario,
-              ultimaEdicionPor:usuarioQA.nombre,
-              actualizado
-            };
-            const {data:headerActualizado,error:headerVersionError}=await qaSupabaseConTimeout(
-              supabaseClient.from("Auditoria_Recibo_Borrador")
-                .update({estado:estadoCabeceraCompartida,actualizado:new Date().toISOString()})
-                .eq("auditoria_id",auditoriaIdRemota)
-                .eq("actualizado",actualizado)
-                .select("auditoria_id"),
-              "Sincronización de fotografías de cierre",
-              15000
-            );
-            if(headerVersionError)throw headerVersionError;
-            if(!Array.isArray(headerActualizado)||!headerActualizado.length)return;
-          }
-
-          // Una vez actualizada la cabecera con control de versión, usamos
-          // su nuevo timestamp para identificar este mismo guardado.
-
-          const bloquesCompartidos=compartido?.auditoriaActual||[];
-          if(bloquesCompartidos.length){
-            const rows=bloquesCompartidos.map((item,index)=>({
-              auditoria_id:auditoriaIdRemota,
-              usuario:propietario,
-              bloque_id:`${auditoriaIdRemota}:bloque:${index}`,
-              indice:index,
-              lpn:String(item?.lpn||""),
-              estado:item,
-              actualizado:new Date().toISOString()
-            }));
-            const {error}=await qaSupabaseConTimeout(
-              supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).upsert(rows,{onConflict:"auditoria_id,usuario,bloque_id"}),
-              "Sincronización de evidencias",
-              30000
-            );
-            if(error)throw error;
-          }
-          marcarSincronizacionCompleta(new Date());
-        }catch(errorEvidencias){
-          console.warn("Sincronización posterior de evidencias pendiente:",errorEvidencias);
-          marcarErrorGuardado();
-        }
-      })
-      .catch(errorEvidencias=>{
-        console.warn("Sincronización posterior de evidencias pendiente:",errorEvidencias);
-        marcarErrorGuardado();
-      });
-
-    return true;
+          if(error)throw error;
+        }catch(e){console.warn("Evidencias pendientes de sincronizar:",e);}
+      }).catch(e=>console.warn("Evidencias pendientes de sincronizar:",e));
+    }
+    return ok;
   }catch(error){
     console.error("Error guardando borrador remoto:",error);
     window.qaUltimoErrorGuardado=error?.message||error?.details||error?.hint||String(error);
@@ -4044,7 +4033,10 @@ async function eliminarAuditoriaEnProceso(id){
   }
 }
 
-async function mostrarAuditoriasEnProceso(){
+async function mostrarAuditoriasEnProceso(ocultarMenu=true){
+  // Al seleccionar AUDITORIA EN PROCESO se cierra el menú inicial.
+  // En la carga inicial se pasa false para conservarlo visible.
+  if(ocultarMenu) mostrarSistemaAuditoria();
   const panel=document.getElementById("auditoriasEnProcesoPanel");
   const listaEl=document.getElementById("auditoriasEnProcesoLista");
   if(!panel||!listaEl)return;
@@ -4662,6 +4654,7 @@ function actualizarLpn(index,campo,valor){
   if(typeof actualizarEstadoLpn === "function"){
     actualizarEstadoLpn(index);
   }
+  if(typeof actualizarIndicadorCompletoLpn === "function")actualizarIndicadorCompletoLpn(index);
 
   if(typeof actualizarResultadoGeneral === "function"){
     actualizarResultadoGeneral();
@@ -5039,6 +5032,7 @@ function renderizarAuditoria(){
   );
 
   actualizarKPIs();
+  actualizarIndicadorCompletoLpn(index);
 
 }
 
@@ -5422,10 +5416,6 @@ function crearLpnCard(item,index){
               <select
                 id="errorTipo_${index}"
                 onchange="actualizarError(${index})">
-
-                <option value="NINGUNO">
-                  SIN ERROR
-                </option>
 
                 <option value="PLANTA">
                   ERROR DE PLANTA
@@ -6797,52 +6787,63 @@ function actualizarError(index){
   guardarBorrador();
 }
 
-function actualizarKPIs(){
 
-  const totalLpn = auditoriaActual.length;
-  let total = 0;
-  let bien = 0;
-  let crit = 0;
-  let may = 0;
-  let men = 0;
-
-  auditoriaActual.forEach(item => {
-
-    obtenerTodosLosChecks(item).forEach(x => {
-
-      if(x.valor !== "OK" && x.valor !== "ERROR") return;
-
-      total++;
-
-      if(x.valor === "OK"){
-        bien++;
-        return;
-      }
-
-      const severidad = obtenerSeveridadHallazgo(item,x);
-
-      if(severidad === "CRITICO") crit++;
-      else if(severidad === "MAYOR") may++;
-      else men++;
+function obtenerNivelTAMU(){
+  const muestra=Number(muestraCalculada||0);
+  if(!muestra||auditoriaActual.length!==muestra)return {codigo:"PENDIENTE",nombre:"PENDIENTE",descripcion:"Completa la muestra antes de emitir un resultado."};
+  const incompletas=auditoriaActual.filter(x=>!lpnEstaCompleta(x));
+  if(incompletas.length)return {codigo:"PENDIENTE",nombre:"PENDIENTE",descripcion:`Faltan ${incompletas.length} LPN por completar.`};
+  let nivel="TARGET";
+  auditoriaActual.forEach(item=>{
+    obtenerTodosLosChecks(item).forEach(check=>{
+      if(check.valor!=="ERROR")return;
+      const sev=obtenerSeveridadHallazgo(item,check);
+      if(sev==="CRITICO")nivel="UNACCEPTABLE";
+      else if(sev==="MAYOR" && nivel!=="UNACCEPTABLE")nivel="MARGINAL";
+      else if(sev==="MENOR" && ["TARGET"].includes(nivel))nivel="ACCEPTABLE";
     });
-
   });
-
-  const set = (id,val) => {
-    const el = document.getElementById(id);
-    if(el) el.textContent = val;
+  return {
+    codigo:nivel,
+    nombre:nivel==="TARGET"?"TARGET":nivel==="ACCEPTABLE"?"ACCEPTABLE":nivel==="MARGINAL"?"MARGINAL ACCEPTABLE":"UNACCEPTABLE",
+    descripcion:nivel==="TARGET"?"Sin desviaciones.":nivel==="ACCEPTABLE"?"Desviaciones menores, sin hallazgo mayor o crítico.":nivel==="MARGINAL"?"Existe al menos una desviación mayor; requiere atención conforme al criterio TAMU aplicable.":"Existe al menos una desviación crítica."
   };
+}
 
-  set("kpiTotalLpn",totalLpn);
-  set("kpiTotalHallazgos",crit + may + men);
-  set("kpiCriticos",crit);
-  set("kpiMayores",may);
-  set("kpiMenores",men);
+function actualizarDictamenYtamu(){
+  const dictamen=document.getElementById("dictamenAuditoria");
+  if(!dictamen)return;
+  const t=obtenerNivelTAMU();
+  if(t.codigo==="PENDIENTE"){
+    dictamen.className="qa-dictamen";
+    dictamen.textContent="DICTAMEN: PENDIENTE · NIVEL TAMU: PENDIENTE";
+    return;
+  }
+  const rechazado=t.codigo==="UNACCEPTABLE";
+  dictamen.className=`qa-dictamen ${rechazado?"rechazado":"aceptado"}`;
+  dictamen.textContent=`DICTAMEN: ${rechazado?"RECHAZADO":"ACEPTADO"} · TAMU: ${t.nombre}`;
+  dictamen.title=t.descripcion;
+}
 
-  set(
-    "kpiCumplimiento",
-    total ? `${((bien / total) * 100).toFixed(1)}%` : "0%"
-  );
+function actualizarKPIs(){
+  const totalMuestra=Number(muestraCalculada||0);
+  const completas=auditoriaActual.filter(lpnEstaCompleta).length;
+  let total=0,bien=0,crit=0,may=0,men=0;
+  auditoriaActual.forEach(item=>{
+    obtenerTodosLosChecks(item).forEach(x=>{
+      if(x.valor!=="OK"&&x.valor!=="ERROR")return;
+      total++; if(x.valor==="OK"){bien++;return;}
+      const severidad=obtenerSeveridadHallazgo(item,x);
+      if(severidad==="CRITICO")crit++;else if(severidad==="MAYOR")may++;else men++;
+    });
+  });
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  set("kpiTotalLpn",totalMuestra?`${completas}/${totalMuestra}`:completas);
+  set("kpiTotalHallazgos",crit+may+men);
+  set("kpiCriticos",crit);set("kpiMayores",may);set("kpiMenores",men);
+  const completo=totalMuestra>0&&completas===totalMuestra;
+  set("kpiCumplimiento",completo&&total?`${((bien/total)*100).toFixed(1)}%`:"PENDIENTE");
+  actualizarDictamenYtamu();
 }
 
 /* =========================================================
@@ -6850,73 +6851,36 @@ function actualizarKPIs(){
 ========================================================= */
 
 function actualizarResultadoGeneral(){
-
-  const resultado =
-    document.getElementById(
-      "resultadoGeneral"
-    );
-
-  if(!resultado){
-    return;
+  const resultado=document.getElementById("resultadoGeneral");
+  if(!resultado)return;
+  const muestra=Number(muestraCalculada||0);
+  const incompletas=auditoriaActual.filter(x=>!lpnEstaCompleta(x));
+  if(!muestra||auditoriaActual.length!==muestra){
+    resultado.className="alert alert-info";
+    resultado.textContent="DICTAMEN PENDIENTE · Calcula la muestra y genera todas las LPN requeridas.";
+    actualizarKPIs();return;
   }
-
-  if(!auditoriaActual.length){
-
-    resultado.className =
-      "alert alert-info";
-
-    resultado.textContent =
-      "Completa la muestra de auditoría.";
-    const dictamen=document.getElementById("dictamenAuditoria");
-    if(dictamen){dictamen.className="qa-dictamen";dictamen.textContent="DICTAMEN: PENDIENTE";}
-
-    actualizarKPIs();
-
-    return;
-
+  if(incompletas.length){
+    resultado.className="alert alert-warning";
+    resultado.textContent=`DICTAMEN PENDIENTE · ${incompletas.length} de ${muestra} LPN aún no están completamente auditadas.`;
+    actualizarKPIs();return;
   }
-
-  const errores =
-    auditoriaActual.filter(
-      x =>
-        x.error_tipo !==
-        "NINGUNO" ||
-        (
-          x.hallazgos ||
-          []
-        ).length
-    );
-
-  const planta =
-    errores.filter(
-      x =>
-        x.error_tipo ===
-        "PLANTA"
-    ).length;
-
-  const operacion =
-    errores.filter(
-      x =>
-        x.error_tipo ===
-        "OPERACION"
-    ).length;
-
-  const dictamen=document.getElementById("dictamenAuditoria");
-  if(!errores.length){
-    resultado.className="alert alert-success";
-    resultado.textContent="✓ AUDITORÍA SIN DESVIACIONES.";
-    if(dictamen){dictamen.className="qa-dictamen aceptado";dictamen.textContent="DICTAMEN: ACEPTADO";}
-  }else{
+  const errores=auditoriaActual.filter(x=>calcularHallazgos(x).length||obtenerTodosLosChecks(x).some(c=>c.valor==="ERROR"));
+  const planta=errores.filter(x=>x.error_tipo==="PLANTA").length;
+  const operacion=errores.filter(x=>x.error_tipo==="OPERACION").length;
+  const tamu=obtenerNivelTAMU();
+  if(tamu.codigo==="UNACCEPTABLE"){
     resultado.className="alert alert-error";
-    resultado.textContent=`✕ AUDITORÍA CON DESVIACIONES · ${errores.length} LPN con hallazgo · ${planta} de planta · ${operacion} de operación.`;
-    if(dictamen){dictamen.className="qa-dictamen rechazado";dictamen.textContent="DICTAMEN: RECHAZADO";}
+    resultado.textContent=`✕ AUDITORÍA RECHAZADA · TAMU: ${tamu.nombre} · ${errores.length} LPN con desviación · ${planta} de planta · ${operacion} de operación.`;
+  }else if(tamu.codigo==="TARGET"){
+    resultado.className="alert alert-success";
+    resultado.textContent="✓ AUDITORÍA ACEPTADA · TAMU: TARGET · SIN DESVIACIONES.";
+  }else{
+    resultado.className="alert alert-warning";
+    resultado.textContent=`✓ AUDITORÍA ACEPTADA · TAMU: ${tamu.nombre} · ${errores.length} LPN con desviación · ${tamu.descripcion}`;
   }
-
-  actualizarKPIs();
-
-  renderizarEvidenciaPositiva();
+  actualizarKPIs();renderizarEvidenciaPositiva();
 }
-
 
 /* =========================================================
    FOTOS / EVIDENCIAS
@@ -8382,7 +8346,8 @@ function construirDatosAuditoria(
 
           ...copia,
           auditoria_borrador_id:auditoriaId,
-          dictamen_auditoria:auditoriaActual.some(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO")?"RECHAZADO":"ACEPTADO",
+          dictamen_auditoria:obtenerNivelTAMU().codigo==="UNACCEPTABLE"?"RECHAZADO":"ACEPTADO",
+          nivel_tamu:obtenerNivelTAMU().nombre,
 
           evidencia_campos_urls:
             evidenciaCampoUrls,
@@ -8440,7 +8405,7 @@ function construirDatosAuditoria(
     desviacion:
       codigos.some(
         x =>
-          x.error_tipo !==
+          x.error_tipo && x.error_tipo !==
           "NINGUNO"
       )
         ? "SI"
@@ -9477,6 +9442,13 @@ let reportesTotal=0;
 const REPORTES_POR_PAGINA=20;
 
 function abrirReportes(){
+  const inicio=document.getElementById("auditoriasInicioOverlay");
+  if(inicio){
+    // Reportes es una ventana independiente: el menú inicial se oculta
+    // mientras Reportes está abierto y vuelve al cerrarlo.
+    inicio.classList.add("hidden");
+    inicio.setAttribute("aria-hidden","true");
+  }
   const overlay=document.getElementById("reportesOverlay");
   if(!overlay)return;
   overlay.classList.add("show");
@@ -9486,9 +9458,12 @@ function abrirReportes(){
 }
 function cerrarReportes(){
   const overlay=document.getElementById("reportesOverlay");
-  if(!overlay)return;
-  overlay.classList.remove("show");
-  overlay.setAttribute("aria-hidden","true");
+  if(overlay){
+    overlay.classList.remove("show");
+    overlay.setAttribute("aria-hidden","true");
+  }
+  // Al cerrar Reportes siempre regresamos al menú inicial, nunca iniciamos una auditoría.
+  mostrarInicioAuditorias();
 }
 async function cargarReportes(pagina=reportesPaginaActual){
   const lista=document.getElementById("reportesLista");
@@ -9693,8 +9668,9 @@ async function generarPDFdesdeReporte(indice){
     campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Auditor",r.nombre);campo(140,y,60,"Turno",r.turno);y+=19;
     campo(10,y,60,"Cuadrilla",r.cuadrilla);campo(75,y,60,"STO",r.sto);campo(140,y,60,"Origen",r.origen);y+=19;
     campo(10,y,60,"Cortina",r.cortina);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
-    const dictamenPDF=codigos.some(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO")?"RECHAZADO":"ACEPTADO";
-    campo(10,y,60,"Dictamen",dictamenPDF);campo(75,y,125,"Observaciones",r.observaciones);y+=19;
+    const dictamenPDF=codigos.some(x=>x?.dictamen_auditoria==="RECHAZADO")?"RECHAZADO":"ACEPTADO";
+    const tamuPDF=codigos[0]?.nivel_tamu||"PENDIENTE";
+    campo(10,y,60,"Dictamen",dictamenPDF);campo(75,y,60,"TAMU",tamuPDF);campo(140,y,60,"Observaciones",r.observaciones);y+=19;
 
     for(let i=0;i<codigos.length;i++){
       const item=codigos[i]||{};
@@ -9841,7 +9817,7 @@ document.addEventListener(
     // Sincronización inicial: la lista de auditorías en proceso se consulta
     // desde Supabase en cada dispositivo, no depende del localStorage del equipo.
     try{
-      await mostrarAuditoriasEnProceso();
+      await mostrarAuditoriasEnProceso(false);
       const panelInicial=document.getElementById("auditoriasEnProcesoPanel");
       if(panelInicial)panelInicial.classList.add("hidden");
     }catch(error){
@@ -9868,6 +9844,10 @@ document.addEventListener(
     }
 
 const QA_AUTOGUARDADO_MS = 30000;
+clearInterval(qaSincronizacionPolling);
+qaSincronizacionPolling=setInterval(()=>{
+  sincronizarDesdeServidorSiHayAvance();
+},10000);
 setInterval(() => {
   if (!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal) return;
   // Cada 30 s toma una fotografía completa del estado actual y la sincroniza.
