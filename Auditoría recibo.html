@@ -1703,6 +1703,27 @@ button{
   color:#CF002E;
 }
 </style>
+
+<style>
+.qa-sync-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qa-sync-time{font-size:11px;color:#666}
+.qa-lpn-complete{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
+.qa-lpn-complete .status-pill{font-size:11px}
+.qa-lpn-complete-text{font-size:11px;font-weight:800}
+.qa-scan-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000000;display:none;align-items:center;justify-content:center;padding:16px}
+.qa-scan-overlay.show{display:flex}
+.qa-scan-box{width:min(520px,100%);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.qa-scan-video{width:100%;aspect-ratio:4/3;background:#111;border-radius:12px;object-fit:cover}
+.qa-scan-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.qa-dictamen{font-size:16px;font-weight:900;padding:12px 14px;border-radius:10px;margin-top:10px}
+.qa-dictamen.aceptado{background:#e9f8ef;color:#14733c;border:1px solid #bfe5cc}
+.qa-dictamen.rechazado{background:#fff0f3;color:#a40024;border:1px solid #efc5ce}
+.qa-final-photo-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}
+.qa-final-photo{position:relative;aspect-ratio:1;border:1px solid #ddd;border-radius:8px;overflow:hidden;background:#f6f6f6}
+.qa-final-photo img{width:100%;height:100%;object-fit:cover}
+.qa-final-photo button{position:absolute;right:3px;top:3px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-weight:900}
+@media(max-width:520px){.qa-final-photo-preview{grid-template-columns:repeat(3,1fr)}.qa-sync-row{align-items:flex-start}}
+</style>
 </head>
 
 <body>
@@ -2359,6 +2380,8 @@ button{
 
       </div>
 
+      <div id="dictamenAuditoria" class="qa-dictamen aceptado">DICTAMEN: PENDIENTE</div>
+
       <div
         class="kpi-grid"
         id="kpiFinales"
@@ -2394,6 +2417,17 @@ button{
           id="observaciones"
           placeholder="Observaciones adicionales..."></textarea>
 
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label>Fotografía de cierre / evidencia general</label>
+        <div class="field-evidence-actions">
+          <label class="evidence-mini" for="fotoFinalCam">Cámara</label>
+          <label class="evidence-mini secondary" for="fotoFinalArchivo">Archivos</label>
+        </div>
+        <input id="fotoFinalCam" class="hidden" type="file" accept="image/*" capture="environment" multiple onchange="manejarFotoFinal(event)">
+        <input id="fotoFinalArchivo" class="hidden" type="file" accept="image/*" multiple onchange="manejarFotoFinal(event)">
+        <div id="fotoFinalPreview" class="qa-final-photo-preview"></div>
       </div>
 
       <div
@@ -2432,6 +2466,10 @@ button{
 
       <div id="qaGuardadoEstado" class="qa-guardado-estado" aria-live="polite">
         Sin cambios guardados todavía
+      </div>
+      <div class="qa-sync-row">
+        <span id="qaUltimaSincronizacion" class="qa-sync-time">Última sincronización: —</span>
+        <button type="button" class="btn btn-secondary btn-small" onclick="forzarSincronizacionAuditoria()">Forzar sincronización</button>
       </div>
 
     </div>
@@ -2534,6 +2572,15 @@ button{
         <div id="auditoriasEnProcesoLista"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="qaScanOverlay" class="qa-scan-overlay" aria-hidden="true">
+  <div class="qa-scan-box">
+    <strong>Escanear LPN</strong>
+    <div id="qaScanMensaje" style="font-size:12px;color:#666;margin:6px 0 10px">Apunta la cámara al código.</div>
+    <video id="qaScanVideo" class="qa-scan-video" playsinline muted></video>
+    <div class="qa-scan-actions"><button type="button" class="btn btn-secondary" onclick="cerrarScannerLpn()">Cancelar</button></div>
   </div>
 </div>
 
@@ -2655,6 +2702,10 @@ function esUUIDValido(valor){
 }
 
 let fotosSeleccionadas = [];
+let fotosGeneralesAuditoria = [];
+let qaScannerStream = null;
+let qaScannerIndex = null;
+let qaUltimaSincronizacion = "";
 
 let tareasAuditoriaLpn = [];
 
@@ -2864,6 +2915,187 @@ function limpiarBorradoresLocalesVacios(){
   }
 }
 
+function formatearFechaSincronizacion(fecha=new Date()){
+  const d=fecha instanceof Date?fecha:new Date(fecha);
+  if(Number.isNaN(d.getTime()))return "—";
+  try{return d.toLocaleString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false})+" hrs";}catch(e){return d.toLocaleString()+" hrs";}
+}
+
+function marcarUltimaSincronizacion(fecha=new Date()){
+  qaUltimaSincronizacion=formatearFechaSincronizacion(fecha);
+  const el=document.getElementById("qaUltimaSincronizacion");
+  if(el)el.textContent=`Última sincronización: ${qaUltimaSincronizacion}`;
+}
+
+function obtenerChecksFaltantesLpn(item){
+  const faltantes=[];
+  if(!String(item?.lpn||"").trim())faltantes.push("LPN");
+  if(excelCargado){
+    if(!item?.excel_encontrada)faltantes.push("LPN en Excel");
+    if(!String(item?.sto||"").trim())faltantes.push("STO");
+    if(!String(item?.gcas||"").trim())faltantes.push("GCAS");
+    if(!String(item?.lote||"").trim())faltantes.push("lote");
+    if(item?.sistema_cantidad===""||item?.sistema_cantidad===null||item?.sistema_cantidad===undefined)faltantes.push("cantidad sistema");
+  }else{
+    if(!/^\d{8}$/.test(String(item?.gcas||"")))faltantes.push("GCAS");
+    if(!String(item?.lote||"").trim())faltantes.push("lote");
+    if(item?.sistema_cantidad===""||item?.sistema_cantidad===null||item?.sistema_cantidad===undefined)faltantes.push("cantidad sistema");
+  }
+  for(const [categoria,campo] of checksRequeridosParaItem(item)){
+    if(!["OK","ERROR"].includes(item?.[categoria]?.[campo]))faltantes.push(campo.replaceAll("_"," "));
+  }
+  if(existeErrorObjetivo(item)){
+    if(!String(item.error_detalle||"").trim())faltantes.push("detalle del hallazgo");
+    if(!["PLANTA","OPERACION"].includes(item.error_tipo))faltantes.push("clasificación del hallazgo");
+    if(!String(item.responsable_usuario||"").trim())faltantes.push("usuario responsable");
+    if(!String(item.responsable_cuadrilla||"").trim())faltantes.push("cuadrilla responsable");
+    if(!String(item.responsable_coordinador||"").trim())faltantes.push("coordinador responsable");
+    if(!["SI","NO"].includes(item.desviacion_corregida))faltantes.push("corrección del hallazgo");
+  }
+  return [...new Set(faltantes)];
+}
+
+function lpnEstaCompleta(item){return obtenerChecksFaltantesLpn(item).length===0;}
+
+function alternarMinimizarLpn(index){
+  const card=document.getElementById(`lpnCard_${index}`);
+  if(!card)return;
+  card.open=!card.open;
+  const btn=card.querySelector(".lpn-card-head button");
+  if(btn)btn.textContent=card.open?"Minimizar":"Abrir";
+}
+
+function actualizarIndicadorCompletoLpn(index){
+  const item=auditoriaActual[index];
+  const el=document.getElementById(`lpnComplete_${index}`);
+  if(!el||!item)return;
+  const faltantes=obtenerChecksFaltantesLpn(item);
+  if(!faltantes.length){
+    el.innerHTML='<span class="status-pill status-ok">✓ COMPLETA</span><span class="qa-lpn-complete-text">LPN lista al 100%</span>';
+  }else{
+    const resumen=faltantes.length===1?faltantes[0]:`${faltantes.length} datos pendientes`;
+    el.innerHTML=`<span class="status-pill status-pending">PENDIENTE</span><span class="qa-lpn-complete-text">Falta: ${escapeHtml(resumen)}</span>`;
+  }
+}
+
+function sincronizarFotoFinalLocal(){
+  const estado={
+    auditoriaId,
+    propietario:window.qaBorradorPropietario||usuarioQA?.nombre||"",
+    tipoAuditoria:obtenerTipoAuditoria(),tipoRecibo:obtenerTipoRecibo(),
+    cortina:document.getElementById("cortina")?.value||"",sto:document.getElementById("sto")?.value||"",
+    origen:document.getElementById("origen")?.value||"",turno:document.getElementById("turno")?.value||"",
+    cuadrilla:document.getElementById("cuadrilla")?.value||"",coordinador:document.getElementById("coordinador")?.value||"",
+    observaciones:document.getElementById("observaciones")?.value||"",muestraCalculada,codigoLetraMuestra,
+    excelStoragePath,excelArchivoNombre,excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
+    auditoriaActual:prepararAuditoriaParaBorrador(auditoriaActual),
+    evidencias_generales:(fotosGeneralesAuditoria||[]).map(a=>typeof a==="string"?{tipo:"url",url:a}:{tipo:"local",localId:a.__qaEvidenceId,name:a.name,type:a.type,lastModified:a.lastModified}),
+    actualizado:new Date().toISOString()
+  };
+  return estado;
+}
+
+async function manejarFotoFinal(event){
+  const archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
+  if(event?.target)event.target.value="";
+  if(!archivos.length)return;
+  marcarSincronizando();
+  for(const archivo of archivos){
+    const foto=await prepararFotoParaGuardadoLocal(archivo);
+    if(foto)fotosGeneralesAuditoria.push(foto);
+  }
+  renderizarFotosFinales();
+  guardarBorrador();
+  guardarRespaldoEmergencia();
+}
+
+function renderizarFotosFinales(){
+  const el=document.getElementById("fotoFinalPreview");
+  if(!el)return;
+  revocarObjectURLsEnElemento(el);el.innerHTML="";
+  (fotosGeneralesAuditoria||[]).forEach((archivo,i)=>{
+    const url=typeof archivo==="string"?archivo:URL.createObjectURL(archivo);
+    el.insertAdjacentHTML("beforeend",`<div class="qa-final-photo"><img src="${escapeHtml(url)}" ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}"`:""} alt="Fotografía de cierre"><button type="button" onclick="eliminarFotoFinal(${i})">×</button></div>`);
+  });
+}
+function eliminarFotoFinal(index){
+  const archivo=fotosGeneralesAuditoria[index];
+  if(!archivo)return;
+  if(archivo.__qaEvidenceId)eliminarArchivoBorradorLocal(archivo.__qaEvidenceId);
+  fotosGeneralesAuditoria.splice(index,1);renderizarFotosFinales();guardarBorrador();
+}
+
+async function escanearLpn(index){
+  const overlay=document.getElementById("qaScanOverlay");
+  const video=document.getElementById("qaScanVideo");
+  const mensaje=document.getElementById("qaScanMensaje");
+  if(!overlay||!video)return;
+  if(!("BarcodeDetector" in window)){
+    mostrarAlertaQA("Este navegador no dispone del lector de códigos integrado. Puedes usar el botón de cámara del campo LPN o capturar la LPN manualmente.","warning","Lector no disponible");
+    return;
+  }
+  try{
+    const formatos=await BarcodeDetector.getSupportedFormats();
+    const preferidos=["code_128","code_39","ean_13","ean_8","qr_code","data_matrix","itf","upc_a","upc_e"].filter(x=>formatos.includes(x));
+    const detector=new BarcodeDetector(preferidos.length?{formats:preferidos}:undefined);
+    qaScannerIndex=index;
+    qaScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    video.srcObject=qaScannerStream;await video.play();overlay.classList.add("show");mensaje.textContent="Apunta la cámara al código de barras o QR…";
+    const ciclo=async()=>{
+      if(!qaScannerStream||qaScannerIndex!==index)return;
+      try{
+        const resultados=await detector.detect(video);
+        const r=resultados?.find(x=>String(x.rawValue||"").trim());
+        if(r){
+          const valor=normalizarLpn(r.rawValue);
+          cerrarScannerLpn();
+          const input=document.getElementById(`lpn_${index}`);if(input){input.value=valor;actualizarLpnEntrada(index,valor);await buscarLpnExcel(index,false);}
+          return;
+        }
+      }catch(e){}
+      requestAnimationFrame(ciclo);
+    };
+    requestAnimationFrame(ciclo);
+  }catch(error){
+    cerrarScannerLpn();
+    mostrarAlertaQA(`No fue posible abrir la cámara. ${error?.message||"Verifica el permiso de cámara."}`,"warning","Cámara no disponible");
+  }
+}
+function cerrarScannerLpn(){
+  qaScannerIndex=null;
+  if(qaScannerStream){qaScannerStream.getTracks().forEach(t=>t.stop());qaScannerStream=null;}
+  const video=document.getElementById("qaScanVideo");if(video)video.srcObject=null;
+  const overlay=document.getElementById("qaScanOverlay");if(overlay)overlay.classList.remove("show");
+}
+
+async function forzarSincronizacionAuditoria(){
+  if(!auditoriaEnEdicion||!auditoriaId){
+    await mostrarAuditoriasEnProceso();
+    marcarUltimaSincronizacion(new Date());
+    return;
+  }
+  const estadoLocal=await guardarBorradorLocal();
+  if(!estadoLocal)return;
+  try{
+    const {data,error}=await supabaseClient.from("Auditoria_Recibo_Borrador").select("auditoria_id,estado,actualizado").eq("auditoria_id",auditoriaId).maybeSingle();
+    if(error)throw error;
+    const fechaLocal=new Date(estadoLocal.actualizado||0).getTime();
+    const fechaRemota=new Date(data?.actualizado||0).getTime();
+    if(data&&fechaRemota>fechaLocal){
+      const remota={...(data.estado||{}),auditoriaId:data.auditoria_id,actualizado:data.actualizado,propietario:data.estado?.propietario||usuarioQA?.nombre||""};
+      const lista=await obtenerAuditoriasEnProceso();
+      const completa=lista.find(x=>String(x.auditoriaId)===String(auditoriaId));
+      if(completa)await restaurarEstadoBorrador(completa);
+    }else{
+      const ok=await guardarBorradorRemoto(estadoLocal);
+      if(!ok)throw new Error(window.qaUltimoErrorGuardado||"No fue posible sincronizar.");
+    }
+    marcarUltimaSincronizacion(new Date());marcarSincronizacionCompleta(new Date());
+  }catch(error){
+    console.error("Forzar sincronización:",error);marcarErrorGuardado();mostrarAlertaQA(`No fue posible completar la sincronización. ${error?.message||error}`,"warning","Sincronización pendiente");
+  }
+}
+
 async function obtenerAuditoriasEnProceso(){
   let locales=[];
   try{
@@ -2935,6 +3167,24 @@ async function obtenerAuditoriasEnProceso(){
         }
       }
     }
+
+    // Una auditoría finalizada deja una marca de cierre dentro de codigos.
+    // Si el borrador todavía existe por una falla de red, NO debe ofrecerse
+    // nuevamente como "Continuar" ni permitir sobrescribirla.
+    try{
+      const {data:cerradas,error:cerradasError}=await supabaseClient.from(TABLA).select("folio,created_at,codigos").order("created_at",{ascending:false}).limit(1000);
+      if(!cerradasError&&Array.isArray(cerradas)){
+        const idsCerrados=new Set();
+        for(const r of cerradas){
+          const cods=obtenerCodigosRegistro(r);
+          for(const c of cods){if(c?.auditoria_borrador_id)idsCerrados.add(String(c.auditoria_borrador_id));}
+        }
+        if(idsCerrados.size){
+          remotas=remotas.filter(x=>!idsCerrados.has(String(x.auditoriaId)));
+          locales=locales.filter(x=>!idsCerrados.has(String(x.auditoriaId)));
+        }
+      }
+    }catch(e){console.warn("No fue posible comprobar auditorías cerradas:",e);}
   }catch(error){
     console.error("Error leyendo auditorías compartidas:",error);
   }
@@ -3058,6 +3308,7 @@ function guardarRespaldoEmergencia(){
       excelArchivoNombre,
       excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
       auditoriaActual:prepararAuditoriaParaBorrador(auditoriaActual),
+      evidencias_generales:(fotosGeneralesAuditoria||[]).map(a=>typeof a==="string"?{tipo:"url",url:a}:{tipo:"local",localId:a.__qaEvidenceId,name:a.name,type:a.type,lastModified:a.lastModified}),
       actualizado:new Date().toISOString(),
       respaldoEmergencia:true
     };
@@ -3102,6 +3353,12 @@ async function guardarBorradorLocal(){
         }
       }
     }
+    for(const archivo of fotosGeneralesAuditoria||[]){
+      if(typeof archivo!=="string"&&archivo?.__qaEvidenceId){
+        const guardado=await guardarArchivoBorradorLocal(archivo.__qaEvidenceId,archivo);
+        if(!guardado)throw new Error(`No fue posible guardar localmente la fotografía general ${archivo.__qaEvidenceId}.`);
+      }
+    }
     const estado={
       auditoriaId,
       propietario:window.qaBorradorPropietario || usuarioQA?.nombre || "",
@@ -3120,6 +3377,7 @@ async function guardarBorradorLocal(){
       excelArchivoNombre,
       excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
       auditoriaActual:auditoriaSerializada,
+      evidencias_generales:(fotosGeneralesAuditoria||[]).map(a=>typeof a==="string"?{tipo:"url",url:a}:{tipo:"local",localId:a.__qaEvidenceId,name:a.name,type:a.type,lastModified:a.lastModified}),
       actualizado:new Date().toISOString()
     };
     let lista=[];
@@ -3204,6 +3462,22 @@ async function prepararBorradorCompartido(estado){
       item.evidencia_positiva=positivas;
     }
 
+  const generales=[];
+  for(const archivo of copia.evidencias_generales||[]){
+    if(archivo?.tipo!=="local"||!archivo.localId){generales.push(archivo);continue;}
+    try{
+      const registro=await obtenerArchivoBorradorLocal(archivo.localId);
+      if(!registro?.blob)continue;
+      const extension=(registro.type||archivo.type||"image/jpeg").split("/")[1]||"jpg";
+      const ruta=`borradores/${sanitizarRutaStorage(copia.auditoriaId,"auditoria")}/cierre/${ahora}_${generarIdUnico()}.${sanitizarRutaStorage(extension,"jpg")}`;
+      const {error}=await supabaseClient.storage.from(BUCKET).upload(ruta,registro.blob,{contentType:registro.type||archivo.type||"image/jpeg",upsert:true});
+      if(error)continue;
+      const {data}=supabaseClient.storage.from(BUCKET).getPublicUrl(ruta);
+      if(data?.publicUrl)generales.push({tipo:"url",url:data.publicUrl});
+    }catch(e){console.warn("Error compartiendo fotografía de cierre:",e);}
+  }
+  copia.evidencias_generales=generales;
+
   return copia;
 }
 
@@ -3225,6 +3499,7 @@ async function guardarBorradorRemoto(estado){
   if(qaDraftRestoring||qaDraftFinalizando||!usuarioQA?.nombre||!estado)return false;
 
   const propietario=String(estado.propietario || window.qaBorradorPropietario || usuarioQA.nombre || "").trim();
+  const versionGuard=qaDraftVersion;
   let auditoriaIdRemota=String(estado.auditoriaId||"").trim();
 
   if(!esUUIDValido(auditoriaIdRemota)){
@@ -3324,6 +3599,7 @@ async function guardarBorradorRemoto(estado){
       actualizado
     };
     window.qaUltimoErrorGuardado="";
+    marcarUltimaSincronizacion(new Date(actualizado));
 
     // Las fotos se suben después; no impiden que el avance completo quede
     // guardado. Los archivos originales permanecen en IndexedDB mientras
@@ -3334,6 +3610,49 @@ async function guardarBorradorRemoto(estado){
     prepararBorradorCompartido({...estado,auditoriaId:auditoriaIdRemota,propietario,auditoriaActual:items})
       .then(async compartido=>{
         try{
+          if(versionGuard!==qaDraftVersion)return;
+          const {data:versionActual,error:versionError}=await qaSupabaseConTimeout(
+            supabaseClient.from("Auditoria_Recibo_Borrador").select("actualizado").eq("auditoria_id",auditoriaIdRemota).maybeSingle(),
+            "Verificación de versión de evidencias",
+            12000
+          );
+          if(versionError)throw versionError;
+          const remotoActualMs=new Date(versionActual?.actualizado||0).getTime();
+          const snapshotMs=new Date(actualizado).getTime();
+          if(remotoActualMs>snapshotMs){
+            // Otro guardado más reciente ya escribió los bloques. No permitir
+            // que esta sincronización antigua vuelva a colocar datos viejos.
+            return;
+          }
+          // Actualizar las fotos generales en la cabecera mediante control
+          // optimista de versión. Si otro guardado ya avanzó, abandonamos
+          // esta sincronización antigua y nunca sobrescribimos el avance nuevo.
+          if(Array.isArray(compartido?.evidencias_generales)){
+            const estadoCabeceraCompartida={...estado,
+              auditoriaId:auditoriaIdRemota,
+              auditoriaActual:[],
+              evidencias_generales:compartido.evidencias_generales,
+              cantidadBloques:items.length,
+              propietario,
+              ultimaEdicionPor:usuarioQA.nombre,
+              actualizado
+            };
+            const {data:headerActualizado,error:headerVersionError}=await qaSupabaseConTimeout(
+              supabaseClient.from("Auditoria_Recibo_Borrador")
+                .update({estado:estadoCabeceraCompartida,actualizado:new Date().toISOString()})
+                .eq("auditoria_id",auditoriaIdRemota)
+                .eq("actualizado",actualizado)
+                .select("auditoria_id"),
+              "Sincronización de fotografías de cierre",
+              15000
+            );
+            if(headerVersionError)throw headerVersionError;
+            if(!Array.isArray(headerActualizado)||!headerActualizado.length)return;
+          }
+
+          // Una vez actualizada la cabecera con control de versión, usamos
+          // su nuevo timestamp para identificar este mismo guardado.
+
           const bloquesCompartidos=compartido?.auditoriaActual||[];
           if(bloquesCompartidos.length){
             const rows=bloquesCompartidos.map((item,index)=>({
@@ -3487,6 +3806,20 @@ async function restaurarEstadoBorrador(estado){
     item.evidencia_positiva=arr;
   }
 
+  fotosGeneralesAuditoria=[];
+  for(const archivo of estado.evidencias_generales||[]){
+    if(typeof archivo==="string"){fotosGeneralesAuditoria.push(archivo);continue;}
+    if(archivo?.tipo==="url"&&archivo.url){fotosGeneralesAuditoria.push(archivo.url);continue;}
+    if(archivo?.tipo==="local"&&archivo.localId){
+      const registro=await obtenerArchivoBorradorLocal(archivo.localId);
+      if(registro?.blob){
+        const file=new File([registro.blob],registro.name||archivo.name||"cierre.jpg",{type:registro.type||archivo.type||"image/jpeg",lastModified:registro.lastModified||archivo.lastModified||Date.now()});
+        file.__qaEvidenceId=archivo.localId;fotosGeneralesAuditoria.push(file);
+      }
+    }
+  }
+  renderizarFotosFinales();
+
   cambiarTipoAuditoria();
   if(muestraCalculada){
     document.getElementById("kpiMuestra").textContent=muestraCalculada;
@@ -3523,7 +3856,24 @@ async function cargarBorrador(){
   return obtenerAuditoriasEnProceso();
 }
 
+async function auditoriaYaCerrada(id){
+  const objetivo=String(id||"").trim();
+  if(!objetivo)return false;
+  try{
+    const {data,error}=await supabaseClient.from(TABLA).select("codigos").limit(1000);
+    if(error)throw error;
+    return (Array.isArray(data)?data:[]).some(r=>obtenerCodigosRegistro(r).some(c=>String(c?.auditoria_borrador_id||"")===objetivo));
+  }catch(error){
+    console.warn("No fue posible comprobar si la auditoría está cerrada:",error);
+    return false;
+  }
+}
+
 async function cargarAuditoriaEnProceso(id){
+  if(await auditoriaYaCerrada(id)){
+    mostrarAlertaQA("Esta auditoría ya fue cerrada y validada. Solo está disponible para consulta y descarga de PDF.","warning","Auditoría cerrada");
+    return;
+  }
   const lista=await obtenerAuditoriasEnProceso();
   const estado=lista.find(x=>String(x?.auditoriaId||"")===String(id||""));
   if(!estado)return;
@@ -3794,6 +4144,7 @@ async function guardarAvance(){
     const lpnConDato=auditoriaActual.filter(item=>String(item?.lpn||"").trim()).length;
     const guardadasServidor=Number(qaUltimoGuardadoRemoto.guardadas||0);
     const totalServidor=Number(qaUltimoGuardadoRemoto.total||lpnConDato);
+    marcarUltimaSincronizacion(new Date());
     mostrarAlertaQA(`Avance guardado correctamente.
 
 LPN guardadas en el servidor: ${guardadasServidor} de ${totalServidor}.
@@ -4679,6 +5030,10 @@ function renderizarAuditoria(){
       });
 
       actualizarEstadoLpn(index);
+      actualizarIndicadorCompletoLpn(index);
+      const card=document.getElementById(`lpnCard_${index}`);
+      const toggle=card?.querySelector(".lpn-card-head button");
+      if(toggle)toggle.textContent=card.open?"Minimizar":"Abrir";
 
     }
   );
@@ -4699,7 +5054,7 @@ function crearLpnCard(item,index){
     <details
       class="lpn-card"
       id="lpnCard_${index}"
-      open>
+      ${lpnEstaCompleta(item) ? "" : "open"}>
 
       <summary
         class="lpn-card-head"
@@ -4715,13 +5070,16 @@ function crearLpnCard(item,index){
 
         </div>
 
-        <span
-          class="status-pill status-pending"
-          id="status_${index}">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span
+            class="status-pill status-pending"
+            id="status_${index}">
 
-          PENDIENTE
+            PENDIENTE
 
-        </span>
+          </span>
+          <button type="button" class="btn btn-secondary btn-small" onclick="event.preventDefault();event.stopPropagation();alternarMinimizarLpn(${index})">Minimizar</button>
+        </div>
 
       </summary>
 
@@ -4732,17 +5090,20 @@ function crearLpnCard(item,index){
           <label for="lpn_${index}">
             LPN / Load Number
           </label>
-
-          <input
-            id="lpn_${index}"
-            type="text"
-            inputmode="text"
-            autocomplete="off"
-            placeholder="Escanea o captura la LPN"
-            value="${escapeHtml(item.lpn)}"
-            oninput="actualizarLpnEntrada(${index},this.value)"
-            onblur="buscarLpnExcel(${index})"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();buscarLpnExcel(${index});}">
+          <div style="display:grid;grid-template-columns:1fr auto;gap:7px;align-items:end">
+            <input
+              id="lpn_${index}"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              placeholder="Escanea o captura la LPN"
+              value="${escapeHtml(item.lpn)}"
+              oninput="actualizarLpnEntrada(${index},this.value)"
+              onblur="buscarLpnExcel(${index})"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();buscarLpnExcel(${index});}">
+            <button type="button" class="btn btn-secondary btn-small" onclick="escanearLpn(${index})">📷 Escanear</button>
+          </div>
+          <div class="qa-lpn-complete" id="lpnComplete_${index}"></div>
 
         </div>
 
@@ -6506,6 +6867,8 @@ function actualizarResultadoGeneral(){
 
     resultado.textContent =
       "Completa la muestra de auditoría.";
+    const dictamen=document.getElementById("dictamenAuditoria");
+    if(dictamen){dictamen.className="qa-dictamen";dictamen.textContent="DICTAMEN: PENDIENTE";}
 
     actualizarKPIs();
 
@@ -6538,22 +6901,15 @@ function actualizarResultadoGeneral(){
         "OPERACION"
     ).length;
 
+  const dictamen=document.getElementById("dictamenAuditoria");
   if(!errores.length){
-
-    resultado.className =
-      "alert alert-success";
-
-    resultado.textContent =
-      "✓ AUDITORÍA SIN DESVIACIONES.";
-
+    resultado.className="alert alert-success";
+    resultado.textContent="✓ AUDITORÍA SIN DESVIACIONES.";
+    if(dictamen){dictamen.className="qa-dictamen aceptado";dictamen.textContent="DICTAMEN: ACEPTADO";}
   }else{
-
-    resultado.className =
-      "alert alert-error";
-
-    resultado.textContent =
-      `✕ AUDITORÍA CON DESVIACIONES · ${errores.length} LPN con hallazgo · ${planta} de planta · ${operacion} de operación.`;
-
+    resultado.className="alert alert-error";
+    resultado.textContent=`✕ AUDITORÍA CON DESVIACIONES · ${errores.length} LPN con hallazgo · ${planta} de planta · ${operacion} de operación.`;
+    if(dictamen){dictamen.className="qa-dictamen rechazado";dictamen.textContent="DICTAMEN: RECHAZADO";}
   }
 
   actualizarKPIs();
@@ -7126,6 +7482,15 @@ async function subirEvidencias(
         fallas.push({detalle,error});console.error("No fue posible guardar la evidencia positiva:",detalle,error);
       }
     }
+  }
+
+  for(const archivo of fotosGeneralesAuditoria||[]){
+    if(typeof archivo==="string"){urls.push({tipo:"general",url:archivo});continue;}
+    if(archivo?.tipo==="url"&&archivo.url){urls.push({tipo:"general",url:archivo.url});continue;}
+    try{
+      const url=await subirArchivo(archivo,"cierre","general");
+      urls.push({tipo:"general",url});
+    }catch(error){fallas.push({detalle:"Fotografía general de cierre",error});}
   }
 
   if(fallas.length){
@@ -8016,6 +8381,8 @@ function construirDatosAuditoria(
         return {
 
           ...copia,
+          auditoria_borrador_id:auditoriaId,
+          dictamen_auditoria:auditoriaActual.some(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO")?"RECHAZADO":"ACEPTADO",
 
           evidencia_campos_urls:
             evidenciaCampoUrls,
@@ -8288,12 +8655,7 @@ function renderizarTareasPendientes(){
               Auditar esta LPN
             </button>
 
-            <button
-              type="button"
-              class="btn btn-secondary btn-small"
-              onclick="eliminarTareaPendiente(${index})">
-              Eliminar
-            </button>
+            ${esUsuarioAdministrador()?`<button type="button" class="btn btn-secondary btn-small" onclick="eliminarTareaPendiente(${index})">Eliminar</button>`:""}
           </div>
         </div>
       `
@@ -8304,6 +8666,11 @@ function renderizarTareasPendientes(){
 
 
 function eliminarTareaPendiente(index){
+
+  if(!esUsuarioAdministrador()){
+    mostrarAlertaQA("Solo el Administrador puede eliminar una desviación pendiente de Auditoría en Almacenaje.","warning","Acceso restringido");
+    return;
+  }
 
   const tarea=tareasAuditoriaLpn[index];
 
@@ -9212,6 +9579,7 @@ function renderReportes(){
             <div class="reporte-dato"><span>STO</span><strong>${escapeHtml(r.sto||primera.sto||"—")}</strong></div>
             <div class="reporte-dato"><span>Tipo recibo</span><strong>${escapeHtml(r.etiqueta||"—")}</strong></div>
             <div class="reporte-dato"><span>Hallazgos</span><strong>${hallazgos}</strong></div>
+            <div class="reporte-dato"><span>Dictamen</span><strong>${escapeHtml(primera.dictamen_auditoria||(hallazgos?"RECHAZADO":"ACEPTADO"))}</strong></div>
           </div>
           <div class="reporte-card-actions">
             <button type="button" class="btn btn-primary btn-small" onclick="generarPDFdesdeReporte(${indiceGlobal})">PDF</button>
@@ -9325,7 +9693,8 @@ async function generarPDFdesdeReporte(indice){
     campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Auditor",r.nombre);campo(140,y,60,"Turno",r.turno);y+=19;
     campo(10,y,60,"Cuadrilla",r.cuadrilla);campo(75,y,60,"STO",r.sto);campo(140,y,60,"Origen",r.origen);y+=19;
     campo(10,y,60,"Cortina",r.cortina);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
-    campo(10,y,190,"Observaciones",r.observaciones);y+=19;
+    const dictamenPDF=codigos.some(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO")?"RECHAZADO":"ACEPTADO";
+    campo(10,y,60,"Dictamen",dictamenPDF);campo(75,y,125,"Observaciones",r.observaciones);y+=19;
 
     for(let i=0;i<codigos.length;i++){
       const item=codigos[i]||{};
@@ -9342,7 +9711,7 @@ async function generarPDFdesdeReporte(indice){
       const urls=[];
       if(Array.isArray(item.evidencia_campos_urls)){urls.push(...item.evidencia_campos_urls.filter(Boolean));}
       if(item.evidencia_campos_urls&&typeof item.evidencia_campos_urls==="object"){Object.values(item.evidencia_campos_urls).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(u=>{if(u)urls.push(typeof u==="string"?u:u.url);})));}
-      if(i===0 && urls.length===0){const generales=obtenerImagenesRegistro(r);urls.push(...generales);}
+      if(i===0){const generales=obtenerImagenesRegistro(r);urls.push(...generales);}
       y=bloque("EVIDENCIA FOTOGRÁFICA",y);
       y=await agregarEvidencias([...new Set(urls)],y);
       if(i<codigos.length-1){doc.addPage();header();y=28;}
@@ -9382,6 +9751,7 @@ function limpiarFormulario(){
   qaBorradorPropietario="";
   window.qaBorradorPropietario="";
   fotosSeleccionadas=[];
+  fotosGeneralesAuditoria=[];
   auditoriaActual=[];
   lpnAlmacenajeActual=null;
   correccionAlmacenaje="";
