@@ -6170,6 +6170,9 @@ function limpiarExcel(){
 }
 
 async function procesarArchivoExcel(file,opciones={}){
+  // Esta función debe ser completamente independiente de cualquier variable
+  // llamada "index" usada para las LPN. El cargador del Excel no depende de
+  // índices globales y así evitamos el ReferenceError "index is not defined".
   const guardar=opciones.guardar!==false;
   const subir=opciones.subir!==false;
   if(!file) return;
@@ -6248,8 +6251,8 @@ async function procesarArchivoExcel(file,opciones={}){
       const columnas=encabezados.map((h,i)=>h||`__COL_${i}`);
       let agregadas=0;
 
-      for(let r=headerRow+1;r<matriz.length;r++){
-        const fila=matriz[r]||[];
+      for(let rowIndex=headerRow+1;rowIndex<matriz.length;rowIndex++){
+        const fila=Array.isArray(matriz[rowIndex]) ? matriz[rowIndex] : [];
         if(!fila.some(v=>String(v??"").trim()!=="")) continue;
         filasLeidas++;
 
@@ -6302,22 +6305,32 @@ async function procesarArchivoExcel(file,opciones={}){
     if(guardar) await guardarBorrador();
 
     if(Array.isArray(auditoriaActual) && auditoriaActual.length){
-auditoriaActual.forEach((item,index)=>{
-  if(typeof buscarLpnExcel==="function"){
-    buscarLpnExcel(index,false);
-  }
-});
+      auditoriaActual.forEach((item,lpnIndex)=>{
+        try{
+          if(typeof buscarLpnExcel==="function") buscarLpnExcel(lpnIndex,false);
+        }catch(rowError){
+          console.warn("No fue posible cruzar una LPN contra el Excel:",rowError);
+        }
+      });
       actualizarResultadoGeneral();
+      // El cruce de LPN es un paso posterior a la carga; nunca debe invalidar
+      // el Excel que ya fue leído ni impedir el guardado del avance.
     }
 
     console.log("Excel cargado:",{nombre,totalRegistros,totalLpn,filasLeidas,hojas});
   }catch(error){
-    excelRecibo=[];
-    excelIndexLpn=new Map();
-    excelArchivoNombre="";
+    // No borramos el archivo local ni el nombre seleccionado ante un error de
+    // procesamiento. El usuario puede volver a intentarlo sin perder el avance.
+    console.error("Error procesando Excel:",error, error?.stack || "");
     excelCargado=false;
-    console.error("Error procesando Excel:",error);
-    actualizarEstadoExcel("error",`⚠ No se pudo cargar el Excel. ${error?.message||"Error desconocido."}`);
+    excelIndexLpn=new Map();
+    const detalle=String(error?.message||error||"Error desconocido");
+    actualizarEstadoExcel("error",`⚠ No se pudo procesar el Excel. ${detalle}`);
+    try{
+      if(guardar) await guardarBorrador();
+    }catch(saveError){
+      console.warn("No fue posible guardar el estado después del error de Excel:",saveError);
+    }
   }
 }
 
@@ -10022,6 +10035,17 @@ setInterval(() => {
   }
 );
 
+
+// Diagnóstico controlado de errores JavaScript. Si vuelve a aparecer un
+// ReferenceError, el mensaje exacto queda visible en la alerta y en consola
+// sin bloquear el guardado del borrador.
+window.addEventListener("error",function(event){
+  const mensaje=String(event?.message||"");
+  if(/index is not defined/i.test(mensaje)){
+    console.error("ReferenceError detectado:",event?.error||event, event?.filename||"", event?.lineno||"");
+    actualizarEstadoExcel("error","⚠ Se detectó un error de código al procesar el Excel. Vuelve a seleccionar el archivo para reintentar.");
+  }
+});
 
 (function instalarRespaldoQA(){
   if(window.__qaRespaldoInstalado)return;
