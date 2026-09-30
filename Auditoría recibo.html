@@ -9,7 +9,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 :root{
@@ -4577,7 +4577,14 @@ function calcularMuestra(){
     .textContent =
     `Muestra calculada: ${resultado.muestra} LPN/tarimas.`;
 
-  generarMuestra();
+  // Si ya existe una muestra/auditoría en pantalla, no la destruimos al
+  // cargar o volver a procesar el Excel. Solo generamos las LPN cuando
+  // todavía no existe ninguna.
+  if(!Array.isArray(auditoriaActual) || auditoriaActual.length===0){
+    generarMuestra();
+  }else{
+    renderizarAuditoria();
+  }
 
 }
 
@@ -6041,7 +6048,6 @@ async function asegurarSheetJS(){
   }
 
   const urls=[
-    "https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js",
     "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
     "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js",
     "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
@@ -6215,7 +6221,8 @@ async function procesarArchivoExcel(file,opciones={}){
       cellNF:false,
       cellText:true,
       raw:false,
-      dense:false
+      dense:false,
+      WTF:false
     });
 
     if(!workbook?.SheetNames?.length) throw new Error("El archivo no contiene hojas de cálculo.");
@@ -10043,7 +10050,9 @@ window.addEventListener("error",function(event){
   const mensaje=String(event?.message||"");
   if(/index is not defined/i.test(mensaje)){
     console.error("ReferenceError detectado:",event?.error||event, event?.filename||"", event?.lineno||"");
-    actualizarEstadoExcel("error","⚠ Se detectó un error de código al procesar el Excel. Vuelve a seleccionar el archivo para reintentar.");
+    // No sobrescribir el estado del Excel por errores ajenos al lector.
+    // El procesamiento real de Excel maneja sus propios errores en
+    // procesarArchivoExcel().
   }
 });
 
