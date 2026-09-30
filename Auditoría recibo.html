@@ -3595,6 +3595,31 @@ async function sincronizarRemotoConFusion(estado){
   );
   if(headerError)throw headerError;
 
+  // Mantener el servidor exactamente igual al dispositivo: primero eliminamos
+  // bloques antiguos que ya no forman parte del estado actual y después hacemos
+  // el upsert de los bloques vigentes. Esto evita que queden LPN viejas en
+  // Supabase y provoquen la validación "no confirmó exactamente el mismo avance".
+  if(items.length){
+    const {error:deleteOldError}=await qaSupabaseConTimeout(
+      supabaseClient.from(QA_DRAFT_BLOCKS_TABLE)
+        .delete()
+        .eq("auditoria_id",id)
+        .eq("usuario",propietario)
+        .gte("indice",items.length),
+      "Limpieza de bloques antiguos",30000
+    );
+    if(deleteOldError)throw deleteOldError;
+  }else{
+    const {error:deleteAllError}=await qaSupabaseConTimeout(
+      supabaseClient.from(QA_DRAFT_BLOCKS_TABLE)
+        .delete()
+        .eq("auditoria_id",id)
+        .eq("usuario",propietario),
+      "Limpieza de bloques",30000
+    );
+    if(deleteAllError)throw deleteAllError;
+  }
+
   const rows=items.map((item,index)=>({
     auditoria_id:id,usuario:propietario,bloque_id:`${id}:bloque:${index}`,indice:index,lpn:String(item?.lpn||""),estado:item,actualizado
   }));
@@ -5070,7 +5095,6 @@ function renderizarAuditoria(){
   );
 
   actualizarKPIs();
-  actualizarIndicadorCompletoLpn(index);
 
 }
 
