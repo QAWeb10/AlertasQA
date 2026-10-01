@@ -6281,6 +6281,38 @@ async function procesarArchivoExcel(file,opciones={}){
 
   const nombre=String(file.name||"").trim();
 
+  // IMPORTANTE: algunos equipos/navegadores invalidan la referencia al
+  // archivo seleccionado después de un await (especialmente archivos en
+  // OneDrive, SharePoint, red o carpetas protegidas). Copiamos el archivo
+  // INMEDIATAMENTE a memoria antes de cualquier operación asíncrona.
+  let archivoTrabajo=file;
+  let buffer;
+  try{
+    buffer=await file.arrayBuffer();
+  }catch(readError){
+    // Fallback para navegadores que fallen con File.arrayBuffer().
+    buffer=await new Promise((resolve,reject)=>{
+      try{
+        const lector=new FileReader();
+        lector.onload=()=>resolve(lector.result);
+        lector.onerror=()=>reject(lector.error||readError);
+        lector.readAsArrayBuffer(file);
+      }catch(e){reject(e);}
+    });
+  }
+  if(!buffer || !buffer.byteLength){
+    throw new Error("El navegador no pudo leer el archivo seleccionado. Vuelve a seleccionarlo desde una carpeta local del equipo.");
+  }
+  try{
+    archivoTrabajo=new File([buffer],nombre,{
+      type:file.type||"application/vnd.ms-excel",
+      lastModified:file.lastModified||Date.now()
+    });
+  }catch(e){
+    archivoTrabajo=new Blob([buffer],{type:file.type||"application/vnd.ms-excel"});
+    archivoTrabajo.name=nombre;
+  }
+
   excelArchivoNombre = nombre;
 
   const extension=(nombre.split(".").pop()||"").toLowerCase();
@@ -6291,12 +6323,12 @@ async function procesarArchivoExcel(file,opciones={}){
   }
 
   if(guardar){
-    const okLocal=await guardarArchivoBorradorLocal(`excel:${auditoriaId}`,file);
+    const okLocal=await guardarArchivoBorradorLocal(`excel:${auditoriaId}`,archivoTrabajo);
     if(!okLocal)throw new Error("No fue posible guardar localmente el archivo de recibo.");
   }
 
   if(guardar&&subir){
-    const rutaStorage=await subirExcelStorage(file);
+    const rutaStorage=await subirExcelStorage(archivoTrabajo);
     if(rutaStorage)excelStoragePath=rutaStorage;
   }
 
@@ -6307,9 +6339,6 @@ async function procesarArchivoExcel(file,opciones={}){
     if(!window.XLSX || typeof window.XLSX.read!=="function"){
       throw new Error("El lector Excel no está disponible en este navegador.");
     }
-
-    const buffer=await file.arrayBuffer();
-    if(!buffer || !buffer.byteLength) throw new Error("El archivo Excel está vacío.");
 
     const workbook=window.XLSX.read(buffer,{
       type:"array",
@@ -10046,7 +10075,10 @@ setInterval(() => {
           return;
         }
         try{
-          await procesarArchivoExcel(file);
+          // Copia inmediata: evita referencias vivas al archivo del selector.
+          const datos=await file.arrayBuffer();
+          const copia=new File([datos],file.name,{type:file.type||"application/vnd.ms-excel",lastModified:file.lastModified||Date.now()});
+          await procesarArchivoExcel(copia);
         }catch(error){
           console.error("Error cargando Excel:",error);
           actualizarEstadoExcel("error",`⚠ No fue posible cargar el Excel: ${error?.message||error}`);
