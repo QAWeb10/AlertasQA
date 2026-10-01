@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
 
 <style>
 :root{
@@ -2697,6 +2698,8 @@ let fotosSeleccionadas = [];
 let fotosGeneralesAuditoria = [];
 let qaScannerStream = null;
 let qaScannerIndex = null;
+let qaScannerReader = null;
+let qaScannerFallbackActivo = false;
 let qaUltimaSincronizacion = "";
 let qaSincronizacionPolling = null;
 let qaUltimoEstadoRemotoAplicado = "";
@@ -3008,7 +3011,7 @@ function renderizarFotosFinales(){
   if(!el)return;
   revocarObjectURLsEnElemento(el);el.innerHTML="";
   (fotosGeneralesAuditoria||[]).forEach((archivo,i)=>{
-    const url=typeof archivo==="string"?archivo:URL.createObjectURL(archivo);
+    const url=typeof archivo==="string"?archivo:window.window.URL.createObjectURL(archivo);
     el.insertAdjacentHTML("beforeend",`<div class="qa-final-photo"><img src="${escapeHtml(url)}" ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}"`:""} alt="Fotografía de cierre"><button type="button" onclick="eliminarFotoFinal(${i})">×</button></div>`);
   });
 }
@@ -3024,57 +3027,106 @@ async function escanearLpn(index){
   const video=document.getElementById("qaScanVideo");
   const mensaje=document.getElementById("qaScanMensaje");
   if(!overlay||!video)return;
-  if(!("BarcodeDetector" in window)){
-    mostrarAlertaQA("Este navegador no dispone del lector de códigos integrado. Captura la LPN manualmente.","warning","Lector no disponible");return;
+  if(!navigator.mediaDevices?.getUserMedia){
+    mostrarAlertaQA("El navegador no permite acceder a la cámara. Captura la LPN manualmente.","warning","Cámara no disponible");
+    return;
   }
+  qaScannerIndex=index;
+  qaScannerFallbackActivo=false;
   try{
-    const formatos=await BarcodeDetector.getSupportedFormats();
-    const preferidos=["code_128","code_39","ean_13","ean_8","itf","qr_code","data_matrix","upc_a","upc_e"].filter(x=>formatos.includes(x));
-    const detector=new BarcodeDetector(preferidos.length?{formats:preferidos}:undefined);
-    qaScannerIndex=index;
-    qaScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
-    video.srcObject=qaScannerStream;await video.play();overlay.classList.add("show");
-    mensaje.textContent="Centra la etiqueta dentro del recuadro y mantén el teléfono quieto…";
-    let candidato="",veces=0,ultimoTiempo=0;
-    const ciclo=async()=>{
-      if(!qaScannerStream||qaScannerIndex!==index)return;
+    qaScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    video.srcObject=qaScannerStream;
+    await video.play();
+    overlay.classList.add("show");
+    mensaje.textContent="Centra la etiqueta dentro del recuadro…";
+
+    // Primero usamos BarcodeDetector cuando está disponible.
+    if("BarcodeDetector" in window){
       try{
-        const resultados=await detector.detect(video);
-        const vw=video.videoWidth||1,vh=video.videoHeight||1;
-        const centroX=vw/2,centroY=vh/2;
-        const r=resultados?.map(x=>({x,raw:normalizarLpn(x.rawValue||""),box:x.boundingBox})).filter(x=>x.raw&&x.raw.length>=5).sort((a,b)=>{
-          const da=a.box?Math.hypot((a.box.x+a.box.width/2)-centroX,(a.box.y+a.box.height/2)-centroY):999999;
-          const db=b.box?Math.hypot((b.box.x+b.box.width/2)-centroX,(b.box.y+b.box.height/2)-centroY):999999;
-          return da-db;
-        })[0];
-        if(r){
-          const ahora=Date.now();
-          if(r.raw===candidato && ahora-ultimoTiempo<1200)veces++;else{candidato=r.raw;veces=1;}
-          ultimoTiempo=ahora;
-          mensaje.textContent=`Código detectado: ${r.raw} · confirmación ${Math.min(veces,3)}/3`;
-          if(veces>=3){
-            let valor=r.raw;
-            if(excelCargado&&excelIndexLpn?.size){
-              const exacto=clavesLpn(valor).map(k=>excelIndexLpn.get(k)).find(Boolean);
-              if(!exacto){mensaje.textContent="Código no coincide con una LPN del Excel. Acerca y centra la etiqueta correcta.";requestAnimationFrame(ciclo);return;}
-              valor=normalizarLpn(exacto.lpn||valor);
+        const formatos=await BarcodeDetector.getSupportedFormats();
+        const preferidos=["code_128","code_39","ean_13","ean_8","itf","qr_code","data_matrix","upc_a","upc_e"].filter(x=>formatos.includes(x));
+        const detector=new BarcodeDetector(preferidos.length?{formats:preferidos}:undefined);
+        let candidato="",veces=0,ultimoTiempo=0;
+        const ciclo=async()=>{
+          if(!qaScannerStream||qaScannerIndex!==index||qaScannerFallbackActivo)return;
+          try{
+            const resultados=await detector.detect(video);
+            const vw=video.videoWidth||1,vh=video.videoHeight||1;
+            const centroX=vw/2,centroY=vh/2;
+            const r=resultados?.map(x=>({x,raw:normalizarLpn(x.rawValue||""),box:x.boundingBox})).filter(x=>x.raw&&x.raw.length>=5).sort((a,b)=>{
+              const da=a.box?Math.hypot((a.box.x+a.box.width/2)-centroX,(a.box.y+a.box.height/2)-centroY):999999;
+              const db=b.box?Math.hypot((b.box.x+b.box.width/2)-centroX,(b.box.y+b.box.height/2)-centroY):999999;
+              return da-db;
+            })[0];
+            if(r){
+              const ahora=Date.now();
+              if(r.raw===candidato && ahora-ultimoTiempo<1500)veces++;else{candidato=r.raw;veces=1;}
+              ultimoTiempo=ahora;
+              mensaje.textContent=`Código detectado: ${r.raw} · confirmación ${Math.min(veces,2)}/2`;
+              if(veces>=2){
+                await completarLpnDesdeScanner(r.raw,index,mensaje);
+                return;
+              }
+            }else{
+              candidato="";veces=0;mensaje.textContent="Centra la etiqueta dentro del recuadro…";
             }
-            cerrarScannerLpn();
-            const input=document.getElementById(`lpn_${index}`);
-            if(input){input.value=valor;actualizarLpnEntrada(index,valor);await buscarLpnExcel(index,false);}
-            return;
-          }
-        }else{
-          candidato="";veces=0;mensaje.textContent="Centra la etiqueta dentro del recuadro…";
-        }
-      }catch(e){console.warn("Lectura de código pendiente:",e);}
-      requestAnimationFrame(ciclo);
-    };
-    requestAnimationFrame(ciclo);
-  }catch(error){cerrarScannerLpn();mostrarAlertaQA(`No fue posible abrir la cámara. ${error?.message||"Verifica el permiso de cámara."}`,"warning","Cámara no disponible");}
+          }catch(e){console.warn("BarcodeDetector pendiente:",e);}
+          requestAnimationFrame(ciclo);
+        };
+        requestAnimationFrame(ciclo);
+        return;
+      }catch(e){console.warn("BarcodeDetector no disponible, se usará ZXing:",e);}
+    }
+
+    // Fallback para móviles/navegadores donde BarcodeDetector falla o no existe.
+    if(window.ZXingBrowser?.BrowserMultiFormatReader){
+      qaScannerFallbackActivo=true;
+      const reader=new window.ZXingBrowser.BrowserMultiFormatReader();
+      qaScannerReader=reader;
+      mensaje.textContent="Lector alternativo activo. Centra la etiqueta y mantén el teléfono estable…";
+      const dispositivos=await reader.listVideoInputDevices();
+      const trasera=dispositivos.find(d=>/back|rear|environment|trasera|posterior/i.test(d.label||""))||dispositivos[dispositivos.length-1];
+      await reader.decodeFromVideoDevice(trasera?.deviceId,video,async(result,error)=>{
+        if(!result||qaScannerIndex!==index)return;
+        const raw=normalizarLpn(result.getText?.()||"");
+        if(raw&&raw.length>=5)await completarLpnDesdeScanner(raw,index,mensaje);
+      });
+      return;
+    }
+
+    throw new Error("No hay un motor de lectura de códigos disponible en este navegador.");
+  }catch(error){
+    cerrarScannerLpn();
+    mostrarAlertaQA(`No fue posible iniciar el lector. ${error?.message||"Verifica el permiso de cámara y la conexión del dispositivo."}`,"warning","Lector no disponible");
+  }
 }
+
+async function completarLpnDesdeScanner(raw,index,mensaje){
+  let valor=normalizarLpn(raw);
+  if(excelCargado&&excelIndexLpn?.size){
+    const exacto=clavesLpn(valor).map(k=>excelIndexLpn.get(k)).find(Boolean);
+    if(!exacto){
+      if(mensaje)mensaje.textContent="Código leído, pero no coincide con una LPN del Excel. Acerca la etiqueta correcta.";
+      return false;
+    }
+    valor=normalizarLpn(exacto.lpn||valor);
+  }
+  cerrarScannerLpn();
+  const input=document.getElementById(`lpn_${index}`);
+  if(input){
+    input.value=valor;
+    actualizarLpnEntrada(index,valor);
+    await buscarLpnExcel(index,false);
+    guardarBorrador();
+    return true;
+  }
+  return false;
+}
+
 function cerrarScannerLpn(){
   qaScannerIndex=null;
+  qaScannerFallbackActivo=false;
+  if(qaScannerReader){try{qaScannerReader.reset();}catch(e){} qaScannerReader=null;}
   if(qaScannerStream){qaScannerStream.getTracks().forEach(t=>t.stop());qaScannerStream=null;}
   const video=document.getElementById("qaScanVideo");if(video)video.srcObject=null;
   const overlay=document.getElementById("qaScanOverlay");if(overlay)overlay.classList.remove("show");
@@ -3559,22 +3611,51 @@ async function leerEstadoRemotoCompleto(id){
   );
   if(rowsError)throw rowsError;
   const estado={...(header.estado||{}),auditoriaId:header.auditoria_id,propietario:header.estado?.propietario||header.usuario||"",usuario:header.usuario||header.estado?.propietario||"",actualizado:header.actualizado||header.estado?.actualizado||"",_qaOrigenRemoto:true};
-  estado.auditoriaActual=(rows||[]).sort((a,b)=>Number(a.indice||0)-Number(b.indice||0)).map(r=>({...((r&&r.estado)||{}),lpn:r?.estado?.lpn||r?.lpn||""}));
+  // La cabecera conserva ahora una copia completa del avance. Esto hace la
+  // sincronización robusta aunque la tabla de bloques tenga RLS, latencia o
+  // registros antiguos. Los bloques quedan como respaldo/compatibilidad.
+  if(Array.isArray(header.estado?.auditoriaActual) && header.estado.auditoriaActual.length){
+    estado.auditoriaActual=header.estado.auditoriaActual;
+  }else{
+    estado.auditoriaActual=(rows||[]).sort((a,b)=>Number(a.indice||0)-Number(b.indice||0)).map(r=>({...((r&&r.estado)||{}),lpn:r?.estado?.lpn||r?.lpn||""}));
+  }
   estado.cantidadBloques=estado.auditoriaActual.length;
   return estado;
 }
 
+function normalizarParaVerificacion(valor){
+  if(valor===undefined)return null;
+  if(valor===null)return null;
+  if(Array.isArray(valor))return valor.map(normalizarParaVerificacion);
+  if(typeof valor==='object'){
+    const out={};
+    Object.keys(valor).sort().forEach(k=>{
+      // Campos internos/transitorios del navegador que no forman parte del avance.
+      if(k==='_qaOrigenRemoto'||k==='_qaLocal'||k==='__proto__')return;
+      out[k]=normalizarParaVerificacion(valor[k]);
+    });
+    return out;
+  }
+  return valor;
+}
+
 function firmaLpn(item){
-  return JSON.stringify(item||{});
+  return JSON.stringify(normalizarParaVerificacion(item||{}));
 }
 
 async function verificarGuardadoRemotoExacto(id, itemsEsperados){
   const remoto=await leerEstadoRemotoCompleto(id);
   if(!remoto)return false;
   const actual=Array.isArray(remoto.auditoriaActual)?remoto.auditoriaActual:[];
-  if(actual.length!==itemsEsperados.length)return false;
+  if(actual.length!==itemsEsperados.length){
+    console.warn('Verificación remota: cantidad diferente', {esperados:itemsEsperados.length,recibidos:actual.length});
+    return false;
+  }
   for(let i=0;i<itemsEsperados.length;i++){
-    if(firmaLpn(actual[i])!==firmaLpn(itemsEsperados[i]))return false;
+    if(firmaLpn(actual[i])!==firmaLpn(itemsEsperados[i])){
+      console.warn('Verificación remota: diferencia en índice',i,{esperado:itemsEsperados[i],recibido:actual[i]});
+      return false;
+    }
   }
   return true;
 }
@@ -3588,7 +3669,7 @@ async function sincronizarRemotoConFusion(estado){
   const fusion=fusionarEstadosAuditoria(estado,remoto,remoto?.actualizado||"");
   const items=Array.isArray(fusion.auditoriaActual)?fusion.auditoriaActual:[];
   const actualizado=new Date().toISOString();
-  const cabecera={...fusion,auditoriaId:id,auditoriaActual:[],cantidadBloques:items.length,propietario,ultimaEdicionPor:usuarioQA?.nombre||propietario,actualizado};
+  const cabecera={...fusion,auditoriaId:id,auditoriaActual:items,cantidadBloques:items.length,propietario,ultimaEdicionPor:usuarioQA?.nombre||propietario,actualizado};
   const {error:headerError}=await qaSupabaseConTimeout(
     supabaseClient.from("Auditoria_Recibo_Borrador").upsert({auditoria_id:id,usuario:propietario,estado:cabecera,actualizado},{onConflict:"auditoria_id"}),
     "Guardado de cabecera fusionada",15000
@@ -3599,26 +3680,17 @@ async function sincronizarRemotoConFusion(estado){
   // bloques antiguos que ya no forman parte del estado actual y después hacemos
   // el upsert de los bloques vigentes. Esto evita que queden LPN viejas en
   // Supabase y provoquen la validación "no confirmó exactamente el mismo avance".
-  if(items.length){
-    const {error:deleteOldError}=await qaSupabaseConTimeout(
-      supabaseClient.from(QA_DRAFT_BLOCKS_TABLE)
-        .delete()
-        .eq("auditoria_id",id)
-        .eq("usuario",propietario)
-        .gte("indice",items.length),
-      "Limpieza de bloques antiguos",30000
-    );
-    if(deleteOldError)throw deleteOldError;
-  }else{
-    const {error:deleteAllError}=await qaSupabaseConTimeout(
-      supabaseClient.from(QA_DRAFT_BLOCKS_TABLE)
-        .delete()
-        .eq("auditoria_id",id)
-        .eq("usuario",propietario),
-      "Limpieza de bloques",30000
-    );
-    if(deleteAllError)throw deleteAllError;
-  }
+  // El identificador de auditoría es único. Eliminamos TODOS los bloques de
+  // esta auditoría antes de reconstruirlos; filtrar también por usuario podía
+  // dejar bloques de una versión anterior y la comprobación posterior los
+  // interpretaba como avance adicional.
+  const {error:deleteAllError}=await qaSupabaseConTimeout(
+    supabaseClient.from(QA_DRAFT_BLOCKS_TABLE)
+      .delete()
+      .eq("auditoria_id",id),
+    "Limpieza de bloques anteriores",30000
+  );
+  if(deleteAllError)throw deleteAllError;
 
   const rows=items.map((item,index)=>({
     auditoria_id:id,usuario:propietario,bloque_id:`${id}:bloque:${index}`,indice:index,lpn:String(item?.lpn||""),estado:item,actualizado
@@ -6563,7 +6635,7 @@ function revocarObjectURLsEnElemento(elemento){
   if(!elemento)return;
   elemento.querySelectorAll("[data-qa-object-url]").forEach(img=>{
     const u=img.dataset.qaObjectUrl;
-    if(u&&u.startsWith("blob:"))URL.revokeObjectURL(u);
+    if(u&&u.startsWith("blob:"))window.URL && typeof window.URL.revokeObjectURL === "function" && window.URL.revokeObjectURL(u);
     delete img.dataset.qaObjectUrl;
   });
 }
@@ -6863,25 +6935,49 @@ function actualizarError(index){
 }
 
 
+function obtenerResumenCumplimiento(){
+  const items=Array.isArray(auditoriaActual)?auditoriaActual:[];
+  let totalChecks=0,checksOK=0,checksError=0;
+  let lpnConDesviacion=0,lpnSinDesviacion=0,desviacionesCriticas=0,desviacionesMayores=0,desviacionesMenores=0;
+  items.forEach(item=>{
+    const checks=obtenerTodosLosChecks(item).filter(x=>x.valor==="OK"||x.valor==="ERROR");
+    totalChecks+=checks.length;
+    checks.forEach(check=>{
+      if(check.valor==="OK")checksOK++;
+      else{
+        checksError++;
+        const sev=obtenerSeveridadHallazgo(item,check);
+        if(sev==="CRITICO")desviacionesCriticas++;
+        else if(sev==="MAYOR")desviacionesMayores++;
+        else desviacionesMenores++;
+      }
+    });
+    const hallazgos=calcularHallazgos(item);
+    const tiene=hallazgos.length>0||checks.some(x=>x.valor==="ERROR")||item.error_tipo&&item.error_tipo!=="NINGUNO";
+    if(tiene)lpnConDesviacion++;else if(String(item.lpn||"").trim())lpnSinDesviacion++;
+  });
+  const cumplimiento=totalChecks?((checksOK/totalChecks)*100):0;
+  return {totalChecks,checksOK,checksError,cumplimiento,lpnConDesviacion,lpnSinDesviacion,desviacionesCriticas,desviacionesMayores,desviacionesMenores};
+}
+
 function obtenerNivelTAMU(){
   const muestra=Number(muestraCalculada||0);
   if(!muestra||auditoriaActual.length!==muestra)return {codigo:"PENDIENTE",nombre:"PENDIENTE",descripcion:"Completa la muestra antes de emitir un resultado."};
   const incompletas=auditoriaActual.filter(x=>!lpnEstaCompleta(x));
   if(incompletas.length)return {codigo:"PENDIENTE",nombre:"PENDIENTE",descripcion:`Faltan ${incompletas.length} LPN por completar.`};
+  const r=obtenerResumenCumplimiento();
+  // El nivel ya no se determina únicamente por el hallazgo más crítico de una
+  // sola LPN. Se informa el porcentaje real de cumplimiento y las desviaciones
+  // por severidad. Los umbrales son configurables y no convierten una crítica
+  // aislada en rechazo automático.
   let nivel="TARGET";
-  auditoriaActual.forEach(item=>{
-    obtenerTodosLosChecks(item).forEach(check=>{
-      if(check.valor!=="ERROR")return;
-      const sev=obtenerSeveridadHallazgo(item,check);
-      if(sev==="CRITICO")nivel="UNACCEPTABLE";
-      else if(sev==="MAYOR" && nivel!=="UNACCEPTABLE")nivel="MARGINAL";
-      else if(sev==="MENOR" && ["TARGET"].includes(nivel))nivel="ACCEPTABLE";
-    });
-  });
+  if(r.cumplimiento<95)nivel="MARGINAL";
+  else if(r.cumplimiento<100)nivel="ACCEPTABLE";
   return {
     codigo:nivel,
-    nombre:nivel==="TARGET"?"TARGET":nivel==="ACCEPTABLE"?"ACCEPTABLE":nivel==="MARGINAL"?"MARGINAL ACCEPTABLE":"UNACCEPTABLE",
-    descripcion:nivel==="TARGET"?"Sin desviaciones.":nivel==="ACCEPTABLE"?"Desviaciones menores, sin hallazgo mayor o crítico.":nivel==="MARGINAL"?"Existe al menos una desviación mayor; requiere atención conforme al criterio TAMU aplicable.":"Existe al menos una desviación crítica."
+    nombre:nivel==="TARGET"?"TARGET":nivel==="ACCEPTABLE"?"ACCEPTABLE":"MARGINAL ACCEPTABLE",
+    descripcion:nivel==="TARGET"?"100% de cumplimiento en los criterios evaluados.":`Cumplimiento ${r.cumplimiento.toFixed(1)}%. ${r.lpnConDesviacion} LPN con desviación; ${r.desviacionesCriticas} críticas, ${r.desviacionesMayores} mayores y ${r.desviacionesMenores} menores.`,
+    resumen:r
   };
 }
 
@@ -6940,19 +7036,19 @@ function actualizarResultadoGeneral(){
     resultado.textContent=`DICTAMEN PENDIENTE · ${incompletas.length} de ${muestra} LPN aún no están completamente auditadas.`;
     actualizarKPIs();return;
   }
-  const errores=auditoriaActual.filter(x=>calcularHallazgos(x).length||obtenerTodosLosChecks(x).some(c=>c.valor==="ERROR"));
-  const planta=errores.filter(x=>x.error_tipo==="PLANTA").length;
-  const operacion=errores.filter(x=>x.error_tipo==="OPERACION").length;
+  const r=obtenerResumenCumplimiento();
   const tamu=obtenerNivelTAMU();
-  if(tamu.codigo==="UNACCEPTABLE"){
-    resultado.className="alert alert-error";
-    resultado.textContent=`✕ AUDITORÍA RECHAZADA · TAMU: ${tamu.nombre} · ${errores.length} LPN con desviación · ${planta} de planta · ${operacion} de operación.`;
-  }else if(tamu.codigo==="TARGET"){
+  const planta=auditoriaActual.filter(x=>x.error_tipo==="PLANTA"&&existeErrorObjetivo(x)).length;
+  const operacion=auditoriaActual.filter(x=>x.error_tipo==="OPERACION"&&existeErrorObjetivo(x)).length;
+  if(tamu.codigo==="TARGET"){
     resultado.className="alert alert-success";
-    resultado.textContent="✓ AUDITORÍA ACEPTADA · TAMU: TARGET · SIN DESVIACIONES.";
+    resultado.textContent=`✓ AUDITORÍA ACEPTADA · TAMU: TARGET · ${r.cumplimiento.toFixed(1)}% de cumplimiento · ${r.lpnSinDesviacion} LPN sin desviación.`;
+  }else if(tamu.codigo==="ACCEPTABLE"){
+    resultado.className="alert alert-success";
+    resultado.textContent=`✓ AUDITORÍA ACEPTADA CON DESVIACIONES · TAMU: ${tamu.nombre} · ${r.cumplimiento.toFixed(1)}% de cumplimiento · ${r.lpnConDesviacion} LPN con desviación · ${r.desviacionesCriticas} crítica(s) · ${planta} de planta · ${operacion} de operación.`;
   }else{
     resultado.className="alert alert-warning";
-    resultado.textContent=`✓ AUDITORÍA ACEPTADA · TAMU: ${tamu.nombre} · ${errores.length} LPN con desviación · ${tamu.descripcion}`;
+    resultado.textContent=`⚠ AUDITORÍA CON DESVIACIONES · TAMU: ${tamu.nombre} · ${r.cumplimiento.toFixed(1)}% de cumplimiento · ${r.lpnConDesviacion} LPN con desviación · ${r.desviacionesCriticas} crítica(s), ${r.desviacionesMayores} mayor(es), ${r.desviacionesMenores} menor(es).`;
   }
   actualizarKPIs();renderizarEvidenciaPositiva();
 }
@@ -7047,7 +7143,7 @@ function renderizarEvidenciaCampo(
           <div class="field-evidence-thumb">
             <img
               src="${escapeHtml(url)}"
-              ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}" onload="this.dataset.qaObjectUrl&&URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl" onerror="this.dataset.qaObjectUrl&&URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl"`:""}
+              ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}" onload="this.dataset.qaObjectUrl&&window.URL && typeof window.URL.revokeObjectURL === "function" && window.URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl" onerror="this.dataset.qaObjectUrl&&window.URL && typeof window.URL.revokeObjectURL === "function" && window.URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl"`:""}
               alt="Evidencia"
               style="width:100%;height:32px;object-fit:cover;border-radius:4px">
 
