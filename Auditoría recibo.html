@@ -115,42 +115,115 @@ button{
 }
 
 .badge{
-  background:var(--accent);
-  color:#111;
-  border-radius:999px;
-  padding:5px 8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:0 10px;
+  border-radius:8px;
+  background:rgba(253,208,0,.16);
+  border:1px solid rgba(253,208,0,.5);
+  color:#fff;
   font-size:10px;
   font-weight:900;
   white-space:nowrap;
 }
 
+/* Navegación unificada QA */
 .nav-dash{
   display:flex;
   align-items:center;
   gap:6px;
+  flex:none;
 }
 
 .nav-dash a{
-  text-decoration:none;
-  color:#fff;
-  border:1px solid rgba(255,255,255,.3);
-  background:rgba(255,255,255,.1);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:0 10px;
   border-radius:8px;
-  padding:8px 9px;
+  color:#fff;
+  text-decoration:none;
   font-size:10px;
   font-weight:800;
+  white-space:nowrap;
+  border:1px solid rgba(255,255,255,.20);
+  background:rgba(255,255,255,.08);
+  transition:.15s ease;
+}
+
+.nav-dash a:hover{
+  background:rgba(255,255,255,.17);
+  border-color:rgba(255,255,255,.28);
+  transform:none;
+}
+
+.nav-dash a.current{
+  background:var(--accent);
+  color:var(--brand-deep);
+  border-color:var(--accent);
+  box-shadow:none;
+}
+
+.nav-dash a.current::before{
+  content:none;
+}
+
+.nav-dash .nav-divider{
+  width:1px;
+  height:22px;
+  margin:0 1px;
+  background:rgba(255,255,255,.22);
+}
+
+.nav-dash a.home{
+  min-height:34px;
+  padding:0 11px;
+  background:#fff;
+  color:var(--brand-deep);
+  border-color:#fff;
+  font-weight:900;
+}
+
+.nav-dash a.home::before{
+  content:'⌂';
+  font-size:14px;
+  line-height:1;
+  margin-right:5px;
+}
+
+.nav-dash a.home:hover{
+  background:#fffbe0;
+  border-color:#fffbe0;
 }
 
 .inicio-mobile-btn{
   display:none;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:34px;
   text-decoration:none;
-  color:#fff;
-  border:1px solid rgba(255,255,255,.3);
-  background:rgba(255,255,255,.1);
+  color:var(--brand-deep);
+  background:#fff;
+  border:1px solid #fff;
   border-radius:8px;
-  padding:8px 9px;
+  padding:0 11px;
   font-size:10px;
-  font-weight:800;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.inicio-mobile-btn::before{
+  content:'⌂';
+  font-size:14px;
+  line-height:1;
+}
+
+.inicio-mobile-btn:hover{
+  background:#fffbe0;
 }
 
 .wrap{
@@ -594,35 +667,71 @@ button{
 }
 
 .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
   min-height:40px;
-  border:0;
+  height:40px;
+  width:auto;
+  padding:9px 17px;
+  border:1px solid transparent;
   border-radius:9px;
-  padding:9px 13px;
-  font-size:11px;
-  font-weight:900;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+  cursor:pointer;
+  box-sizing:border-box;
+  transition:transform .15s,filter .15s,box-shadow .15s,background .15s;
 }
 
 .btn-primary{
   color:#fff;
-  background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  background:linear-gradient(180deg,#CF002E,#A00023);
+  border-color:#A00023;
+  box-shadow:0 2px 5px rgba(207,0,46,.18);
+}
+
+.btn-primary:hover{
+  filter:brightness(.98);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(207,0,46,.20);
 }
 
 .btn-secondary{
-  color:var(--ink);
-  background:#fff;
-  border:1px solid var(--line);
+  color:#333;
+  background:#F1F1F1;
+  border:1px solid #D8D8D8;
+  box-shadow:none;
+}
+
+.btn-secondary:hover{
+  background:#EAEAEA;
+  transform:translateY(-1px);
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
 
 .btn-success{
   color:#fff;
   background:var(--minor);
+  border-color:var(--minor);
+}
+
+.btn-success:hover{
+  filter:brightness(.98);
+  transform:translateY(-1px);
 }
 
 .btn-small{
   min-height:34px;
-  padding:7px 10px;
+  height:34px;
+  padding:7px 12px;
   font-size:10px;
+  border-radius:8px;
 }
+
+.btn:active{transform:translateY(1px);}
 
 /* =========================================================
    PROGRESO / KPI
@@ -704,6 +813,174 @@ button{
 
 .severity-minor{
   border-left:4px solid var(--minor);
+}
+
+/* =========================================================
+   SECCIONES SUPERIORES COMPACTAS
+========================================================= */
+.compact-section{
+  overflow:hidden;
+}
+.compact-section > .card-head{
+  cursor:pointer;
+  user-select:none;
+}
+.compact-section > .card-head::-webkit-details-marker{display:none;}
+.compact-section > summary{list-style:none;}
+.compact-section > summary::-webkit-details-marker{display:none;}
+.compact-section > .card-head::after{
+  content:"⌄";
+  margin-left:auto;
+  font-size:15px;
+  font-weight:900;
+  transition:transform .18s ease;
+}
+.compact-section:not([open]) > .card-head::after{
+  transform:rotate(-90deg);
+}
+.compact-section:not([open]) > .card-body{
+  display:none;
+}
+.compact-section .card-head{
+  min-height:46px;
+  padding:8px 12px;
+}
+.compact-section .card-head h2{
+  font-size:12px;
+}
+.compact-section .card-head small{
+  margin-left:auto;
+  margin-right:8px;
+  max-width:48%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.compact-section .card-body{
+  padding:10px 12px;
+}
+.compact-section .audit-type-grid{
+  gap:8px;
+}
+.compact-section .audit-type{
+  padding:9px;
+}
+.compact-section .audit-type-text{
+  display:none;
+}
+.compact-section .file-drop{
+  padding:10px;
+}
+.compact-section .file-drop-text{
+  display:none;
+}
+.compact-section .excel-kpis{
+  margin-top:8px;
+}
+.compact-section .sampling-box{
+  padding:8px;
+}
+
+/* =========================================================
+   CONFIGURACIÓN SUPERIOR · V20 VISUAL CORREGIDA
+   - Tipo de auditoría ocupa todo el ancho.
+   - Archivo y muestreo quedan juntos, en columnas equilibradas.
+   - Datos de recibo permanece debajo, sin ser arrastrado al grid.
+========================================================= */
+.wrap{
+  width:min(100% - 28px,1180px);
+  margin:14px auto 38px;
+}
+
+#tipoAuditoriaSection{
+  margin-bottom:14px;
+}
+
+#tipoAuditoriaSection .card-body{
+  padding:12px 14px 14px;
+}
+
+#tipoAuditoriaSection .audit-type-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+#tipoAuditoriaSection .audit-type{
+  min-height:112px;
+  padding:14px;
+}
+
+/* Solo 02 y 03 comparten fila. Ninguna otra sección entra aquí. */
+.top-config-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:14px;
+  align-items:start;
+  width:100%;
+  margin-bottom:14px;
+}
+
+.top-config-grid > .compact-section{
+  margin:0;
+  min-width:0;
+  width:100%;
+}
+
+.top-config-grid .card-body{
+  min-width:0;
+}
+
+.top-config-grid .file-drop{
+  min-height:154px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.top-config-grid .sampling-box{
+  min-height:154px;
+}
+
+.top-config-grid .excel-kpis{
+  grid-template-columns:1.25fr .85fr .85fr;
+}
+
+#datosReciboSection,
+#tiempoRealSection,
+#evidenciaPositivaSection{
+  width:100%;
+}
+
+@media(max-width:900px){
+  .wrap{
+    width:min(100% - 20px,760px);
+  }
+  .top-config-grid{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  #tipoAuditoriaSection .audit-type-grid{
+    grid-template-columns:1fr 1fr;
+  }
+  .top-config-grid .file-drop,
+  .top-config-grid .sampling-box{
+    min-height:0;
+  }
+}
+
+@media(max-width:620px){
+  #tipoAuditoriaSection .audit-type-grid{
+    grid-template-columns:1fr;
+  }
+  #tipoAuditoriaSection .audit-type{
+    min-height:0;
+  }
+  .top-config-grid .excel-kpis{
+    grid-template-columns:1fr 1fr;
+  }
+  .top-config-grid .excel-kpi:first-child{
+    grid-column:1/-1;
+  }
 }
 
 /* =========================================================
@@ -1417,6 +1694,41 @@ button{
   }
 }
 
+@media(max-width:760px){
+
+  .appbar{
+    padding:8px 10px;
+    gap:8px;
+  }
+
+  .nav-dash{
+    gap:4px;
+  }
+
+  .nav-dash a{
+    min-height:32px;
+    padding:0 8px;
+    font-size:9px;
+  }
+
+  .nav-dash .nav-divider{
+    height:20px;
+  }
+
+  .inicio-mobile-btn{
+    min-height:32px;
+    padding:0 8px;
+    font-size:9px;
+  }
+
+  .btn{
+    min-height:38px;
+    height:38px;
+    padding:8px 13px;
+    font-size:11px;
+  }
+}
+
 @media(max-width:520px){
 
   .nav-dash{
@@ -1425,8 +1737,6 @@ button{
 
   .inicio-mobile-btn{
     display:inline-flex;
-    align-items:center;
-    justify-content:center;
   }
 
   .audit-type-grid{
@@ -1742,13 +2052,15 @@ button{
 
   <span class="badge">FY2627</span>
 
-  <nav class="nav-dash">
-    <a href="Alertas de calidad.html">Alertas</a>
-    <a href="Incidencia en Recibo.html">Incidencias</a>
-    <a href="index.html">Inicio</a>
+  <nav class="nav-dash" aria-label="Navegación entre sistemas">
+    <a class="system" href="Alertas de calidad.html" title="Ir a Alertas de calidad">Alertas</a>
+    <a class="system" href="Incidencia en Recibo.html" title="Ir a Incidencias en Recibo">Incidencias</a>
+    <a class="system current" href="Auditoria_recibo_CORREGIDA_FINAL_v22.html" aria-current="page" title="Sistema actual">Auditoría</a>
+    <span class="nav-divider" aria-hidden="true"></span>
+    <a class="home" href="index.html" title="Volver al inicio">Inicio</a>
   </nav>
 
-  <a href="index.html" class="inicio-mobile-btn">Inicio</a>
+  <a href="index.html" class="inicio-mobile-btn" title="Volver al inicio">Inicio</a>
 
 </header>
 
@@ -1758,20 +2070,15 @@ button{
        01 · TIPO DE AUDITORÍA
   ====================================================== -->
 
-  
+<details class="card compact-section" id="tipoAuditoriaSection" open>
 
-  <!-- =====================================================
-       01 · TIPO DE AUDITORÍA
-  ====================================================== -->
-
-<section class="card">
-
-    <div class="card-head">
+    <summary class="card-head">
       <h2>
         <span class="section-number">01</span>
         Tipo de auditoría
       </h2>
-    </div>
+      <small id="tipoAuditoriaResumen">Selecciona el tipo</small>
+    </summary>
 
     <div class="card-body">
 
@@ -1826,15 +2133,17 @@ button{
 
     </div>
 
-  </section>
+  </details>
 
   <!-- =====================================================
        02 · ARCHIVO DE RECIBO
   ====================================================== -->
 
-<section class="card" id="archivoReciboSection">
+<div class="top-config-grid">
 
-    <div class="card-head">
+<details class="card compact-section" id="archivoReciboSection" open>
+
+    <summary class="card-head">
 
       <h2>
         <span class="section-number">02</span>
@@ -1845,7 +2154,7 @@ button{
         Sin archivo
       </small>
 
-    </div>
+    </summary>
 
     <div class="card-body">
 
@@ -1919,26 +2228,26 @@ button{
 
     </div>
 
-  </section>
+  </details>
 
   <!-- =====================================================
        03 · MUESTREO
   ====================================================== -->
 
-<section class="card" id="samplingSection">
+<details class="card compact-section" id="samplingSection" open>
 
-    <div class="card-head">
+    <summary class="card-head">
 
       <h2>
         <span class="section-number">03</span>
         Muestreo
       </h2>
 
-      <small>
-        General II
+      <small id="samplingHeaderStatus">
+        General II · pendiente
       </small>
 
-    </div>
+    </summary>
 
     <div class="card-body">
 
@@ -1963,14 +2272,6 @@ button{
 
           </div>
 
-          <button
-            class="btn btn-primary"
-            type="button"
-            onclick="calcularMuestra()">
-
-            Recalcular
-
-          </button>
 
         </div>
 
@@ -2051,7 +2352,9 @@ button{
 
     </div>
 
-  </section>
+  </details>
+
+</div><!-- /.top-config-grid -->
 
   <!-- =====================================================
        04 · DATOS DE RECIBO
@@ -2538,7 +2841,9 @@ button{
 
     </div>
 
-  </section>
+  </details>
+
+</div>
 
 
 
@@ -2957,6 +3262,53 @@ function alternarMinimizarLpn(index){
   card.open=!card.open;
   const btn=card.querySelector(".lpn-card-head button");
   if(btn)btn.textContent=card.open?"Minimizar":"Abrir";
+}
+
+function activarLpn(index){
+  const card=document.getElementById(`lpnCard_${index}`);
+  if(!card) return;
+  document.querySelectorAll("#auditList .lpn-card").forEach(otra=>{otra.open=false;});
+  card.open=true;
+}
+
+function controlarAperturaLpn(index){
+  const card=document.getElementById(`lpnCard_${index}`);
+  if(!card || !card.open) return;
+  document.querySelectorAll("#auditList .lpn-card").forEach((otra,otroIndex)=>{
+    if(otroIndex!==index && otra.open) otra.open=false;
+  });
+  const btn=card.querySelector(".lpn-card-head button");
+  if(btn)btn.textContent="Minimizar";
+}
+
+function abrirSiguienteLpnPendiente(index){
+  const pendientes=auditoriaActual
+    .map((item,i)=>({item,i}))
+    .filter(({item})=>!lpnEstaCompleta(item));
+
+  if(!pendientes.length) return;
+
+  const posterior=pendientes.find(({i})=>i>index);
+  const destino=posterior ? posterior.i : pendientes[0].i;
+
+  requestAnimationFrame(()=>{
+    document.querySelectorAll("#auditList .lpn-card").forEach(card=>{
+      card.open=false;
+      const btn=card.querySelector(".lpn-card-head button");
+      if(btn)btn.textContent="Abrir";
+    });
+
+    const card=document.getElementById(`lpnCard_${destino}`);
+    if(!card) return;
+
+    card.open=true;
+    const btn=card.querySelector(".lpn-card-head button");
+    if(btn)btn.textContent="Minimizar";
+
+    requestAnimationFrame(()=>{
+      card.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+  });
 }
 
 function actualizarIndicadorCompletoLpn(index){
@@ -3560,12 +3912,21 @@ async function qaSupabaseConTimeout(promise, etiqueta="Supabase", ms=15000){
     return await Promise.race([
       promise,
       new Promise((_,reject)=>{
-        timer=setTimeout(()=>reject(new Error(`${etiqueta}: tiempo de espera agotado (${Math.round(ms/1000)} s).`)),ms);
+        timer=setTimeout(()=>{
+          const error=new Error(`${etiqueta}: tiempo de espera agotado (${Math.round(ms/1000)} s).`);
+          error.code="QA_TIMEOUT";
+          error.qaTimeout=true;
+          reject(error);
+        },ms);
       })
     ]);
   }finally{
     if(timer)clearTimeout(timer);
   }
+}
+
+function qaEsTimeout(error){
+  return !!(error?.qaTimeout || error?.code==="QA_TIMEOUT" || /tiempo de espera agotado/i.test(String(error?.message||"")));
 }
 
 
@@ -3625,16 +3986,38 @@ function fusionarEstadosAuditoria(localEstado, remotoEstado, remotoActualizado="
 
 async function leerEstadoRemotoCompleto(id){
   if(!esUUIDValido(id))return null;
-  const {data:header,error:headerError}=await qaSupabaseConTimeout(
-    supabaseClient.from("Auditoria_Recibo_Borrador").select("auditoria_id,usuario,estado,actualizado").eq("auditoria_id",id).maybeSingle(),
-    "Lectura de cabecera remota",12000
-  );
+  let headerResult;
+  try{
+    headerResult=await qaSupabaseConTimeout(
+      supabaseClient.from("Auditoria_Recibo_Borrador").select("auditoria_id,usuario,estado,actualizado").eq("auditoria_id",id).maybeSingle(),
+      "Lectura de cabecera remota",6000
+    );
+  }catch(error){
+    // Una lectura remota lenta no debe bloquear la auditoría local ni llenar la consola.
+    // La siguiente sincronización automática volverá a intentarlo.
+    if(qaEsTimeout(error))return null;
+    throw error;
+  }
+  const {data:header,error:headerError}=headerResult||{};
   if(headerError)throw headerError;
   if(!header)return null;
-  const {data:rows,error:rowsError}=await qaSupabaseConTimeout(
-    supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).select("auditoria_id,usuario,bloque_id,indice,lpn,estado,actualizado").eq("auditoria_id",id).order("indice",{ascending:true}),
-    "Lectura de bloques remotos",12000
-  );
+
+  let rowsResult;
+  try{
+    rowsResult=await qaSupabaseConTimeout(
+      supabaseClient.from(QA_DRAFT_BLOCKS_TABLE).select("auditoria_id,usuario,bloque_id,indice,lpn,estado,actualizado").eq("auditoria_id",id).order("indice",{ascending:true}),
+      "Lectura de bloques remotos",6000
+    );
+  }catch(error){
+    // La cabecera ya contiene una copia completa del avance en las versiones actuales.
+    // Si los bloques tardan, usamos esa copia y continuamos sin marcar la auditoría como fallida.
+    if(qaEsTimeout(error)){
+      rowsResult={data:[],error:null};
+    }else{
+      throw error;
+    }
+  }
+  const {data:rows,error:rowsError}=rowsResult||{data:[],error:null};
   if(rowsError)throw rowsError;
   const estado={...(header.estado||{}),auditoriaId:header.auditoria_id,propietario:header.estado?.propietario||header.usuario||"",usuario:header.usuario||header.estado?.propietario||"",actualizado:header.actualizado||header.estado?.actualizado||"",_qaOrigenRemoto:true};
   // La cabecera conserva ahora una copia completa del avance. Esto hace la
@@ -3691,7 +4074,10 @@ async function sincronizarRemotoConFusion(estado){
   const id=estado.auditoriaId;
   const propietario=String(estado.propietario||window.qaBorradorPropietario||usuarioQA?.nombre||"").trim();
   if(!propietario)return false;
-  const remoto=await leerEstadoRemotoCompleto(id).catch(error=>{console.warn("Lectura remota previa no disponible:",error);return null;});
+  const remoto=await leerEstadoRemotoCompleto(id).catch(error=>{
+    if(!qaEsTimeout(error))console.warn("Lectura remota previa no disponible:",error);
+    return null;
+  });
   const fusion=fusionarEstadosAuditoria(estado,remoto,remoto?.actualizado||"");
   const items=Array.isArray(fusion.auditoriaActual)?fusion.auditoriaActual:[];
   const actualizado=new Date().toISOString();
@@ -3760,8 +4146,12 @@ async function sincronizarDesdeServidorSiHayAvance(){
       marcarSincronizacionCompleta(new Date());
     }
   }catch(error){
-    console.warn("Sincronización automática entre dispositivos pendiente:",error);
-    marcarErrorGuardado();
+    // Los timeouts de red son transitorios: no convierten la auditoría local en error.
+    // Solo registramos problemas reales de Supabase.
+    if(!qaEsTimeout(error)){
+      console.warn("Sincronización automática entre dispositivos pendiente:",error);
+      marcarErrorGuardado();
+    }
   }
 }
 
@@ -4391,6 +4781,11 @@ function cambiarTipoAuditoria(){
       !tiempoReal
     );
 
+  const tipoSection=document.getElementById("tipoAuditoriaSection");
+  const tipoResumen=document.getElementById("tipoAuditoriaResumen");
+  if(tipoResumen) tipoResumen.textContent=tiempoReal ? "Tiempo Real" : "Almacenaje";
+  if(tipoSection) tipoSection.open=false;
+
   document
     .getElementById("archivoReciboSection")
     .classList.toggle(
@@ -4715,6 +5110,11 @@ function calcularMuestra(){
     renderizarAuditoria();
   }
 
+  const samplingSection=document.getElementById("samplingSection");
+  const samplingHeaderStatus=document.getElementById("samplingHeaderStatus");
+  if(samplingHeaderStatus) samplingHeaderStatus.textContent=`General II · ${resultado.muestra} LPN`;
+  if(samplingSection) samplingSection.open=false;
+
 }
 
 
@@ -4821,7 +5221,14 @@ function actualizarLpn(index,campo,valor){
   if(typeof actualizarEstadoLpn === "function"){
     actualizarEstadoLpn(index);
   }
+  const completaDespues = lpnEstaCompleta(item);
   if(typeof actualizarIndicadorCompletoLpn === "function")actualizarIndicadorCompletoLpn(index);
+
+  if(completaDespues){
+    const card=document.getElementById(`lpnCard_${index}`);
+    if(card) card.open=false;
+    abrirSiguienteLpnPendiente(index);
+  }
 
   if(typeof actualizarResultadoGeneral === "function"){
     actualizarResultadoGeneral();
@@ -5168,6 +5575,8 @@ function renderizarAuditoria(){
 
   contenedor.innerHTML = "";
 
+  // Solo una LPN permanece abierta: la primera que aún requiere trabajo.
+  const indiceActivo = auditoriaActual.findIndex(item => !lpnEstaCompleta(item));
   auditoriaActual.forEach(
     (item,index) => {
 
@@ -5175,7 +5584,8 @@ function renderizarAuditoria(){
         "beforeend",
         crearLpnCard(
           item,
-          index
+          index,
+          index === indiceActivo
         )
       );
 
@@ -5207,14 +5617,15 @@ function renderizarAuditoria(){
    CREAR CARD LPN
 ========================================================= */
 
-function crearLpnCard(item,index){
+function crearLpnCard(item,index,abrir=false){
 
   return `
 
     <details
       class="lpn-card"
       id="lpnCard_${index}"
-      ${lpnEstaCompleta(item) ? "" : "open"}>
+      ontoggle="controlarAperturaLpn(${index})"
+      ${abrir ? "open" : ""}>
 
       <summary
         class="lpn-card-head"
@@ -6451,6 +6862,8 @@ async function procesarArchivoExcel(file,opciones={}){
     set("excelRecordCount",totalRegistros.toLocaleString("es-MX"));
     set("excelLpnCount",totalLpn.toLocaleString("es-MX"));
     set("excelHeaderStatus",`✓ Archivo cargado · ${totalLpn.toLocaleString("es-MX")} LPN`);
+    const excelSection=document.getElementById("archivoReciboSection");
+    if(excelSection) excelSection.open=false;
 
     const lote=document.getElementById("tamanoLote");
     if(lote){
@@ -6610,6 +7023,13 @@ function marcarQA(
   }
 
   evaluarLpn(index);
+  actualizarEstadoLpn(index);
+  actualizarIndicadorCompletoLpn(index);
+  if(lpnEstaCompleta(item)){
+    const card=document.getElementById(`lpnCard_${index}`);
+    if(card) card.open=false;
+    abrirSiguienteLpnPendiente(index);
+  }
   guardarBorrador();
 
 }
