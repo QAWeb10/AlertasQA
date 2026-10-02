@@ -2107,42 +2107,39 @@ button{
             Origen
           </label>
 
-          <input
+          <select
             id="origen"
-            type="text"
-            list="origenListado"
-            autocomplete="off"
-            placeholder="Origen">
-
-          <datalist id="origenListado">
-              <option>AEROBAL</option>
-  <option>ALCE BLANCO</option>
-  <option>ANDOVER PLANT GILLET</option>
-  <option>COLEP</option>
-  <option>DETERGENTES Y JABONES</option>
-  <option>DLMC DALLAS MIX CENT</option>
-  <option>EVSA</option>
-  <option>FIURI</option>
-  <option>GELCAPS</option>
-  <option>GERMANY IMP</option>
-  <option>GREENSBORO</option>
-  <option>IMPORTADO</option>
-  <option>IRAPUATO (CHRONOS)</option>
-  <option>MARISCALA</option>
-  <option>MILENIO</option>
-  <option>NAUCALPAN</option>
-  <option>P&G BROWNS SUMMIT SW</option>
-  <option>PHOENIX PLANT V1725Z</option>
-  <option>QUIFA</option>
-  <option>QUIMICA & FARMACIA S</option>
-  <option>SMO MASTER DC-PG MFG</option>
-  <option>SMOMASTERDC-PGMFG</option>
-  <option>TABLER STATION PLANT</option>
-  <option>TEPEJI</option>
-  <option>THE PROCTER & GAMBLE</option>
-  <option>USA TABLER STATION PLANT</option>
-  <option>VALLEJO</option>
-          </datalist>
+            required
+            autocomplete="off">
+            <option value="">Seleccionar origen</option>
+            <option value="AEROBAL">AEROBAL</option>
+            <option value="ALCE BLANCO">ALCE BLANCO</option>
+            <option value="ANDOVER PLANT GILLET">ANDOVER PLANT GILLET</option>
+            <option value="COLEP">COLEP</option>
+            <option value="DETERGENTES Y JABONES">DETERGENTES Y JABONES</option>
+            <option value="DLMC DALLAS MIX CENT">DLMC DALLAS MIX CENT</option>
+            <option value="EVSA">EVSA</option>
+            <option value="FIURI">FIURI</option>
+            <option value="GELCAPS">GELCAPS</option>
+            <option value="GERMANY IMP">GERMANY IMP</option>
+            <option value="GREENSBORO">GREENSBORO</option>
+            <option value="IMPORTADO">IMPORTADO</option>
+            <option value="IRAPUATO (CHRONOS)">IRAPUATO (CHRONOS)</option>
+            <option value="MARISCALA">MARISCALA</option>
+            <option value="MILENIO">MILENIO</option>
+            <option value="NAUCALPAN">NAUCALPAN</option>
+            <option value="P&G BROWNS SUMMIT SW">P&G BROWNS SUMMIT SW</option>
+            <option value="PHOENIX PLANT V1725Z">PHOENIX PLANT V1725Z</option>
+            <option value="QUIFA">QUIFA</option>
+            <option value="QUIMICA & FARMACIA S">QUIMICA & FARMACIA S</option>
+            <option value="SMO MASTER DC-PG MFG">SMO MASTER DC-PG MFG</option>
+            <option value="SMOMASTERDC-PGMFG">SMOMASTERDC-PGMFG</option>
+            <option value="TABLER STATION PLANT">TABLER STATION PLANT</option>
+            <option value="TEPEJI">TEPEJI</option>
+            <option value="THE PROCTER & GAMBLE">THE PROCTER &amp; GAMBLE</option>
+            <option value="USA TABLER STATION PLANT">USA TABLER STATION PLANT</option>
+            <option value="VALLEJO">VALLEJO</option>
+          </select>
 
         </div>
 
@@ -2975,6 +2972,31 @@ function actualizarIndicadorCompletoLpn(index){
   }
 }
 
+function obtenerEstadoResultadoDinamico(){
+  const resumen=obtenerResumenCumplimiento();
+  const tamu=obtenerNivelTAMU();
+  const completas=auditoriaActual.filter(lpnEstaCompleta).length;
+  const totalLpn=Number(muestraCalculada||auditoriaActual.length||0);
+  const pendiente=!!(tamu.codigo==="PENDIENTE" || (totalLpn && completas<totalLpn));
+  return {
+    codigo:tamu.codigo||"PENDIENTE",
+    nivel:tamu.nombre||"PENDIENTE",
+    dictamen:pendiente?"PENDIENTE":(tamu.codigo==="TARGET"||tamu.codigo==="ACCEPTABLE"||tamu.codigo==="MARGINAL"?"ACEPTADO":"PENDIENTE"),
+    cumplimiento:Number(resumen.cumplimiento||0),
+    totalLpn,
+    lpnCompletas:completas,
+    lpnConDesviacion:Number(resumen.lpnConDesviacion||0),
+    lpnSinDesviacion:Number(resumen.lpnSinDesviacion||0),
+    desviacionesCriticas:Number(resumen.desviacionesCriticas||0),
+    desviacionesMayores:Number(resumen.desviacionesMayores||0),
+    desviacionesMenores:Number(resumen.desviacionesMenores||0),
+    checksTotales:Number(resumen.totalChecks||0),
+    checksOK:Number(resumen.checksOK||0),
+    checksError:Number(resumen.checksError||0),
+    actualizado:new Date().toISOString()
+  };
+}
+
 function sincronizarFotoFinalLocal(){
   const estado={
     auditoriaId,
@@ -2984,6 +3006,8 @@ function sincronizarFotoFinalLocal(){
     origen:document.getElementById("origen")?.value||"",turno:document.getElementById("turno")?.value||"",
     cuadrilla:document.getElementById("cuadrilla")?.value||"",coordinador:document.getElementById("coordinador")?.value||"",
     observaciones:document.getElementById("observaciones")?.value||"",muestraCalculada,codigoLetraMuestra,
+    resultadoAuditoria:obtenerEstadoResultadoDinamico(),
+    origenCatalogoVersion:"PLANTAS_RECIBO_V1",
     excelStoragePath,excelArchivoNombre,excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
     auditoriaActual:prepararAuditoriaParaBorrador(auditoriaActual),
     evidencias_generales:(fotosGeneralesAuditoria||[]).map(a=>typeof a==="string"?{tipo:"url",url:a}:{tipo:"local",localId:a.__qaEvidenceId,name:a.name,type:a.type,lastModified:a.lastModified}),
@@ -3351,6 +3375,8 @@ function guardarRespaldoEmergencia(){
       observaciones:document.getElementById("observaciones")?.value||"",
       muestraCalculada,
       codigoLetraMuestra,
+      resultadoAuditoria:obtenerEstadoResultadoDinamico(),
+      origenCatalogoVersion:"PLANTAS_RECIBO_V1",
       excelStoragePath,
       excelArchivoNombre,
       excelLocalId:excelArchivoNombre?`excel:${auditoriaId}`:"",
@@ -3584,7 +3610,7 @@ function fusionarEstadosAuditoria(localEstado, remotoEstado, remotoActualizado="
   const items=[];
   for(let i=0;i<max;i++)items.push(fusionarItemLpn(localItems[i],remotoItems[i],lf,rf));
   const out={...remoto,...local};
-  ["cortina","sto","origen","turno","cuadrilla","coordinador","observaciones","excelStoragePath","excelArchivoNombre","excelLocalId","tipoAuditoria","tipoRecibo","muestraCalculada","codigoLetraMuestra"].forEach(k=>{
+  ["cortina","sto","origen","turno","cuadrilla","coordinador","observaciones","excelStoragePath","excelArchivoNombre","excelLocalId","tipoAuditoria","tipoRecibo","muestraCalculada","codigoLetraMuestra","resultadoAuditoria","origenCatalogoVersion"].forEach(k=>{
     if(String(local[k]??"").trim()!=="")out[k]=local[k];
     else if(String(remoto[k]??"").trim()!=="")out[k]=remoto[k];
   });
@@ -3837,7 +3863,13 @@ async function restaurarEstadoBorrador(estado){
   document.getElementById("turno").value=estado.turno||"";
   document.getElementById("cuadrilla").value=estado.cuadrilla||"";
   document.getElementById("coordinador").value=estado.coordinador||"";
-  document.getElementById("observaciones").value=estado.observaciones||"";
+  const observacionesEl=document.getElementById("observaciones");
+  if(observacionesEl)observacionesEl.value=estado.observaciones||"";
+
+  const origenCatalogo=[...document.getElementById("origen")?.options||[]].map(o=>o.value).filter(Boolean);
+  const origenGuardado=String(estado.origen||"").trim();
+  const origenEl=document.getElementById("origen");
+  if(origenEl)origenEl.value=origenCatalogo.includes(origenGuardado)?origenGuardado:"";
 
   muestraCalculada=Number(estado.muestraCalculada||0);
   codigoLetraMuestra=estado.codigoLetraMuestra||"";
@@ -5544,7 +5576,7 @@ function crearLpnCard(item,index){
             <div class="field">
 
               <label>
-                Tipo de error
+                Tipo de desviación
               </label>
 
               <select
@@ -5552,11 +5584,11 @@ function crearLpnCard(item,index){
                 onchange="actualizarError(${index})">
 
                 <option value="PLANTA">
-                  ERROR DE PLANTA
+                  DESVIACIÓN DE PLANTA
                 </option>
 
                 <option value="OPERACION">
-                  ERROR DE OPERACIÓN
+                  DESVIACIÓN DE OPERACIÓN
                 </option>
 
               </select>
@@ -6902,7 +6934,7 @@ function mostrarEstadoLpn(
       "status-pill status-error";
 
     status.textContent =
-      "ERROR";
+      "DESVIACIÓN";
 
   }
 
@@ -7833,6 +7865,12 @@ function validarTiempoReal(){
     if(!/^\d{10}$/.test(sto)) faltantes.push("STO de exactamente 10 dígitos");
   }
 
+  const origenEl=document.getElementById("origen");
+  const origenVal=String(origenEl?.value||"").trim();
+  const origenPermitido=[...origenEl?.options||[]].map(o=>String(o.value||"").trim()).filter(Boolean);
+  if(!origenVal) faltantes.push("origen");
+  else if(!origenPermitido.includes(origenVal)) faltantes.push("origen válido del catálogo");
+
   campo("turno","turno");
   campo("cuadrilla","cuadrilla");
   campo("coordinador","coordinador");
@@ -8546,8 +8584,9 @@ function construirDatosAuditoria(
 
           ...copia,
           auditoria_borrador_id:auditoriaId,
-          dictamen_auditoria:obtenerNivelTAMU().codigo==="UNACCEPTABLE"?"RECHAZADO":"ACEPTADO",
+          dictamen_auditoria:obtenerEstadoResultadoDinamico().dictamen,
           nivel_tamu:obtenerNivelTAMU().nombre,
+          resultado_resumen:obtenerEstadoResultadoDinamico(),
 
           evidencia_campos_urls:
             evidenciaCampoUrls,
@@ -8662,7 +8701,16 @@ function construirDatosAuditoria(
           "observaciones"
         )
         .value
-        .trim()
+        .trim(),
+
+    resultado_auditoria:
+      obtenerEstadoResultadoDinamico(),
+
+    origen_catalogo_version:
+      "PLANTAS_RECIBO_V1",
+
+    fecha_generacion:
+      new Date().toISOString()
 
   };
 
@@ -8964,10 +9012,10 @@ function crearVistaAlmacenaje(
 
   const tipoErrorTexto =
     tipoError === "PLANTA"
-      ? "ERROR DE PLANTA"
+      ? "DESVIACIÓN DE PLANTA"
       : tipoError === "OPERACION"
-        ? "ERROR DE OPERACIÓN"
-        : "SIN ERROR";
+        ? "DESVIACIÓN DE OPERACIÓN"
+        : "SIN DESVIACIÓN";
 
   const estadoInicial =
     item.desviacion_corregida ||
@@ -9092,7 +9140,7 @@ function crearVistaAlmacenaje(
       <div class="original-error">
 
         <div class="original-error-title">
-          ERROR REGISTRADO EN RECIBO
+          DESVIACIÓN REGISTRADA EN RECIBO
         </div>
 
         <div class="original-error-text">
@@ -9833,6 +9881,20 @@ async function generarPDFdesdeReporte(indice){
       doc.text(String(lineas[0]||texto),x+w/2,boxY+(boxH/2)+1.5,{align:"center"});
       return labelH+gap+boxH+4;
     }
+    function campoMultilinea(x,y,w,label,valCampo,maxLineas=8){
+      const labelH=3,gap=1,boxH=9;
+      const texto=valor(valCampo);
+      const lineas=doc.splitTextToSize(texto,w-6).slice(0,maxLineas);
+      const alto=Math.max(boxH,Math.max(1,lineas.length)*4.5+4);
+      doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(110);
+      doc.text(String(label).toUpperCase(),x,y+labelH);
+      const boxY=y+4;
+      doc.setFillColor(245,245,245);doc.roundedRect(x,boxY,w,alto,2,2,"F");
+      doc.setDrawColor(220);doc.roundedRect(x,boxY,w,alto,2,2);
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(30);
+      doc.text(lineas.length?lineas:["—"],x+3,boxY+5);
+      return labelH+gap+alto+4;
+    }
     function header(){
       doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(100);doc.text("BUSINESS USE",10,10);
       doc.setFontSize(6);doc.setTextColor(120);doc.text("SISTEMA DE GESTION DE CALIDAD",10,14);doc.text("FY2627",10,17);
@@ -9868,9 +9930,27 @@ async function generarPDFdesdeReporte(indice){
     campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Auditor",r.nombre);campo(140,y,60,"Turno",r.turno);y+=19;
     campo(10,y,60,"Cuadrilla",r.cuadrilla);campo(75,y,60,"STO",r.sto);campo(140,y,60,"Origen",r.origen);y+=19;
     campo(10,y,60,"Cortina",r.cortina);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
-    const dictamenPDF=codigos.some(x=>x?.dictamen_auditoria==="RECHAZADO")?"RECHAZADO":"ACEPTADO";
+    const resumenPDF=(()=>{
+      const lista=Array.isArray(codigos)?codigos:[];
+      let total=0,bien=0,crit=0,may=0,men=0,lpnDev=0;
+      lista.forEach(item=>{
+        const checks=obtenerTodosLosChecks(item).filter(x=>x.valor==="OK"||x.valor==="ERROR");
+        total+=checks.length;
+        checks.forEach(x=>{
+          if(x.valor==="OK")bien++;
+          else{
+            const sev=obtenerSeveridadHallazgo(item,x);
+            if(sev==="CRITICO")crit++; else if(sev==="MAYOR")may++; else men++;
+          }
+        });
+        if(calcularHallazgos(item).length||checks.some(x=>x.valor==="ERROR")||(item.error_tipo&&item.error_tipo!=="NINGUNO"))lpnDev++;
+      });
+      return {cumplimiento:total?bien/total*100:0,lpnDev,crit,may,men,total,bien};
+    })();
+    const dictamenPDF=codigos.length?(resumenPDF.cumplimiento>=95?"ACEPTADO":"ACEPTADO CON DESVIACIONES"):"PENDIENTE";
     const tamuPDF=codigos[0]?.nivel_tamu||"PENDIENTE";
-    campo(10,y,60,"Dictamen",dictamenPDF);campo(75,y,60,"TAMU",tamuPDF);campo(140,y,60,"Observaciones",r.observaciones);y+=19;
+    campo(10,y,60,"Dictamen",dictamenPDF);campo(75,y,60,"Cumplimiento",resumenPDF.total?resumenPDF.cumplimiento.toFixed(1)+"%":"PENDIENTE");campo(140,y,60,"TAMU",tamuPDF);y+=19;
+    campoMultilinea(10,y,190,"Observaciones",r.observaciones,10);y+=Math.max(19,doc.getTextDimensions(String(r.observaciones||"")).h||19);
 
     for(let i=0;i<codigos.length;i++){
       const item=codigos[i]||{};
@@ -9879,7 +9959,7 @@ async function generarPDFdesdeReporte(indice){
       campo(10,y,60,"LPN",item.lpn);campo(75,y,60,"GCAS",item.gcas);campo(140,y,60,"Lote",item.lote);y+=19;
       campo(10,y,60,"STO",item.sto||r.sto);campo(75,y,60,"Cantidad",item.sistema_cantidad);campo(140,y,60,"Descripción",item.descripcion);y+=19;
       campo(10,y,60,"Cliente",item.cliente);campo(75,y,60,"Inventory status",item.inventory_status);campo(140,y,60,"Storage location",item.storage_location);y+=19;
-      campo(10,y,190,"Resultado",item.error_tipo&&item.error_tipo!=="NINGUNO"?"ERROR":"OK");y+=19;
+      campo(10,y,190,"Resultado",item.error_tipo&&item.error_tipo!=="NINGUNO"?"DESVIACIÓN":"OK");y+=19;
       if(item.error_tipo&&item.error_tipo!=="NINGUNO"){
         campo(10,y,60,"Error tipo",item.error_tipo);campo(75,y,125,"Error detalle",item.error_detalle);y+=19;
         campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Responsable usuario",item.responsable_usuario);campo(140,y,60,"Responsable cuadrilla",item.responsable_cuadrilla);y+=19;
@@ -10168,6 +10248,14 @@ setInterval(() => {
         el.addEventListener("change",()=>guardarBorrador());
       }
     });
+    const origenSelect=document.getElementById("origen");
+    if(origenSelect){
+      origenSelect.addEventListener("change",()=>{
+        const permitido=[...origenSelect.options].some(o=>o.value===origenSelect.value&&o.value!=="");
+        if(!permitido)origenSelect.value="";
+        guardarBorrador();
+      });
+    }
 
     renderizarTareasPendientes();
 
