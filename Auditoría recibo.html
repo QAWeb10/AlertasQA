@@ -2055,9 +2055,9 @@ button{
   <nav class="nav-dash" aria-label="Navegación entre sistemas">
     <a class="system" href="Alertas de calidad.html" title="Ir a Alertas de calidad">Alertas</a>
     <a class="system" href="Incidencia en Recibo.html" title="Ir a Incidencias en Recibo">Incidencias</a>
-    <a class="system current" href="Auditoria_recibo_CORREGIDA_FINAL_v22.html" aria-current="page" title="Sistema actual">Auditoría</a>
+    <a class="system current" href="Auditoria_recibo.html" aria-current="page" title="Sistema actual">Auditoría</a>
     <span class="nav-divider" aria-hidden="true"></span>
-    <a class="home" href="index.html" title="Volver al inicio">Inicio</a>
+    <a class="back qa-home" href="index.html">🏠 Home</a>
   </nav>
 
   <a href="index.html" class="inicio-mobile-btn" title="Volver al inicio">Inicio</a>
@@ -8661,6 +8661,40 @@ async function eliminarBorradorDespuesDeGuardar(id){
    GUARDAR AUDITORÍA
 ========================================================= */
 
+function finalizarAuditoriaGuardadaYMostrarMenu(folio, mensaje, tipo="success", titulo="Auditoría guardada"){
+  // La auditoría ya está registrada. El estado de trabajo NO debe quedar activo.
+  // Limpiamos pantalla, memoria y estado local antes de regresar al menú.
+  try{
+    limpiarFormulario();
+  }catch(error){
+    console.error("No fue posible limpiar completamente la auditoría finalizada:",error);
+  }
+
+  auditoriaEnEdicion=false;
+  qaDraftFinalizando=false;
+  qaGuardandoFinal=false;
+  qaAvanceGuardando=false;
+  clearTimeout(qaDraftLocalTimer); qaDraftLocalTimer=null;
+  clearTimeout(qaDraftRemoteTimer); qaDraftRemoteTimer=null;
+  localStorage.removeItem(QA_DRAFT_STATE_KEY);
+  window.qaBorradorPropietario="";
+  qaBorradorPropietario="";
+
+  // El menú es el punto de entrada para TODA nueva auditoría.
+  // No se llama a iniciarAuditoriaNueva() aquí.
+  mostrarInicioAuditorias();
+
+  const overlay=document.getElementById("qaAlertOverlay");
+  const ok=document.getElementById("qaAlertOk");
+  mostrarAlertaQA(mensaje,tipo,titulo);
+  if(ok){
+    ok.onclick=function(){
+      if(overlay)overlay.classList.remove("show");
+      mostrarInicioAuditorias();
+    };
+  }
+}
+
 async function guardarAuditoria(){
 
   // Captura el estado actual antes de validar o finalizar.
@@ -8894,44 +8928,27 @@ mostrarAlertaQA(
 
     }
 
-    const tareaPendiente =
-      tareasAuditoriaLpn[0];
+    const tareaPendiente = tareasAuditoriaLpn[0];
 
     if(tareaPendiente){
-
-mostrarAlertaQA(
-  `La auditoría ${folio} fue guardada correctamente.\n\n` +
-  `La LPN ${tareaPendiente.lpn} quedó como tarea pendiente porque no fue corregida.\n\n` +
-  `Se abrirá Auditoría en Almacenaje para darle seguimiento.`,
-  "warning",
-  "Seguimiento pendiente"
-);
-
-      const radioAlmacenaje =
-        document.querySelector(
-          'input[name="tipoAuditoria"][value="ALMACENAJE"]'
-        );
-
-      if(radioAlmacenaje){
-
-        radioAlmacenaje.checked = true;
-        cambiarTipoAuditoria();
-
-      }
-
-      abrirTareaPendiente(0);
-
+      finalizarAuditoriaGuardadaYMostrarMenu(
+        folio,
+        `La auditoría ${folio} fue guardada correctamente.\n\n` +
+        `La LPN ${tareaPendiente.lpn} quedó como tarea pendiente porque no fue corregida.\n\n` +
+        `La tarea quedó guardada para que puedas decidir desde el menú qué deseas hacer a continuación.`,
+        "warning",
+        "Auditoría guardada"
+      );
       return;
-
     }
 
-   mostrarAlertaQA(
-  `La auditoría ${folio} fue guardada correctamente.`,
-  "success",
-  "Auditoría guardada"
-);
-
-    limpiarFormulario();
+    finalizarAuditoriaGuardadaYMostrarMenu(
+      folio,
+      `La auditoría ${folio} fue guardada correctamente.\n\n` +
+      `La información de esta auditoría fue limpiada de la pantalla.`,
+      "success",
+      "Auditoría guardada"
+    );
 
   }catch(error){
 
@@ -9123,14 +9140,13 @@ function construirDatosAuditoria(
         .value
         .trim(),
 
-    resultado_auditoria:
-      obtenerEstadoResultadoDinamico(),
+    // IMPORTANTE: estos son exclusivamente los campos que existen
+    // actualmente en public.Auditoria_Recibo.
+    // El resultado detallado ya viaja dentro de cada elemento de
+    // `codigos` mediante dictamen_auditoria / resultado_resumen.
 
-    origen_catalogo_version:
-      "PLANTAS_RECIBO_V1",
-
-    fecha_generacion:
-      new Date().toISOString()
+    etapa_auditoria:
+      "TIEMPO_REAL",
 
   };
 
