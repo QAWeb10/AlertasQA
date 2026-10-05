@@ -1817,63 +1817,54 @@ button{
   inset:0;
   z-index:8000;
   display:none;
-  background:rgba(20,20,20,.68);
-  backdrop-filter:blur(4px);
-  padding:12px;
+  align-items:center;
+  justify-content:center;
+  background:rgba(20,20,20,.58);
+  backdrop-filter:blur(3px);
+  padding:16px;
   overflow:auto;
 }
-.reportes-overlay.show{display:block;}
+.reportes-overlay.show{display:flex;}
 .reportes-shell{
-  width:min(100%,1100px);
+  width:min(60vw,1200px);
+  max-width:1200px;
+  max-height:82vh;
   margin:0 auto;
   background:#fff;
-  border-radius:18px;
+  border-radius:14px;
   box-shadow:var(--shadow-3);
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
 .reportes-head{
-  padding:14px 16px;
+  flex:none;
+  padding:10px 14px;
   background:linear-gradient(135deg,var(--brand-deep),var(--brand));
   color:#fff;
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:9px;
 }
-.reportes-head h2{margin:0;font-size:16px;line-height:1.2;}
-.reportes-head small{display:block;margin-top:3px;opacity:.82;font-size:10px;}
-.reportes-head-spacer{flex:1;}
-.reportes-close{
-  width:36px;height:36px;border:1px solid rgba(255,255,255,.35);
-  border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:20px;
-}
-.reportes-body{padding:14px;}
-.reportes-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.reportes-kpi{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafafa;}
-.reportes-kpi span{display:block;color:var(--ink-muted);font-size:8px;font-weight:900;text-transform:uppercase;}
-.reportes-kpi strong{display:block;margin-top:3px;font-size:18px;}
-.reportes-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
-.reporte-card{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;box-shadow:var(--shadow-1);}
-.reporte-card-head{padding:10px 12px;background:#fafafa;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:8px;}
-.reporte-card-head .folio{font-size:12px;font-weight:900;color:var(--brand);font-family:monospace;}
-.reporte-card-head .fecha{margin-left:auto;font-size:9px;color:var(--ink-muted);}
-.reporte-card-body{padding:10px 12px;}
-.reporte-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.reporte-dato{border:1px solid var(--line-soft);border-radius:8px;padding:7px 8px;background:#fff;}
-.reporte-dato span{display:block;color:var(--ink-muted);font-size:7px;font-weight:900;text-transform:uppercase;}
-.reporte-dato strong{display:block;margin-top:3px;font-size:10px;word-break:break-word;}
-.reporte-card-actions{display:flex;gap:7px;margin-top:9px;}
-.reporte-card-actions .btn{flex:1;}
-.reportes-paginacion{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;}
-.reportes-paginacion .pagina{font-size:10px;font-weight:900;color:var(--ink-soft);min-width:90px;text-align:center;}
-.reportes-empty{padding:35px 12px;text-align:center;color:var(--ink-muted);font-size:11px;border:1px dashed var(--line);border-radius:12px;}
-@media(max-width:700px){
-  .reportes-list{grid-template-columns:1fr;}
-}
-@media(max-width:500px){
-  .reportes-kpis{grid-template-columns:1fr 1fr;}
-  .reportes-kpi:last-child{grid-column:1/-1;}
-}
-
+.reportes-head h2{margin:0;font-size:14px;line-height:1.2}.reportes-head small{display:block;margin-top:2px;opacity:.82;font-size:9px}.reportes-head-spacer{flex:1}.reportes-close{width:32px;height:32px;border:1px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-size:18px;line-height:1}
+.reportes-body{padding:10px 12px 12px;overflow:auto;min-height:0}
+.reportes-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.reportes-kpi{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fafafa}.reportes-kpi span{display:block;color:var(--ink-muted);font-size:7px;font-weight:900;text-transform:uppercase}.reportes-kpi strong{display:block;margin-top:2px;font-size:15px}
+.reportes-list{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:#fff}
+.reportes-table{width:100%;min-width:850px;border-collapse:collapse;table-layout:auto}
+.reportes-table th,.reportes-table td{padding:7px 8px;border-bottom:1px solid var(--line-soft);text-align:left;vertical-align:middle;white-space:nowrap}
+.reportes-table th{position:sticky;top:0;z-index:2;background:#f5f6f7;color:var(--ink-soft);font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.2px}
+.reportes-table td{font-size:9px;color:var(--ink)}
+.reportes-table tbody tr:last-child td{border-bottom:0}
+.reportes-table tbody tr:hover{background:#fffaf0}
+.reportes-table .folio{font-family:monospace;font-weight:900;color:var(--brand)}
+.reportes-table .dictamen{font-weight:900}
+.reportes-table .hallazgos{text-align:center;font-weight:900}
+.reportes-table .accion{text-align:center;width:72px}
+.reportes-table .btn{min-height:28px;height:28px;padding:5px 9px;font-size:9px;border-radius:7px}
+.reportes-paginacion{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}.reportes-paginacion .pagina{font-size:9px;font-weight:900;color:var(--ink-soft);min-width:80px;text-align:center}.reportes-empty{padding:28px 12px;text-align:center;color:var(--ink-muted);font-size:10px;border:1px dashed var(--line);border-radius:9px}
+@media(max-width:1100px){.reportes-shell{width:min(78vw,1100px)}}
+@media(max-width:700px){.reportes-overlay{padding:8px}.reportes-shell{width:96vw;max-height:88vh;border-radius:12px}.reportes-head{padding:9px 11px}.reportes-head h2{font-size:13px}.reportes-body{padding:8px}.reportes-kpis{grid-template-columns:1fr 1fr}.reportes-kpi:last-child{grid-column:1/-1}.reportes-table{min-width:850px}}
+@media(max-width:420px){.reportes-shell{width:98vw}.reportes-kpis{grid-template-columns:1fr}.reportes-kpi:last-child{grid-column:auto}}
 
 .auditorias-inicio-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;}
 .auditorias-inicio-overlay.hidden{display:none;}
@@ -2521,21 +2512,14 @@ button{
               Selecciona...
             </option>
 
-            <option value="COORDINADOR A">
-              COORDINADOR A
-            </option>
-
-            <option value="COORDINADOR B">
-              COORDINADOR B
-            </option>
-
-            <option value="COORDINADOR C">
-              COORDINADOR C
-            </option>
-
-            <option value="COORDINADOR D">
-              COORDINADOR D
-            </option>
+            <option value="ARMANDO SERRANO">ARMANDO SERRANO</option>
+            <option value="ADAN BOLAÑOS">ADAN BOLAÑOS</option>
+            <option value="JULIAN LEON">JULIAN LEON</option>
+            <option value="MICHELLE BELEN">MICHELLE BELEN</option>
+            <option value="JESUS BRIOSO">JESUS BRIOSO</option>
+            <option value="ABRAHAM HERNANDEZ">ABRAHAM HERNANDEZ</option>
+            <option value="FELIX RODRIGUEZ">FELIX RODRIGUEZ</option>
+            <option value="MARIO VILLAGOMEZ">MARIO VILLAGOMEZ</option>
 
           </select>
 
@@ -8336,6 +8320,17 @@ function validarTiempoReal(){
       if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
       if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
       if(!["SI","NO"].includes(item.desviacion_corregida)) faltantes.push(`indicación de si el error de la LPN ${n} fue corregido`);
+
+      // Una desviación no puede finalizarse sin evidencia fotográfica.
+      const evidenciasDesviacion = [];
+      Object.values(item.evidencia_campos || {}).forEach(cat=>
+        Object.values(cat || {}).forEach(arr=>
+          (arr || []).forEach(ev=>{ if(ev && (ev.url || ev.__qaEvidenceId || ev.localId)) evidenciasDesviacion.push(ev); })
+        )
+      );
+      if(!evidenciasDesviacion.length){
+        faltantes.push(`evidencia fotográfica de la desviación de la LPN ${n}`);
+      }
     }
   });
 
@@ -10220,33 +10215,45 @@ function renderReportes(){
     return;
   }
 
-  lista.innerHTML=pagina.map((r,indicePagina)=>{
+  const filas=pagina.map((r,indicePagina)=>{
     const indiceGlobal=inicio+indicePagina;
     const codigos=obtenerCodigosRegistro(r);
     const primera=codigos[0]||{};
     const hallazgos=codigos.filter(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO").length;
+    const dictamen=primera.dictamen_auditoria||(hallazgos?"RECHAZADO":"ACEPTADO");
     return `
-      <div class="reporte-card">
-        <div class="reporte-card-head">
-          <div class="folio">${escapeHtml(r.folio||generarFolio(r.consecutivo||0))}</div>
-          <div class="fecha">${escapeHtml(fechaRegistroReporte(r))}</div>
-        </div>
-        <div class="reporte-card-body">
-          <div class="reporte-grid">
-            <div class="reporte-dato"><span>Auditor</span><strong>${escapeHtml(r.nombre||"—")}</strong></div>
-            <div class="reporte-dato"><span>Turno</span><strong>${escapeHtml(r.turno||"—")}</strong></div>
-            <div class="reporte-dato"><span>Cuadrilla</span><strong>${escapeHtml(r.cuadrilla||"—")}</strong></div>
-            <div class="reporte-dato"><span>STO</span><strong>${escapeHtml(r.sto||primera.sto||"—")}</strong></div>
-            <div class="reporte-dato"><span>Tipo recibo</span><strong>${escapeHtml(r.etiqueta||"—")}</strong></div>
-            <div class="reporte-dato"><span>Hallazgos</span><strong>${hallazgos}</strong></div>
-            <div class="reporte-dato"><span>Dictamen</span><strong>${escapeHtml(primera.dictamen_auditoria||(hallazgos?"RECHAZADO":"ACEPTADO"))}</strong></div>
-          </div>
-          <div class="reporte-card-actions">
-            <button type="button" class="btn btn-primary btn-small" onclick="generarPDFdesdeReporte(${indiceGlobal})">PDF</button>
-          </div>
-        </div>
-      </div>`;
+      <tr>
+        <td class="folio">${escapeHtml(r.folio||generarFolio(r.consecutivo||0))}</td>
+        <td>${escapeHtml(fechaRegistroReporte(r))}</td>
+        <td>${escapeHtml(r.nombre||"—")}</td>
+        <td>${escapeHtml(r.turno||"—")}</td>
+        <td>${escapeHtml(r.cuadrilla||"—")}</td>
+        <td>${escapeHtml(r.sto||primera.sto||"—")}</td>
+        <td>${escapeHtml(r.etiqueta||"—")}</td>
+        <td class="hallazgos">${hallazgos}</td>
+        <td class="dictamen">${escapeHtml(dictamen)}</td>
+        <td class="accion"><button type="button" class="btn btn-primary btn-small" onclick="generarPDFdesdeReporte(${indiceGlobal})">PDF</button></td>
+      </tr>`;
   }).join("");
+
+  lista.innerHTML=`
+    <table class="reportes-table">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Fecha</th>
+          <th>Auditor</th>
+          <th>Turno</th>
+          <th>Cuadrilla</th>
+          <th>STO</th>
+          <th>Tipo recibo</th>
+          <th>Hallazgos</th>
+          <th>Dictamen</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>${filas}</tbody>
+    </table>`;
   actualizarKpisReportes();
 }
 
@@ -10286,52 +10293,14 @@ async function cargarImagenDataURL(url){
 
 async function generarPDFdesdeReporte(indice){
   const r=reportesDatos[indice];
-  if(!r){
-    mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");
-    return;
-  }
+  if(!r){mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");return;}
   try{
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      mostrarAlertaQA("La librería para generar PDF no está disponible.","error","PDF no disponible");
-      return;
-    }
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF();
+    if(!window.jspdf || !window.jspdf.jsPDF){mostrarAlertaQA("La librería para generar PDF no está disponible.","error","PDF no disponible");return;}
+    const {jsPDF}=window.jspdf; const doc=new jsPDF();
     const valor=v=>(v===undefined||v===null||String(v).trim()==="")?"NO APLICA":String(v);
-    const codigos=obtenerCodigosRegistro(r);
-    const fecha=fechaRegistroReporte(r);
-    const tipoAuditoria=r.etapa_auditoria||r.tipoAuditoria||"TIEMPO_REAL";
-    const tipoRecibo=r.etiqueta||"";
-    const desviacion=r.desviacion||"";
-
-    function bloque(titulo,y){
-      doc.setFillColor(253,208,0);doc.rect(10,y,190,8,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0);doc.text(titulo,12,y+5);
-      return y+10;
-    }
-    function campo(x,y,w,label,valCampo){
-      const labelH=3,gap=1,boxH=9;
-      doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(110);doc.text(String(label).toUpperCase(),x,y+labelH);
-      const boxY=y+4;doc.setFillColor(245,245,245);doc.roundedRect(x,boxY,w,boxH,2,2,"F");doc.setDrawColor(220);doc.roundedRect(x,boxY,w,boxH,2,2);
-      const texto=valor(valCampo);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(texto==="NO APLICA"?140:30);
-      const lineas=doc.splitTextToSize(texto,w-6);
-      doc.text(String(lineas[0]||texto),x+w/2,boxY+(boxH/2)+1.5,{align:"center"});
-      return labelH+gap+boxH+4;
-    }
-    function campoMultilinea(x,y,w,label,valCampo,maxLineas=8){
-      const labelH=3,gap=1,boxH=9;
-      const texto=valor(valCampo);
-      const lineas=doc.splitTextToSize(texto,w-6).slice(0,maxLineas);
-      const alto=Math.max(boxH,Math.max(1,lineas.length)*4.5+4);
-      doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(110);
-      doc.text(String(label).toUpperCase(),x,y+labelH);
-      const boxY=y+4;
-      doc.setFillColor(245,245,245);doc.roundedRect(x,boxY,w,alto,2,2,"F");
-      doc.setDrawColor(220);doc.roundedRect(x,boxY,w,alto,2,2);
-      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(30);
-      doc.text(lineas.length?lineas:["—"],x+3,boxY+5);
-      return labelH+gap+alto+4;
-    }
+    const codigos=obtenerCodigosRegistro(r); const fecha=fechaRegistroReporte(r);
+    const tipoRecibo=r.etiqueta||""; const desviacion=r.desviacion||"";
+    const M={left:10,right:200,top:28,bottom:276,footer:286};
     function header(){
       doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(100);doc.text("BUSINESS USE",10,10);
       doc.setFontSize(6);doc.setTextColor(120);doc.text("SISTEMA DE GESTION DE CALIDAD",10,14);doc.text("FY2627",10,17);
@@ -10340,81 +10309,62 @@ async function generarPDFdesdeReporte(indice){
       doc.setFillColor(253,208,0);doc.rect(0,22,210,1,"F");
     }
     function footer(page,total){
-      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(100);
-      doc.text("AUDITORÍA EN RECIBO",10,290);
-      doc.text(valor(r.folio)+" | "+page+"/"+total,195,290,{align:"right"});
+      doc.setDrawColor(220);doc.line(10,280,200,280);
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(80);
+      doc.text("AUDITOR: "+valor(r.nombre),105,285,{align:"center"});
+      doc.setFont("helvetica","normal");doc.setFontSize(7);doc.text(valor(r.folio)+"  |  "+page+"/"+total,195,290,{align:"right"});
     }
-    async function agregarEvidencias(urls,y){
-      if(!urls.length){doc.setTextColor(120);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Sin evidencia",105,y+35,{align:"center"});return y+70;}
-      const imgW=58,imgH=42;let pos=0,rowY=y+2;
-      const urlsNecesarias=[...new Set(urls.filter(Boolean))].slice(0,6);
-      for(let i=0;i<urlsNecesarias.length;i++){
-        try{
-          const dataUrl=await cargarImagenDataURL(urlsNecesarias[i]); if(!dataUrl)continue;
-          const x=10+(pos%3)*64;
-          if(pos>0&&pos%3===0)rowY+=46;
-          doc.setFillColor(245,245,245);doc.roundedRect(x,rowY,imgW,imgH,3,3,"F");doc.setDrawColor(220);doc.roundedRect(x,rowY,imgW,imgH,3,3);
-          try{doc.addImage(dataUrl,"JPEG",x+2,rowY+2,imgW-4,imgH-4);}catch(e){try{doc.addImage(dataUrl,"PNG",x+2,rowY+2,imgW-4,imgH-4);}catch(e2){}}
-          pos++;
-        }catch(e){}
-      }
-      return y+Math.max(70,Math.ceil(Math.max(pos,1)/3)*46+8);
+    function bloque(titulo,y){
+      if(y+10>M.bottom){doc.addPage();header();y=M.top;}
+      doc.setFillColor(253,208,0);doc.rect(10,y,190,7,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0);doc.text(titulo,12,y+4.8);return y+9;
     }
-
-    header();
-    let y=28;
+    function campo(x,y,w,label,valCampo){
+      const boxH=8; doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(110);doc.text(String(label).toUpperCase(),x,y+2.5);
+      const boxY=y+3.5;doc.setFillColor(245,245,245);doc.setDrawColor(220);doc.roundedRect(x,boxY,w,boxH,2,2,"FD");
+      const texto=valor(valCampo);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(texto==="NO APLICA"?140:30);
+      const lineas=doc.splitTextToSize(texto,w-6);doc.text(String(lineas[0]||texto),x+w/2,boxY+5.2,{align:"center",baseline:"middle"});return 14;
+    }
+    function fotoUrlsDesviacion(item){
+      const urls=[];
+      const push=u=>{if(!u)return; if(typeof u==="string")urls.push(u); else if(u.url)urls.push(u.url);};
+      Object.values(item.evidencia_campos_urls||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(push)));
+      // Compatibilidad con evidencias almacenadas directamente en el objeto.
+      Object.values(item.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(push)));
+      return [...new Set(urls)].filter(Boolean);
+    }
+    async function agregarFotos(urls,y){
+      const maxW=56,maxH=48,gapX=6,gapY=7,cols=3; let pos=0,rowY=y;
+      const lista=[...new Set((urls||[]).filter(Boolean))].slice(0,6);
+      if(!lista.length){doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(120);doc.text("Sin evidencia fotográfica",105,y+8,{align:"center"});return y+16;}
+      for(const u of lista){
+        if(rowY+maxH>M.bottom){doc.addPage();header();rowY=M.top;pos=0;}
+        try{const data=await cargarImagenDataURL(u);if(!data)continue;const col=pos%cols,row=Math.floor(pos/cols);const x=10+col*(maxW+gapX);const yy=rowY+row*(maxH+gapY);doc.setFillColor(245,245,245);doc.setDrawColor(220);doc.roundedRect(x,yy,maxW,maxH,2,2,"FD");try{doc.addImage(data,"JPEG",x+2,yy+2,maxW-4,maxH-4);}catch(e){try{doc.addImage(data,"PNG",x+2,yy+2,maxW-4,maxH-4);}catch(e2){}}pos++;}catch(e){}}
+      return rowY+Math.max(16,Math.ceil(Math.max(pos,1)/cols)*(maxH+gapY));
+    }
+    header(); let y=M.top;
     y=bloque("DATOS DE AUDITORÍA",y);
-    campo(10,y,60,"Folio",r.folio);campo(75,y,60,"Auditor",r.nombre);campo(140,y,60,"Turno",r.turno);y+=19;
-    campo(10,y,60,"Cuadrilla",r.cuadrilla);campo(75,y,60,"STO",r.sto);campo(140,y,60,"Origen",r.origen);y+=19;
-    campo(10,y,60,"Cortina",r.cortina);campo(75,y,60,"Tipo recibo",tipoRecibo);campo(140,y,60,"Desviación",desviacion);y+=19;
-    const resumenPDF=(()=>{
-      const lista=Array.isArray(codigos)?codigos:[];
-      let total=0,bien=0,crit=0,may=0,men=0,lpnDev=0;
-      lista.forEach(item=>{
-        const checks=obtenerTodosLosChecks(item).filter(x=>x.valor==="OK"||x.valor==="ERROR");
-        total+=checks.length;
-        checks.forEach(x=>{
-          if(x.valor==="OK")bien++;
-          else{
-            const sev=obtenerSeveridadHallazgo(item,x);
-            if(sev==="CRITICO")crit++; else if(sev==="MAYOR")may++; else men++;
-          }
-        });
-        if(calcularHallazgos(item).length||checks.some(x=>x.valor==="ERROR")||(item.error_tipo&&item.error_tipo!=="NINGUNO"))lpnDev++;
-      });
-      return {cumplimiento:total?bien/total*100:0,lpnDev,crit,may,men,total,bien};
-    })();
-    const dictamenPDF=codigos.length?(resumenPDF.cumplimiento>=95?"ACEPTADO":"ACEPTADO CON DESVIACIONES"):"PENDIENTE";
-    const tamuPDF=codigos[0]?.nivel_tamu||"PENDIENTE";
-    campo(10,y,60,"Dictamen",dictamenPDF);campo(75,y,60,"Cumplimiento",resumenPDF.total?resumenPDF.cumplimiento.toFixed(1)+"%":"PENDIENTE");campo(140,y,60,"TAMU",tamuPDF);y+=19;
-    campoMultilinea(10,y,190,"Observaciones",r.observaciones,10);y+=Math.max(19,doc.getTextDimensions(String(r.observaciones||"")).h||19);
+    campo(10,y,45,"Folio",r.folio);campo(58,y,45,"Auditor",r.nombre);campo(106,y,45,"Fecha",fecha);campo(154,y,46,"Turno",r.turno);y+=14;
+    campo(10,y,45,"Cuadrilla",r.cuadrilla);campo(58,y,45,"STO",r.sto);campo(106,y,45,"Origen",r.origen);campo(154,y,46,"Tipo recibo",tipoRecibo);y+=14;
+    campo(10,y,60,"Cortina",r.cortina);campo(73,y,60,"Desviación",desviacion);campo(136,y,64,"Dictamen",codigos.length?(codigos.some(x=>x.error_tipo&&x.error_tipo!=="NINGUNO")?"ACEPTADO CON DESVIACIONES":"ACEPTADO"):"PENDIENTE");y+=18;
 
     for(let i=0;i<codigos.length;i++){
-      const item=codigos[i]||{};
-      if(y>250){doc.addPage();header();y=28;}
-      y=bloque("LPN",y);
-      campo(10,y,60,"LPN",item.lpn);campo(75,y,60,"GCAS",item.gcas);campo(140,y,60,"Lote",item.lote);y+=19;
-      campo(10,y,60,"STO",item.sto||r.sto);campo(75,y,60,"Cantidad",item.sistema_cantidad);campo(140,y,60,"Descripción",item.descripcion);y+=19;
-      campo(10,y,60,"Cliente",item.cliente);campo(75,y,60,"Inventory status",item.inventory_status);campo(140,y,60,"Storage location",item.storage_location);y+=19;
-      campo(10,y,190,"Resultado",item.error_tipo&&item.error_tipo!=="NINGUNO"?"DESVIACIÓN":"OK");y+=19;
-      if(item.error_tipo&&item.error_tipo!=="NINGUNO"){
-        campo(10,y,60,"Error tipo",item.error_tipo);campo(75,y,125,"Error detalle",item.error_detalle);y+=19;
-        campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Responsable usuario",item.responsable_usuario);campo(140,y,60,"Responsable cuadrilla",item.responsable_cuadrilla);y+=19;
+      const item=codigos[i]||{}; const resultado=item.error_tipo&&item.error_tipo!=="NINGUNO"?"DESVIACIÓN":"OK";
+      if(y+65>M.bottom){doc.addPage();header();y=M.top;}
+      y=bloque(`LPN ${i+1}`,y);
+      campo(10,y,60,"Número LPN",item.lpn);campo(75,y,60,"GCAS",item.gcas);campo(140,y,60,"Lote",item.lote);y+=14;
+      campo(10,y,60,"Cantidad",item.sistema_cantidad);campo(75,y,60,"Resultado",resultado);campo(140,y,60,"Planta",item.cliente||item.planta);y+=16;
+      if(resultado==="DESVIACIÓN"){
+        if(y+28>M.bottom){doc.addPage();header();y=M.top;}
+        campo(10,y,60,"Tipo de error",item.error_tipo);campo(75,y,125,"Detalle",item.error_detalle);y+=14;
+        campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Responsable",item.responsable_usuario);campo(140,y,60,"Cuadrilla",item.responsable_cuadrilla);y+=16;
+        if(y+55>M.bottom){doc.addPage();header();y=M.top;}
+        y=bloque("EVIDENCIA DE DESVIACIÓN",y);
+        y=await agregarFotos(fotoUrlsDesviacion(item),y);
       }
-      const urls=[];
-      if(Array.isArray(item.evidencia_campos_urls)){urls.push(...item.evidencia_campos_urls.filter(Boolean));}
-      if(item.evidencia_campos_urls&&typeof item.evidencia_campos_urls==="object"){Object.values(item.evidencia_campos_urls).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(u=>{if(u)urls.push(typeof u==="string"?u:u.url);})));}
-      if(i===0){const generales=obtenerImagenesRegistro(r);urls.push(...generales);}
-      y=bloque("EVIDENCIA FOTOGRÁFICA",y);
-      y=await agregarEvidencias([...new Set(urls)],y);
-      if(i<codigos.length-1){doc.addPage();header();y=28;}
     }
-    if(!codigos.length){
-      y=bloque("EVIDENCIA FOTOGRÁFICA",y);
-      y=await agregarEvidencias(obtenerImagenesRegistro(r),y);
-    }
-    const total=doc.getNumberOfPages();
-    for(let page=1;page<=total;page++){doc.setPage(page);footer(page,total);}
+    if(!codigos.length){y=bloque("EVIDENCIA FOTOGRÁFICA",y);y=await agregarFotos(obtenerImagenesRegistro(r),y);}
+    const total=doc.getNumberOfPages();for(let page=1;page<=total;page++){doc.setPage(page);footer(page,total);}
     doc.save((r.folio||"Auditoria_Recibo")+".pdf");
   }catch(e){console.error("Error PDF auditoría:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");}
 }
