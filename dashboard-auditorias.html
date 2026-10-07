@@ -4,1270 +4,1909 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="#CF002E" name="theme-color"/>
 <title>QA · Dashboard de Auditorías</title>
+<meta content="#CF002E" name="theme-color"/>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+/* =========================================================
+   ESTILOS ORIGINALES / BASE
+   ========================================================= */
+
 :root{
   --brand:#CF002E;
   --brand-dark:#A00023;
   --brand-deep:#6E0018;
   --accent:#FDD000;
   --accent-dark:#E6BC00;
+
   --ink:#1A1A1A;
   --ink-soft:#4A4A4A;
   --ink-muted:#8A8A8A;
+
   --line:#E5E5E5;
   --line-soft:#F2F2F2;
   --bg:#F7F7F7;
   --surface:#FFFFFF;
+
   --ok:#1B8A3A;
+
   --radius-sm:7px;
-  --radius:11px;
+  --radius-md:11px;
   --radius-lg:16px;
-  --shadow-1:0 1px 2px rgba(0,0,0,.05),0 1px 4px rgba(0,0,0,.035);
-  --shadow-2:0 5px 16px rgba(0,0,0,.075),0 2px 5px rgba(0,0,0,.035);
-  --shadow-3:0 14px 34px rgba(0,0,0,.15);
+
+  --shadow-1:0 2px 7px rgba(0,0,0,.08);
+  --shadow-2:0 5px 16px rgba(0,0,0,.10);
+  --shadow-3:0 10px 28px rgba(0,0,0,.13);
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  font-size:15px;color:var(--ink);
-  background:
-    radial-gradient(circle at 90% 0%,rgba(253,208,0,.16),transparent 28%),
-    linear-gradient(180deg,#fff 0%,#F8F8F8 58%,#FFF9DF 100%);
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
   min-height:100vh;
 }
-button,input,select{font:inherit}
-button{cursor:pointer}
 
-.appbar{
-  position:sticky;top:0;z-index:50;
-  background:linear-gradient(100deg,var(--brand-deep) 0%,var(--brand) 72%,#D90032 100%);
-  color:#fff;padding:13px 18px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:0 5px 18px rgba(110,0,24,.22);
-}
-.appbar .logo{
-  width:38px;height:38px;border-radius:9px;
-  background:var(--accent);color:var(--brand-deep);
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:14px;flex:none;
-  box-shadow:0 2px 7px rgba(0,0,0,.14);
-}
-.appbar .titles{min-width:0}
-.appbar .titles .t1{
-  font-size:10px;opacity:.82;letter-spacing:1.25px;
-  text-transform:uppercase;white-space:nowrap;
-}
-.appbar .titles .t2{font-size:16px;font-weight:800;line-height:1.25}
-.appbar .spacer{flex:1}
-.appbar .badge{
-  font-size:11px;background:rgba(255,255,255,.13);
-  padding:5px 10px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.23);font-weight:700;
-}
-.appbar .back,.nav-dash a{
-  background:rgba(255,255,255,.12);color:#fff;
-  text-decoration:none;border:1px solid rgba(255,255,255,.23);
-  font-size:12px;font-weight:700;padding:7px 11px;
-  border-radius:999px;white-space:nowrap;
-}
-.nav-dash{display:flex;gap:6px;margin-right:2px}
-.nav-dash a.active{background:var(--accent);color:var(--brand-deep);border-color:var(--accent)}
+/* =========================================================
+   HEADER / NAVEGACIÓN
+   ========================================================= */
 
-.wrap{max-width:1320px;margin:0 auto;padding:20px 16px 44px}
+.qa-unified-header{
+  position:sticky;
+  top:0;
+  z-index:1000;
 
-.page-intro{
-  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
-  margin:2px 0 16px;
-}
-.page-intro h1{margin:0;font-size:22px;line-height:1.15}
-.page-intro p{margin:5px 0 0;color:var(--ink-muted);font-size:12px}
-.live-pill{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:7px 10px;border:1px solid #E8D98D;
-  border-radius:999px;background:#FFFBE8;color:var(--brand-deep);
-  font-size:11px;font-weight:800;white-space:nowrap;
-}
-.live-pill::before{
-  content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);
-  box-shadow:0 0 0 4px rgba(27,138,58,.11);
+  min-height:68px;
+  padding:11px 24px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--brand-deep) 0%,
+      var(--brand) 55%,
+      #D90032 100%
+    );
+
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+
+  color:#fff;
 }
 
-.card{
-  background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--radius-lg);box-shadow:var(--shadow-2);
-  overflow:hidden;margin-bottom:16px;
-}
-.card-head{
-  padding:13px 17px;background:linear-gradient(180deg,#FFFCEF,#fff);
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:10px;
-}
-.card-head .dot{
-  width:8px;height:8px;border-radius:50%;background:var(--brand);
-  box-shadow:0 0 0 4px rgba(207,0,46,.11);flex:none;
-}
-.card-head h3{margin:0;font-size:12px;font-weight:800;letter-spacing:.7px;text-transform:uppercase}
-.card-body{padding:16px}
+.qa-unified-header .logo{
+  width:42px;
+  height:42px;
 
-.filtros-grid{
-  display:grid;grid-template-columns:1fr;gap:11px;
+  flex:0 0 42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:var(--accent);
+  color:var(--brand-deep);
+
+  border-radius:9px;
+
+  font-size:16px;
+  font-weight:900;
 }
-@media(min-width:600px){.filtros-grid{grid-template-columns:1fr 1fr}}
-@media(min-width:980px){
-  .filtros-grid{
-    grid-template-columns:1.5fr 1fr 1fr 1.5fr 1fr auto;
-    gap:12px;align-items:end;
+
+.qa-unified-header .titles{
+  min-width:180px;
+  display:flex;
+  flex-direction:column;
+  line-height:1.05;
+}
+
+.qa-unified-header .t1{
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:700;
+  opacity:.9;
+}
+
+.qa-unified-header .t2{
+  margin-top:3px;
+  font-size:18px;
+  font-weight:800;
+}
+
+.qa-unified-nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-left:auto;
+}
+
+.qa-unified-nav a{
+  min-height:34px;
+  padding:0 10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:8px;
+
+  color:#fff;
+  background:rgba(255,255,255,.13);
+
+  text-decoration:none;
+
+  font-size:10px;
+  font-weight:800;
+
+  transition:.15s ease;
+}
+
+.qa-unified-nav a:hover{
+  background:rgba(255,255,255,.23);
+}
+
+.qa-unified-nav a.active{
+  background:var(--accent);
+  color:var(--brand-deep);
+}
+
+.qa-unified-header .badge{
+  height:34px;
+  padding:0 10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:8px;
+
+  background:rgba(253,208,0,.15);
+  border:1px solid rgba(253,208,0,.45);
+
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+}
+
+.qa-header-update{
+  min-width:125px;
+  min-height:34px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+
+  padding:3px 8px;
+
+  border-radius:8px;
+
+  background:rgba(255,255,255,.10);
+}
+
+.qa-header-update .update-label{
+  font-size:7px;
+  line-height:1;
+  text-transform:uppercase;
+  opacity:.75;
+}
+
+.qa-header-update .update-value{
+  margin-top:3px;
+  font-size:9px;
+  line-height:1;
+  font-weight:700;
+}
+
+.qa-home{
+  min-height:34px;
+  padding:0 11px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:8px;
+
+  background:#fff;
+  color:var(--brand-deep);
+
+  text-decoration:none;
+
+  font-size:10px;
+  font-weight:900;
+
+  transition:.15s ease;
+}
+
+.qa-home:hover{
+  background:#fffbe0;
+}
+
+/* Ocultar header antiguo cuando existe el nuevo shell */
+body:has(.qa-unified-header) .header{
+  display:none !important;
+}
+
+/* =========================================================
+   CONTENEDOR
+   ========================================================= */
+
+.container,
+.wrap{
+  width:100%;
+  max-width:1800px;
+  margin:0 auto;
+  padding:22px 24px 36px;
+}
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+.filters-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-1);
+
+  padding:16px;
+  margin-bottom:18px;
+}
+
+.filters-grid{
+  display:grid;
+  grid-template-columns:
+    minmax(170px,1.3fr)
+    minmax(130px,1fr)
+    minmax(130px,1fr)
+    minmax(170px,1.3fr)
+    minmax(150px,1fr)
+    auto;
+
+  gap:12px;
+  align-items:end;
+}
+
+.field{
+  min-width:0;
+  position:relative;
+}
+
+.field label{
+  display:block;
+  margin-bottom:6px;
+
+  color:var(--ink-soft);
+
+  font-size:11px;
+  font-weight:800;
+}
+
+.field input,
+.field select{
+  width:100%;
+  height:38px;
+
+  padding:0 10px;
+
+  border:1px solid var(--line);
+  border-radius:8px;
+
+  background:#fff;
+  color:var(--ink);
+
+  outline:none;
+
+  font-size:12px;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px rgba(207,0,46,.08);
+}
+
+.filter-actions{
+  display:flex;
+  gap:7px;
+}
+
+.btn{
+  min-height:38px;
+  padding:0 14px;
+
+  border:0;
+  border-radius:8px;
+
+  cursor:pointer;
+
+  font-size:11px;
+  font-weight:900;
+}
+
+.btn-primary{
+  background:var(--brand);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--brand-dark);
+}
+
+.btn-secondary{
+  background:#eee;
+  color:var(--ink-soft);
+}
+
+.btn-secondary:hover{
+  background:#e2e2e2;
+}
+
+/* =========================================================
+   AUTOCOMPLETE
+   ========================================================= */
+
+.autocomplete{
+  position:relative;
+}
+
+.suggestions{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+
+  z-index:100;
+
+  display:none;
+
+  max-height:220px;
+  overflow:auto;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-top:0;
+
+  border-radius:0 0 8px 8px;
+
+  box-shadow:var(--shadow-2);
+}
+
+.suggestions.open{
+  display:block;
+}
+
+.suggestion{
+  padding:9px 10px;
+
+  cursor:pointer;
+
+  font-size:11px;
+}
+
+.suggestion:hover{
+  background:var(--line-soft);
+}
+
+/* =========================================================
+   GRÁFICOS
+   ========================================================= */
+
+.charts-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+
+.chart-card{
+  min-width:0;
+
+  background:var(--surface);
+
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+
+  box-shadow:var(--shadow-1);
+
+  padding:16px;
+}
+
+.chart-title{
+  margin-bottom:12px;
+
+  color:var(--ink);
+
+  font-size:13px;
+  font-weight:900;
+}
+
+.chart-body{
+  position:relative;
+  width:100%;
+  height:330px;
+}
+
+.status{
+  margin-top:12px;
+
+  color:var(--ink-muted);
+
+  font-size:10px;
+  text-align:right;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media(max-width:1100px){
+
+  .qa-unified-header .titles .t2{
+    font-size:15px;
+  }
+
+  .qa-unified-header .badge,
+  .qa-header-update{
+    display:none;
+  }
+
+  .filters-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .filter-actions{
+    grid-column:1/-1;
+    justify-content:flex-end;
   }
 }
-.field{position:relative}
-.field label{
-  display:block;font-size:10px;font-weight:800;text-transform:uppercase;
-  letter-spacing:.8px;color:var(--ink-soft);margin-bottom:6px;
-}
-input,select{
-  width:100%;padding:10px 12px;font-size:14px;color:var(--ink);
-  background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);
-  outline:none;transition:border-color .15s,box-shadow .15s,background .15s;
-}
-input::placeholder{color:#A3A3A3}
-input:focus,select:focus{
-  border-color:var(--brand);box-shadow:0 0 0 3px rgba(207,0,46,.11);
-}
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  width:100%;padding:10px 15px;font-size:13px;font-weight:800;
-  border:0;border-radius:var(--radius);transition:transform .08s,box-shadow .15s,background .15s;
-}
-.btn:active{transform:translateY(1px)}
-.btn-primary{
-  background:linear-gradient(180deg,var(--brand),var(--brand-dark));
-  color:#fff;box-shadow:var(--shadow-1);
-}
-.btn-primary:hover{box-shadow:0 4px 12px rgba(207,0,46,.2)}
-.btn-ghost{
-  background:#fff;color:var(--brand-deep);
-  border:1px solid #E8D9A1;
-}
-.btn-ghost:hover{background:#FFFBE8}
-.btn-field{display:flex;flex-direction:column}
-.btn-field .btn{height:43px;min-width:118px;white-space:nowrap}
-.acciones-filtros{
-  margin-top:12px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;
-}
-.dropdown{
-  position:absolute;top:calc(100% + 5px);left:0;right:0;
-  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--shadow-3);max-height:220px;overflow-y:auto;z-index:200;
-}
-.dropdown-item{
-  padding:10px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line-soft);
-}
-.dropdown-item:last-child{border-bottom:0}
-.dropdown-item:hover{background:#FFF7C9;color:var(--brand-deep);font-weight:700}
-
-.filter-summary{
-  margin-top:12px;display:flex;align-items:center;justify-content:space-between;
-  gap:10px;flex-wrap:wrap;padding:9px 11px;border-radius:9px;
-  background:#FAFAFA;border:1px dashed #DDD;font-size:11px;color:var(--ink-soft);
-}
-.filter-summary strong{color:var(--brand-deep)}
-
-.kpis{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;
-}
-@media(min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)}}
-.kpi{
-  background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
-  padding:15px 16px;box-shadow:var(--shadow-1);position:relative;overflow:hidden;
-  min-height:112px;
-}
-.kpi::before{
-  content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--brand);
-}
-.kpi.k-accent::before{background:var(--accent)}
-.kpi.k-deep::before{background:var(--brand-deep)}
-.kpi.k-ok::before{background:var(--ok)}
-.kpi .label{
-  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.85px;
-  color:var(--ink-muted);
-}
-.kpi .value{
-  font-size:27px;font-weight:900;color:var(--ink);
-  margin-top:6px;line-height:1.08;word-break:break-word;
-}
-.kpi .sub{font-size:11px;color:var(--ink-soft);margin-top:6px}
-.kpi .mini-icon{
-  position:absolute;right:14px;top:18px;font-size:18px;opacity:.16;
-}
-
-.charts{
-  display:grid;grid-template-columns:1fr;gap:16px;
-}
-@media(min-width:1000px){
-  .charts{grid-template-columns:3fr 2fr}
-}
-.chart-card{
-  background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-1);padding:15px 15px 12px;min-width:0;
-}
-.chart-card.wide{grid-column:1/-1}
-.chart-title{
-  font-size:12px;font-weight:800;color:var(--ink);
-  text-transform:uppercase;letter-spacing:.65px;margin:0 0 3px;
-  display:flex;align-items:center;gap:8px;
-}
-.chart-title .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}
-.chart-subtitle{font-size:11px;color:var(--ink-muted);margin:0 0 11px 16px}
-.chart-wrap{position:relative;height:330px;width:100%}
-.chart-wrap.tall{height:360px}
-@media(max-width:600px){
-  .chart-wrap,.chart-wrap.tall{height:280px}
-}
-.chart-foot{
-  display:flex;justify-content:space-between;gap:10px;
-  padding:9px 2px 0;margin-top:4px;border-top:1px solid var(--line-soft);
-  color:var(--ink-muted);font-size:10px;
-}
-
-.empty-card{text-align:center;padding:42px 20px;color:var(--ink-muted);font-size:14px}
-.empty-card .ic{font-size:40px;margin-bottom:10px}
-.empty-card b{color:var(--ink-soft)}
-
-.toast{
-  position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(80px);
-  background:var(--ink);color:#fff;padding:11px 17px;border-radius:var(--radius);
-  font-size:13px;font-weight:700;box-shadow:var(--shadow-3);z-index:9999;
-  opacity:0;transition:transform .25s,opacity .25s;pointer-events:none;
-}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.toast.err{background:var(--brand)}
-.toast.ok{background:var(--ok)}
-
-.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--ink-muted);font-size:13px;font-weight:700}
-.spinner{
-  width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--brand);
-  border-radius:50%;animation:spin 1s linear infinite;margin-right:10px;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 @media(max-width:760px){
-  .appbar{padding:11px 12px}
-  .appbar .titles .t1{display:none}
-  .appbar .titles .t2{font-size:14px}
-  .nav-dash{display:none}
-  .appbar .badge{display:none}
-  .wrap{padding:15px 11px 34px}
-  .page-intro{align-items:flex-start}
-  .page-intro h1{font-size:19px}
+
+  .qa-unified-header{
+    min-height:64px;
+    padding:9px 12px;
+    gap:9px;
+  }
+
+  .qa-unified-header .logo{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+  }
+
+  .qa-unified-header .titles .t1{
+    font-size:8px;
+  }
+
+  .qa-unified-header .titles .t2{
+    font-size:13px;
+  }
+
+  .qa-unified-nav{
+    display:none;
+  }
+
+  .qa-home{
+    margin-left:auto;
+  }
+
+  .wrap,
+  .container{
+    padding:14px 12px 28px;
+  }
+
+  .filters-grid{
+    grid-template-columns:1fr;
+  }
+
+  .filter-actions{
+    grid-column:auto;
+  }
+
+  .filter-actions .btn{
+    flex:1;
+  }
+
+  .charts-grid{
+    grid-template-columns:1fr;
+  }
+
+  .chart-body{
+    height:290px;
+  }
 }
 </style>
+
 <style id="qa-unified-shell">
-/* ===== SHELL ÚNICO PARA LOS 4 DASHBOARDS ===== */
-:root{
+
+/* =========================================================
+   SHELL ÚNICO PARA LOS 4 DASHBOARDS
+   ========================================================= */
+
+.qa-unified-header{
   --qa-brand:#CF002E;
   --qa-brand-dark:#A00023;
   --qa-brand-deep:#6E0018;
   --qa-accent:#FDD000;
-}
-.qa-unified-header{
-  position:sticky !important; top:0 !important; z-index:1000 !important;
-  background:linear-gradient(90deg,var(--qa-brand-deep),var(--qa-brand)) !important;
-  color:#fff !important; min-height:68px !important; padding:11px 24px !important;
-  display:flex !important; align-items:center !important; gap:12px !important;
-  box-shadow:0 4px 12px rgba(0,0,0,.12) !important;
-  border:0 !important; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif !important;
-}
-.qa-unified-header .logo{
-  width:42px !important; height:42px !important; min-width:42px !important;
-  border-radius:9px !important; background:var(--qa-accent) !important;
-  color:var(--qa-brand-deep) !important; display:flex !important;
-  align-items:center !important; justify-content:center !important;
-  font-weight:900 !important; font-size:14px !important; padding:0 !important;
-}
-.qa-unified-header .titles{min-width:0 !important;}
-.qa-unified-header .t1{font-size:10px !important; opacity:.82 !important; letter-spacing:1.2px !important; text-transform:uppercase !important;}
-.qa-unified-header .t2{font-size:18px !important; font-weight:800 !important; line-height:1.15 !important; color:#fff !important;}
-.qa-unified-header .spacer,.qa-unified-header .header-spacer{flex:1 !important; min-width:8px;}
-.qa-unified-nav{display:flex !important; align-items:center !important; gap:6px !important; flex:none !important;}
-.qa-unified-nav a{
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  min-height:34px !important; padding:0 10px !important; border-radius:8px !important;
-  color:#fff !important; text-decoration:none !important; font-size:10px !important;
-  font-weight:800 !important; white-space:nowrap !important; border:1px solid rgba(255,255,255,.20) !important;
-  background:rgba(255,255,255,.08) !important; transition:.15s ease !important;
-}
-.qa-unified-nav a:hover{background:rgba(255,255,255,.17) !important;}
-.qa-unified-nav a.active{background:var(--qa-accent) !important; color:var(--qa-brand-deep) !important; border-color:var(--qa-accent) !important;}
-.qa-unified-header .badge{
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  min-height:34px !important; padding:0 10px !important; border-radius:8px !important;
-  background:rgba(253,208,0,.16) !important; border:1px solid rgba(253,208,0,.5) !important;
-  color:#fff !important; font-size:10px !important; font-weight:900 !important; white-space:nowrap !important;
-}
-.qa-unified-header .qa-header-update{
-  min-width:125px !important; padding:5px 8px !important; border-radius:8px !important;
-  background:rgba(0,0,0,.14) !important; border:1px solid rgba(255,255,255,.14) !important;
-}
-.qa-unified-header .update-label{font-size:7px !important; text-transform:uppercase !important; opacity:.72 !important; letter-spacing:.5px !important;}
-.qa-unified-header .update-value{font-size:9px !important; font-weight:800 !important; white-space:nowrap !important; color:#fff !important;}
-.qa-unified-header .qa-home{
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  min-height:34px !important; padding:0 11px !important; border-radius:8px !important;
-  background:#fff !important; color:var(--qa-brand-deep) !important; text-decoration:none !important;
-  font-size:10px !important; font-weight:900 !important; white-space:nowrap !important;
-}
-.qa-unified-header .qa-home:hover{background:#fffbe0 !important;}
-/* Quejas: conservar su contenido, pero adoptar fondo/tipografía del sistema */
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif !important;}
-body:has(.qa-unified-header) .header{display:none !important;}
-.qa-unified-header ~ .container{max-width:1800px !important;}
-.qa-unified-header ~ .container .upload-card,
-.qa-unified-header ~ .container .panel,
-.qa-unified-header ~ .container .chart-card,
-.qa-unified-header ~ .container .kpi{
-  border-radius:10px !important;
-  box-shadow:0 1px 3px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.06) !important;
-}
-.qa-unified-header ~ .container .file-button,
-.qa-unified-header ~ .container .btn-primary,
-.qa-unified-header ~ .container .page-btn.active{background:var(--qa-brand) !important; border-color:var(--qa-brand) !important;}
-.qa-unified-header ~ .container .upload-card{border-left-color:var(--qa-brand) !important;}
-.qa-unified-header ~ .container .field input:focus,
-.qa-unified-header ~ .container .field select:focus{border-color:var(--qa-brand) !important;}
-@media(max-width:1100px){
-  .qa-unified-header .t2{font-size:15px !important;}
-  .qa-unified-nav a{padding:0 9px !important;font-size:10px !important;}
-  .qa-unified-header .badge{display:none !important;}
-  .qa-header-update{display:none !important;}
-}
-@media(max-width:760px){
-  .qa-unified-header{min-height:64px !important;padding:8px 10px !important;gap:8px !important;overflow-x:auto !important;scrollbar-width:none !important;}
-  .qa-unified-header::-webkit-scrollbar{display:none;}
-  .qa-unified-header .logo{width:38px !important;height:38px !important;min-width:38px !important;font-size:13px !important;}
-  .qa-unified-header .t1{font-size:7px !important;letter-spacing:1px !important;}
-  .qa-unified-header .t2{font-size:13px !important;}
-  .qa-unified-nav{gap:4px !important;}
-  .qa-unified-nav a{min-height:32px !important;padding:0 8px !important;font-size:9px !important;}
-  .qa-unified-header .qa-home{min-height:32px !important;font-size:9px !important;padding:0 8px !important;}
-  .qa-unified-header .header-spacer{min-width:4px !important;}
-}
-@media(max-width:560px){
-  .qa-unified-header .titles{max-width:120px !important;min-width:90px !important;}
-  .qa-unified-nav a{font-size:0 !important;width:32px !important;padding:0 !important;}
-  .qa-unified-nav a::first-letter{font-size:14px !important;}
-  .qa-unified-header .qa-home{display:none !important;}
-}
-</style>
 
-<style id="qa-shared-controls">
-/* CONTROLES UNIFICADOS DE LOS 4 DASHBOARDS — SOLO ESTILO */
-.btn{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:7px !important;
-  min-height:40px !important;
-  height:40px !important;
-  width:auto !important;
-  padding:9px 17px !important;
-  border:1px solid transparent !important;
-  border-radius:9px !important;
-  font-family:inherit !important;
-  font-size:12px !important;
-  font-weight:800 !important;
-  line-height:1 !important;
-  cursor:pointer !important;
-  box-sizing:border-box !important;
-  transition:transform .15s,filter .15s,box-shadow .15s,background .15s !important;
+  position:sticky;
+  top:0;
+  z-index:1000;
+
+  min-height:68px;
+  padding:11px 24px;
+
+  display:flex;
+  align-items:center;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--qa-brand-deep),
+      var(--qa-brand),
+      #D90032
+    );
+
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+
+  font-family:Arial,Helvetica,sans-serif;
 }
-.btn-primary{
-  color:#fff !important;
-  background:linear-gradient(180deg,#CF002E,#A00023) !important;
-  border-color:#A00023 !important;
-  box-shadow:0 2px 5px rgba(207,0,46,.18) !important;
+
+.qa-unified-header .logo{
+  width:42px;
+  height:42px;
+
+  border-radius:9px;
+
+  background:var(--qa-accent);
+  color:var(--qa-brand-deep);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-weight:900;
 }
-.btn-secondary,.btn-ghost{
-  color:#333 !important;
-  background:#F1F1F1 !important;
-  border-color:#D8D8D8 !important;
-  box-shadow:none !important;
+
+.qa-unified-header .t1{
+  font-size:10px;
+  letter-spacing:1.2px;
+  font-weight:700;
 }
-.btn:hover{
-  filter:brightness(.98) !important;
-  transform:translateY(-1px) !important;
-  box-shadow:0 2px 6px rgba(0,0,0,.08) !important;
+
+.qa-unified-header .t2{
+  font-size:18px;
+  font-weight:800;
 }
-.btn:active{transform:translateY(1px) !important;}
-.filter-actions,.acciones-filtros{
-  display:flex !important;
-  justify-content:flex-end !important;
-  align-items:center !important;
-  gap:8px !important;
-  flex-wrap:wrap !important;
-  margin-top:12px !important;
+
+.qa-unified-nav{
+  display:flex;
+  gap:6px;
 }
-.filter-actions .btn,.acciones-filtros .btn{
-  width:auto !important;
-  min-width:128px !important;
+
+.qa-unified-nav a{
+  min-height:34px;
+  padding:0 10px;
+
+  border-radius:8px;
+
+  background:rgba(255,255,255,.13);
+
+  color:#fff;
+
+  font-size:10px;
+  font-weight:800;
+
+  text-decoration:none;
 }
-.btn-field .btn{
-  width:auto !important;
-  min-width:128px !important;
+
+.qa-unified-nav a:hover{
+  background:rgba(255,255,255,.23);
 }
-/* Indicadores de estado: misma caja y tipografía; el color depende del estado real */
-.live-pill,.status{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:7px !important;
-  min-height:34px !important;
-  padding:8px 12px !important;
-  border-radius:10px !important;
-  font-size:11px !important;
-  font-weight:700 !important;
-  white-space:nowrap !important;
-  box-sizing:border-box !important;
+
+.qa-unified-nav a.active{
+  background:var(--qa-accent);
+  color:var(--qa-brand-deep);
 }
-.live-pill{
-  background:#EAF7EE !important;
-  border:1px solid #BFE4C9 !important;
-  color:#167332 !important;
+
+.qa-home{
+  min-height:34px;
+  padding:0 11px;
+
+  border-radius:8px;
+
+  background:#fff;
+  color:var(--qa-brand-deep);
+
+  font-size:10px;
+  font-weight:900;
+
+  text-decoration:none;
 }
-.status{
-  background:#fff !important;
-  border:1px solid #E5E5E5 !important;
-  color:#4A4A4A !important;
-  box-shadow:0 1px 3px rgba(0,0,0,.05) !important;
+
+body:has(.qa-unified-header) .container{
+  max-width:1800px;
 }
-.status-dot{
-  width:8px !important; height:8px !important; border-radius:50% !important; flex:none !important;
-}
-@media(max-width:760px){
-  .btn{min-height:38px !important;height:38px !important;padding:8px 13px !important;font-size:11px !important;}
-  .filter-actions .btn,.acciones-filtros .btn,.btn-field .btn{min-width:120px !important;}
-}
+
 </style>
 
 </head>
-<body><header class="appbar qa-unified-header" id="mainHeader">
-<div class="logo">QA</div>
-<div class="titles">
-<div class="t1">Sistema de Gestión de Calidad</div>
-<div class="t2">Dashboard de Auditorías</div>
-</div>
-<div class="spacer header-spacer"></div>
-<nav class="nav-dash qa-unified-nav">
-<a href="dashboard.html">📊 Calidad</a>
-<a class="active" href="dashboard-auditorias.html">📋 Auditorías</a>
-<a href="dashboard-incidencias.html">⚠️ Incidencias</a>
-<a href="Dashboard_Quejas.html">📝 Quejas</a>
-</nav>
-<div class="badge">FY2627</div>
-<div class="update-box qa-header-update">
-<div class="update-label">Última actualización</div>
-<div class="update-value" id="qaHeaderUpdate">—</div>
-</div>
-<a class="back qa-home" href="index.html">🏠 Home</a>
+
+<body>
+
+<!-- =====================================================
+     NAVEGACIÓN
+     ===================================================== -->
+
+<header class="qa-unified-header">
+
+  <div class="logo">QA</div>
+
+  <div class="titles">
+    <div class="t1">Sistema de Gestión de Calidad</div>
+    <div class="t2">Dashboard de Auditorías</div>
+  </div>
+
+  <nav class="qa-unified-nav">
+
+    <a href="dashboard.html">
+      📊 Calidad
+    </a>
+
+    <a href="dashboard-auditorias.html" class="active">
+      📋 Auditorías
+    </a>
+
+    <a href="dashboard-incidencias.html">
+      ⚠️ Incidencias
+    </a>
+
+    <a href="Dashboard_Quejas.html">
+      📝 Quejas
+    </a>
+
+  </nav>
+
+  <div class="badge">
+    FY2627
+  </div>
+
+  <div class="qa-header-update">
+    <div class="update-label">
+      Última actualización
+    </div>
+
+    <div class="update-value">
+      Datos dinámicos
+    </div>
+  </div>
+
+  <a class="qa-home" href="index.html">
+    🏠 Home
+  </a>
+
 </header>
 
+
+<!-- =====================================================
+     CONTENIDO PRINCIPAL
+     ===================================================== -->
+
 <div class="wrap">
-<div class="page-intro">
-<div>
-<h1>Control de Auditorías de Recibo</h1>
-<p>Seguimiento de auditorías, hallazgos, personas y áreas a partir de los registros del sistema.</p>
+
+  <main class="dashboard-main">
+
+    <!-- =================================================
+         FILTROS DINÁMICOS
+         ================================================= -->
+
+    <section class="filters-card">
+
+      <div class="filters-grid">
+
+        <div class="field autocomplete">
+
+          <label for="fPersona">
+            Persona
+          </label>
+
+          <input
+            id="fPersona"
+            type="text"
+            placeholder="Todas las personas"
+            autocomplete="off"
+          >
+
+          <div
+            id="sPersona"
+            class="suggestions">
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="fInicio">
+            Fecha inicio
+          </label>
+
+          <input
+            id="fInicio"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="fFin">
+            Fecha fin
+          </label>
+
+          <input
+            id="fFin"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="field autocomplete">
+
+          <label for="fHallazgo">
+            Hallazgo
+          </label>
+
+          <input
+            id="fHallazgo"
+            type="text"
+            placeholder="Todos los hallazgos"
+            autocomplete="off"
+          >
+
+          <div
+            id="sHallazgo"
+            class="suggestions">
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="fArea">
+            Área
+          </label>
+
+          <select id="fArea">
+
+            <option value="">
+              Todas las áreas
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-actions">
+
+          <button
+            id="btnAplicar"
+            class="btn btn-primary">
+            Aplicar
+          </button>
+
+          <button
+            id="btnLimpiar"
+            class="btn btn-secondary">
+            Limpiar
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         GRÁFICOS
+         ================================================= -->
+
+    <section class="charts-grid">
+
+
+      <!-- ===============================================
+           1. DESVIACIONES POR HALLAZGO
+           =============================================== -->
+
+      <article class="chart-card">
+
+        <div class="chart-title">
+          Desviaciones por hallazgo
+        </div>
+
+        <div class="chart-body">
+
+          <canvas id="chartHallazgo"></canvas>
+
+        </div>
+
+      </article>
+
+
+      <!-- ===============================================
+           2. DESVIACIONES POR ORIGEN
+           =============================================== -->
+
+      <article class="chart-card">
+
+        <div class="chart-title">
+          Desviaciones por origen
+        </div>
+
+        <div class="chart-body">
+
+          <canvas id="chartOrigen"></canvas>
+
+        </div>
+
+      </article>
+
+
+      <!-- ===============================================
+           3. DESVIACIONES POR MES
+           =============================================== -->
+
+      <article class="chart-card">
+
+        <div class="chart-title">
+          Desviaciones por mes
+        </div>
+
+        <div class="chart-body">
+
+          <canvas id="chartMes"></canvas>
+
+        </div>
+
+      </article>
+
+
+      <!-- ===============================================
+           4. AUDITORÍAS POR PERSONA
+           =============================================== -->
+
+      <article class="chart-card">
+
+        <div class="chart-title">
+          Auditorías por persona
+        </div>
+
+        <div class="chart-body">
+
+          <canvas id="chartPersona"></canvas>
+
+        </div>
+
+      </article>
+
+
+    </section>
+
+
+    <!-- Estado de carga -->
+    <div
+      id="estado"
+      class="status">
+    </div>
+
+  </main>
+
 </div>
-<div class="live-pill">Datos de Auditoria_Recibo</div>
-</div>
-<!-- FILTROS -->
-<div class="card">
-<div class="card-head">
-<div class="dot"></div>
-<h3>Filtros de auditoría</h3>
-</div>
-<div class="card-body">
-<div class="filtros-grid">
-<div class="field">
-<label>Persona</label>
-<input autocomplete="off" id="persona" oninput="autoPersona()" placeholder="Buscar por nombre"/>
-<div class="dropdown" id="listaPersona" style="display:none;"></div>
-</div>
-<div class="field">
-<label>Fecha inicio</label>
-<input id="inicio" type="date"/>
-</div>
-<div class="field">
-<label>Fecha fin</label>
-<input id="fin" type="date"/>
-</div>
-<div class="field">
-<label>Hallazgo</label>
-<input autocomplete="off" id="hallazgo" oninput="autoHallazgo()" placeholder="Buscar hallazgo"/>
-<div class="dropdown" id="listaHallazgo" style="display:none;"></div>
-</div>
-<div class="field">
-<label>Área</label>
-<select id="area">
-<option value="">Todas las áreas</option>
-</select>
-</div>
-<div class="field btn-field">
-<label style="opacity:0;">.</label>
-<button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar filtros</button>
-</div>
-</div>
-<div class="acciones-filtros">
-<button class="btn btn-secondary" onclick="limpiarFiltros()">
-          Limpiar filtros
-        </button>
-</div>
-<div class="filter-summary">
-<span>Vista actual: <strong id="resumenFiltro">todos los registros</strong></span>
-<span id="ultimaActualizacion">—</span>
-</div>
-</div>
-</div>
-<!-- KPIs -->
-<div class="kpis" id="kpisGrid">
-<div class="kpi k-deep">
-<div class="label">Auditorías</div>
-<div class="value" id="kTotal">—</div>
-<div class="sub">registros filtrados</div>
-<div class="mini-icon">📋</div>
-</div>
-<div class="kpi">
-<div class="label">Personas</div>
-<div class="value" id="kPersonas">—</div>
-<div class="sub">auditores registrados</div>
-<div class="mini-icon">👤</div>
-</div>
-<div class="kpi k-accent">
-<div class="label">Hallazgo principal</div>
-<div class="value" id="kTop" style="font-size:17px;">—</div>
-<div class="sub" id="kTopCount">—</div>
-<div class="mini-icon">⚠️</div>
-</div>
-<div class="kpi k-ok">
-<div class="label">Tipos de hallazgo</div>
-<div class="value" id="kDistintos">—</div>
-<div class="sub">categorías detectadas</div>
-<div class="mini-icon">✓</div>
-</div>
-</div>
-<!-- GRAFICAS -->
-<div class="charts">
-<div class="chart-card">
-<div class="chart-title"><span class="dot"></span>Frecuencia de hallazgos</div>
-<div class="chart-subtitle">Distribución de las desviaciones registradas en el periodo seleccionado.</div>
-<div class="chart-wrap tall"><canvas id="graf1"></canvas></div>
-<div class="chart-foot">
-<span id="footHallazgos">—</span>
-<span>Paleta QA</span>
-</div>
-</div>
-<div class="chart-card">
-<div class="chart-title"><span class="dot" style="background:var(--accent);"></span>Auditorías por persona</div>
-<div class="chart-subtitle">Participación de cada persona en los registros filtrados.</div>
-<div class="chart-wrap"><canvas id="graf2"></canvas></div>
-<div class="chart-foot">
-<span id="footPersonas">—</span>
-<span>Paleta QA</span>
-</div>
-</div>
-<div class="chart-card">
-<div class="chart-title"><span class="dot" style="background:var(--brand-deep);"></span>Tendencia de auditorías</div>
-<div class="chart-subtitle">Cantidad de auditorías registradas por fecha.</div>
-<div class="chart-wrap"><canvas id="graf3"></canvas></div>
-<div class="chart-foot">
-<span id="footPeriodo">—</span>
-<span>Registros por día</span>
-</div>
-</div>
-<div class="chart-card">
-<div class="chart-title"><span class="dot" style="background:var(--ok);"></span>Hallazgos por área</div>
-<div class="chart-subtitle">Concentración de registros según el área disponible en la auditoría.</div>
-<div class="chart-wrap"><canvas id="graf4"></canvas></div>
-<div class="chart-foot">
-<span id="footAreas">—</span>
-<span>Áreas con registro</span>
-</div>
-</div>
-</div>
-<div class="card" id="emptyState" style="display:none;">
-<div class="empty-card">
-<div class="ic">📊</div>
-<b>No hay datos para mostrar</b><br/>
-<span>Ajusta los filtros o registra auditorías en el sistema.</span>
-</div>
-</div>
-</div>
-<div class="toast" id="toast"></div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+     ===================================================== -->
+
 <script>
-const params = new URLSearchParams(window.location.search);
-const embed = params.get("embed");
 
-/* ============================================
+/* =========================================================
    SUPABASE
-   ============================================ */
-const supabaseClient = supabase.createClient(
-  "https://wpitemofrqzjcsetmmim.supabase.co",
-  "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
-);
+   ========================================================= */
 
-const SESSION_TIME = 30 * 60 * 1000;
+const SUPABASE_URL =
+  'https://wpitemofrqzjcsetmmim.supabase.co';
 
-/* ============================================
-   TOAST
-   ============================================ */
-function toast(msg, type){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = "toast show " + (type || "");
-  clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => {
-    t.className = "toast";
-  }, 2800);
+const SUPABASE_KEY =
+  'sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu';
+
+const sb =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   VARIABLES
+   ========================================================= */
+
+let datos = [];
+
+let charts = {};
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+const $ = id =>
+  document.getElementById(id);
+
+
+const clean = value =>
+  String(value ?? '').trim();
+
+
+const norm = value =>
+  clean(value).toLowerCase();
+
+
+/* =========================================================
+   FECHAS
+   ========================================================= */
+
+function fecha(value){
+
+  if(!value){
+    return null;
+  }
+
+  const d =
+    new Date(value);
+
+  return isNaN(d)
+    ? null
+    : d;
 }
 
-/* ============================================
-   CARGA
-   ============================================ */
-let datos = [];
-let chart1, chart2, chart3, chart4;
+
+function mes(value){
+
+  const d =
+    fecha(value);
+
+  if(!d){
+    return 'Sin fecha';
+  }
+
+  return (
+    d.getFullYear() +
+    '-' +
+    String(
+      d.getMonth()+1
+    ).padStart(2,'0')
+  );
+}
+
+
+function mesLabel(key){
+
+  if(
+    key === 'Sin fecha'
+  ){
+    return key;
+  }
+
+  const [
+    year,
+    month
+  ] =
+    key.split('-');
+
+  const d =
+    new Date(
+      Number(year),
+      Number(month)-1,
+      1
+    );
+
+  return d.toLocaleDateString(
+    'es-MX',
+    {
+      month:'short',
+      year:'numeric'
+    }
+  );
+}
+
+
+/* =========================================================
+   ORIGEN
+   ========================================================= */
 
 /*
-  Paleta oficial utilizada por el sistema:
-  Rojo DHL / Amarillo / Rojo oscuro / Vino / Negro / Verde QA.
-  No se usan colores ajenos a esta paleta en las gráficas.
+   Si existe un campo "origen" se utiliza.
+   Si no existe, se utiliza "area" como origen disponible
+   dentro de Auditoria_Recibo.
 */
-const BRAND      = "#CF002E";
-const BRAND_DARK = "#A00023";
-const BRAND_DEEP = "#6E0018";
-const ACCENT     = "#FDD000";
-const ACCENT_DARK= "#E6BC00";
-const INK        = "#1A1A1A";
-const OK         = "#1B8A3A";
 
-const PALETTE = [
-  BRAND,
-  ACCENT,
-  BRAND_DEEP,
-  OK,
-  INK,
-  BRAND_DARK,
-  ACCENT_DARK
-];
+function origen(row){
 
-const GRID = "#EEEEEE";
-const TEXT = "#4A4A4A";
+  return (
+    clean(row.origen) ||
+    clean(row.area) ||
+    'Sin origen'
+  );
 
-function colorFor(index){
-  return PALETTE[index % PALETTE.length];
 }
 
-function cargarAreas(){
-  const select = document.getElementById("area");
 
-  const areas = [...new Set(
-    datos.map(d => d.area).filter(Boolean)
-  )].sort((a,b) => String(a).localeCompare(String(b)));
+/* =========================================================
+   VALORES ÚNICOS
+   ========================================================= */
 
-  select.innerHTML = `<option value="">Todas las áreas</option>`;
+function unique(
+  rows,
+  field
+){
 
-  areas.forEach(a => {
-    const op = document.createElement("option");
-    op.value = a;
-    op.textContent = a;
-    select.appendChild(op);
-  });
+  return [
+    ...new Set(
+      rows
+        .map(
+          row =>
+            clean(row[field])
+        )
+        .filter(Boolean)
+    )
+  ].sort(
+    (a,b) =>
+      a.localeCompare(
+        b,
+        'es',
+        {
+          sensitivity:'base'
+        }
+      )
+  );
+
 }
 
-async function cargar(){
-  try{
-    let todos = [];
-    let desde = 0;
-    const bloque = 1000;
 
-    while(true){
-      const { data, error } = await supabaseClient
-        .from("Auditoria_Recibo")
-        .select("*")
-        .range(desde, desde + bloque - 1);
+/* =========================================================
+   CONTADORES
+   ========================================================= */
 
-      if(error){
-        console.error("Error Supabase Auditoria_Recibo:", error);
-        const detalle = error.message || error.details || error.hint || "Error desconocido";
-        document.querySelector(".live-pill").textContent = "Error al cargar Auditoria_Recibo";
-        toast(detalle, "err");
+function contar(
+  rows,
+  fn
+){
+
+  const map = {};
+
+  rows.forEach(
+    row => {
+
+      const key =
+        fn(row);
+
+      map[key] =
+        (map[key] || 0) + 1;
+
+    }
+  );
+
+  return Object
+    .entries(map)
+    .sort(
+      (a,b) =>
+        b[1] - a[1]
+    );
+
+}
+
+
+/* =========================================================
+   DESTRUIR GRÁFICOS
+   ========================================================= */
+
+function destroy(){
+
+  Object
+    .values(charts)
+    .forEach(
+      chart => {
+
+        try{
+          chart.destroy();
+        }
+        catch(e){}
+
+      }
+    );
+
+  charts = {};
+
+}
+
+
+/* =========================================================
+   OPCIONES BASE CHART.JS
+   ========================================================= */
+
+function base(
+  horizontal = false
+){
+
+  return {
+
+    responsive:true,
+
+    maintainAspectRatio:false,
+
+    indexAxis:
+      horizontal
+        ? 'y'
+        : 'x',
+
+    plugins:{
+
+      legend:{
+        display:false
+      },
+
+      tooltip:{
+        enabled:true
+      }
+
+    },
+
+    scales:{
+
+      x:{
+        beginAtZero:true,
+        ticks:{
+          precision:0
+        }
+      },
+
+      y:{
+        beginAtZero:true,
+        ticks:{
+          precision:0
+        }
+      }
+
+    }
+
+  };
+
+}
+
+
+/* =========================================================
+   GRÁFICO DE BARRAS
+   ========================================================= */
+
+function bar(
+  id,
+  labels,
+  values,
+  horizontal = false
+){
+
+  return new Chart(
+    $(id),
+    {
+
+      type:'bar',
+
+      data:{
+
+        labels,
+
+        datasets:[{
+
+          data:values,
+
+          borderWidth:1,
+
+          borderRadius:5
+
+        }]
+
+      },
+
+      options:
+        base(horizontal)
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   GRÁFICO DE LÍNEA
+   ========================================================= */
+
+function line(
+  id,
+  labels,
+  values
+){
+
+  return new Chart(
+    $(id),
+    {
+
+      type:'line',
+
+      data:{
+
+        labels,
+
+        datasets:[{
+
+          data:values,
+
+          tension:.25,
+
+          fill:false,
+
+          borderWidth:2,
+
+          pointRadius:3
+
+        }]
+
+      },
+
+      options:
+        base()
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   FILTRAR DATOS
+   ========================================================= */
+
+function filtrar(){
+
+  const persona =
+    norm(
+      $('fPersona').value
+    );
+
+  const hallazgo =
+    norm(
+      $('fHallazgo').value
+    );
+
+  const area =
+    norm(
+      $('fArea').value
+    );
+
+
+  const inicio =
+    $('fInicio').value
+      ? new Date(
+          $('fInicio').value +
+          'T00:00:00'
+        )
+      : null;
+
+
+  const fin =
+    $('fFin').value
+      ? new Date(
+          $('fFin').value +
+          'T23:59:59'
+        )
+      : null;
+
+
+  return datos.filter(
+    row => {
+
+      const d =
+        fecha(row.fecha);
+
+
+      if(
+        persona &&
+        !norm(row.nombre)
+          .includes(persona)
+      ){
+        return false;
+      }
+
+
+      if(
+        hallazgo &&
+        !norm(row.hallazgo)
+          .includes(hallazgo)
+      ){
+        return false;
+      }
+
+
+      if(
+        area &&
+        norm(row.area) !== area
+      ){
+        return false;
+      }
+
+
+      if(
+        inicio &&
+        (
+          !d ||
+          d < inicio
+        )
+      ){
+        return false;
+      }
+
+
+      if(
+        fin &&
+        (
+          !d ||
+          d > fin
+        )
+      ){
+        return false;
+      }
+
+
+      return true;
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   ACTUALIZAR GRÁFICOS
+   ========================================================= */
+
+function actualizar(){
+
+  const rows =
+    filtrar();
+
+
+  destroy();
+
+
+  /* -------------------------------------------------------
+     DESVIACIONES POR HALLAZGO
+     ------------------------------------------------------- */
+
+  let x =
+    contar(
+      rows,
+      row =>
+        clean(
+          row.hallazgo
+        ) ||
+        'Sin hallazgo'
+    );
+
+
+  charts.hallazgo =
+    bar(
+      'chartHallazgo',
+
+      x.map(
+        value =>
+          value[0]
+      ),
+
+      x.map(
+        value =>
+          value[1]
+      ),
+
+      x.length >= 6
+    );
+
+
+  /* -------------------------------------------------------
+     DESVIACIONES POR ORIGEN
+     ------------------------------------------------------- */
+
+  x =
+    contar(
+      rows,
+      origen
+    );
+
+
+  charts.origen =
+    bar(
+      'chartOrigen',
+
+      x.map(
+        value =>
+          value[0]
+      ),
+
+      x.map(
+        value =>
+          value[1]
+      ),
+
+      x.length >= 6
+    );
+
+
+  /* -------------------------------------------------------
+     DESVIACIONES POR MES
+     ------------------------------------------------------- */
+
+  x =
+    contar(
+      rows,
+      row =>
+        mes(row.fecha)
+    );
+
+
+  x.sort(
+    (a,b) =>
+      a[0].localeCompare(
+        b[0]
+      )
+  );
+
+
+  charts.mes =
+    line(
+      'chartMes',
+
+      x.map(
+        value =>
+          mesLabel(
+            value[0]
+          )
+      ),
+
+      x.map(
+        value =>
+          value[1]
+      )
+    );
+
+
+  /* -------------------------------------------------------
+     AUDITORÍAS POR PERSONA
+     ------------------------------------------------------- */
+
+  x =
+    contar(
+      rows,
+      row =>
+        clean(
+          row.nombre
+        ) ||
+        'Sin persona'
+    );
+
+
+  charts.persona =
+    bar(
+      'chartPersona',
+
+      x.map(
+        value =>
+          value[0]
+      ),
+
+      x.map(
+        value =>
+          value[1]
+      ),
+
+      x.length >= 6
+    );
+
+
+  /* -------------------------------------------------------
+     ESTADO
+     ------------------------------------------------------- */
+
+  $('estado').textContent =
+    `${rows.length.toLocaleString('es-MX')} registros mostrados`;
+
+}
+
+
+/* =========================================================
+   CARGAR OPCIONES DE FILTROS
+   ========================================================= */
+
+function filtros(){
+
+  const personas =
+    unique(
+      datos,
+      'nombre'
+    );
+
+
+  const hallazgos =
+    unique(
+      datos,
+      'hallazgo'
+    );
+
+
+  const areas =
+    unique(
+      datos,
+      'area'
+    );
+
+
+  /* Área */
+
+  $('fArea').innerHTML =
+    '<option value="">Todas las áreas</option>' +
+
+    areas
+      .map(
+        value =>
+          `<option value="${value.replace(/"/g,'&quot;')}">${value}</option>`
+      )
+      .join('');
+
+
+  /* Personas */
+
+  $('sPersona').innerHTML =
+    personas
+      .map(
+        value =>
+          `<div class="suggestion" data-value="${value.replace(/"/g,'&quot;')}">${value}</div>`
+      )
+      .join('');
+
+
+  /* Hallazgos */
+
+  $('sHallazgo').innerHTML =
+    hallazgos
+      .map(
+        value =>
+          `<div class="suggestion" data-value="${value.replace(/"/g,'&quot;')}">${value}</div>`
+      )
+      .join('');
+
+}
+
+
+/* =========================================================
+   SUGERENCIAS
+   ========================================================= */
+
+function sugerencias(
+  inputId,
+  listId
+){
+
+  const input =
+    $(inputId);
+
+  const list =
+    $(listId);
+
+
+  input.addEventListener(
+    'input',
+    () => {
+
+      const q =
+        norm(
+          input.value
+        );
+
+
+      [
+        ...list.children
+      ]
+      .forEach(
+        element => {
+
+          element.style.display =
+            (
+              !q ||
+              norm(
+                element.dataset.value
+              ).includes(q)
+            )
+              ? ''
+              : 'none';
+
+        }
+      );
+
+
+      list.classList.add(
+        'open'
+      );
+
+
+      actualizar();
+
+    }
+  );
+
+
+  input.addEventListener(
+    'focus',
+    () => {
+
+      list.classList.add(
+        'open'
+      );
+
+    }
+  );
+
+
+  list.addEventListener(
+    'click',
+    event => {
+
+      const item =
+        event.target.closest(
+          '.suggestion'
+        );
+
+
+      if(!item){
         return;
       }
 
-      if(!data || data.length === 0) break;
-      todos.push(...data);
-      if(data.length < bloque) break;
-      desde += bloque;
+
+      input.value =
+        item.dataset.value;
+
+
+      list.classList.remove(
+        'open'
+      );
+
+
+      actualizar();
+
     }
-
-    datos = todos;
-
-  cargarAreas();
-
-  const ahora = new Date();
-  const marcaActualizacion =
-    ahora.toLocaleDateString("es-MX", {
-      day:"2-digit", month:"short", year:"numeric"
-    }) + " · " +
-    ahora.toLocaleTimeString("es-MX", {
-      hour:"2-digit", minute:"2-digit"
-    });
-
-  document.getElementById("ultimaActualizacion").textContent =
-    "Actualizado " + marcaActualizacion;
-
-  const headerUpdate = document.getElementById("qaHeaderUpdate");
-  if(headerUpdate) headerUpdate.textContent = marcaActualizacion;
-
-  if(datos.length === 0){
-    toast("No hay auditorías aún en la base de datos");
-  }else{
-    toast(datos.length + " auditorías cargadas","ok");
-  }
-
-  aplicarFiltros();
-
-  }catch(error){
-    console.error("Error inesperado cargando Auditoria_Recibo:", error);
-    const detalle = error?.message || "No fue posible cargar los datos.";
-    const pill = document.querySelector(".live-pill");
-    if(pill) pill.textContent = "Error al cargar Auditoria_Recibo";
-    toast(detalle, "err");
-  }
-}
-
-/* ============================================
-   FECHAS / FILTROS
-   ============================================ */
-function convertir(fecha){
-  if(!fecha) return "";
-
-  if(fecha instanceof Date && !isNaN(fecha)){
-    return fecha.toISOString().slice(0,10);
-  }
-
-  const valor = String(fecha).trim();
-
-  if(/^\d{4}-\d{2}-\d{2}/.test(valor)){
-    return valor.slice(0,10);
-  }
-
-  const m = {
-    ENE:"01",FEB:"02",MAR:"03",ABR:"04",MAY:"05",JUN:"06",
-    JUL:"07",AGO:"08",SEP:"09",OCT:"10",NOV:"11",DIC:"12"
-  };
-
-  const partes = valor.split(" ");
-  if(partes.length === 3){
-    const dia = partes[0].padStart(2,"0");
-    const mes = m[String(partes[1]).toUpperCase()];
-    let año = String(partes[2]);
-
-    if(mes){
-      if(año.length === 2) año = "20" + año;
-      if(/^\d{4}$/.test(año)) return `${año}-${mes}-${dia}`;
-    }
-  }
-
-  const parsed = new Date(valor);
-  if(!isNaN(parsed)){
-    const y = parsed.getFullYear();
-    const mo = String(parsed.getMonth()+1).padStart(2,"0");
-    const d = String(parsed.getDate()).padStart(2,"0");
-    return `${y}-${mo}-${d}`;
-  }
-
-  return "";
-}
-
-function aplicarFiltros(){
-  const p  = document.getElementById("persona").value.trim().toLowerCase();
-  const h  = document.getElementById("hallazgo").value.trim().toUpperCase();
-  const fi = document.getElementById("inicio").value;
-  const ff = document.getElementById("fin").value;
-  const area = document.getElementById("area").value;
-
-  const filtrados = datos.filter(r => {
-    if(!r) return false;
-
-    if(p && (!r.nombre || !String(r.nombre).toLowerCase().includes(p)))
-      return false;
-
-    if(h && String(r.hallazgo || "").toUpperCase() !== h)
-      return false;
-
-    if(area && r.area !== area)
-      return false;
-
-    if(fi || ff){
-      const f = convertir(r.fecha);
-      if(!f) return false;
-      if(fi && f < fi) return false;
-      if(ff && f > ff) return false;
-    }
-
-    return true;
-  });
-
-  actualizarResumenFiltro();
-  actualizarKPIs(filtrados);
-  actualizarGraficas(filtrados);
-}
-
-function actualizarResumenFiltro(){
-  const p = document.getElementById("persona").value.trim();
-  const h = document.getElementById("hallazgo").value.trim();
-  const fi = document.getElementById("inicio").value;
-  const ff = document.getElementById("fin").value;
-  const area = document.getElementById("area").value;
-
-  const partes = [];
-
-  if(p) partes.push("Persona: " + p);
-  if(h) partes.push("Hallazgo: " + h);
-  if(area) partes.push("Área: " + area);
-  if(fi || ff) partes.push("Fecha: " + (fi || "inicio") + " → " + (ff || "fin"));
-
-  document.getElementById("resumenFiltro").textContent =
-    partes.length ? partes.join(" · ") : "todos los registros";
-}
-
-function limpiarFiltros(){
-  document.getElementById("persona").value = "";
-  document.getElementById("hallazgo").value = "";
-  document.getElementById("inicio").value = "";
-  document.getElementById("fin").value = "";
-  document.getElementById("area").value = "";
-
-  aplicarFiltros();
-}
-
-/* ============================================
-   KPIs
-   ============================================ */
-function actualizarKPIs(filtrados){
-  document.getElementById("kTotal").innerText = filtrados.length;
-
-  const personas = new Set(
-    filtrados.map(r => r.nombre).filter(Boolean)
   );
-  document.getElementById("kPersonas").innerText = personas.size;
 
-  const conteo = {};
-  filtrados.forEach(r => {
-    const h = String(r.hallazgo || "").trim();
-    if(h) conteo[h] = (conteo[h] || 0) + 1;
-  });
 
-  document.getElementById("kDistintos").innerText =
-    Object.keys(conteo).length;
+  document.addEventListener(
+    'click',
+    event => {
 
-  const top = Object.entries(conteo)
-    .sort((a,b) => b[1] - a[1])[0];
+      if(
+        !input.parentElement
+          .contains(event.target)
+      ){
 
-  document.getElementById("kTop").innerText =
-    top ? top[0] : "—";
+        list.classList.remove(
+          'open'
+        );
 
-  document.getElementById("kTopCount").innerText =
-    top ? (top[1] + " auditorías") : "Sin hallazgos";
-
-  const empty = document.getElementById("emptyState");
-  empty.style.display = filtrados.length === 0 ? "block" : "none";
-}
-
-/* ============================================
-   CONFIGURACIÓN COMÚN DE CHART.JS
-   ============================================ */
-function tooltipConfig(labelSuffix){
-  return {
-    backgroundColor: INK,
-    padding: 10,
-    titleFont: { weight:"700" },
-    bodyFont: { size:12 },
-    callbacks: {
-      label: ctx => " " + ctx.formattedValue + " " + labelSuffix
-    }
-  };
-}
-
-function destroyCharts(){
-  [chart1,chart2,chart3,chart4].forEach(c => {
-    if(c) c.destroy();
-  });
-  chart1 = chart2 = chart3 = chart4 = null;
-}
-
-/* ============================================
-   GRAFICAS
-   ============================================ */
-function actualizarGraficas(filtrados){
-  destroyCharts();
-
-  /* -----------------------------
-     1. HALLAZGOS
-     ----------------------------- */
-  const conteo = {};
-
-  filtrados.forEach(r => {
-    const h = String(r.hallazgo || "").trim();
-    if(h) conteo[h] = (conteo[h] || 0) + 1;
-  });
-
-  const labels1 = Object.keys(conteo)
-    .sort((a,b) => conteo[b] - conteo[a]);
-
-  const data1 = labels1.map(k => conteo[k]);
-
-  chart1 = new Chart(document.getElementById("graf1"),{
-    type:"bar",
-    data:{
-      labels:labels1,
-      datasets:[{
-        label:"Auditorías",
-        data:data1,
-        backgroundColor:labels1.map((_,i) => colorFor(i)),
-        borderColor:labels1.map((_,i) => {
-          const c = colorFor(i);
-          return c === ACCENT ? ACCENT_DARK : c;
-        }),
-        borderWidth:1,
-        borderRadius:7,
-        borderSkipped:false,
-        maxBarThickness:34
-      }]
-    },
-    options:{
-      indexAxis:"y",
-      responsive:true,
-      maintainAspectRatio:false,
-      animation:{duration:450},
-      plugins:{
-        legend:{display:false},
-        tooltip:tooltipConfig("auditorías")
-      },
-      scales:{
-        x:{
-          beginAtZero:true,
-          ticks:{color:TEXT,precision:0,font:{size:10,weight:"600"}},
-          grid:{color:GRID}
-        },
-        y:{
-          ticks:{color:TEXT,font:{size:10,weight:"600"}},
-          grid:{display:false}
-        }
       }
+
     }
-  });
+  );
 
-  document.getElementById("footHallazgos").textContent =
-    labels1.length
-      ? labels1.length + " tipos de hallazgo"
-      : "Sin hallazgos en la selección";
-
-  /* -----------------------------
-     2. PERSONAS
-     ----------------------------- */
-  const per = {};
-
-  filtrados.forEach(r => {
-    const nombre = String(r.nombre || "").trim();
-    if(nombre) per[nombre] = (per[nombre] || 0) + 1;
-  });
-
-  let labels2 = Object.keys(per)
-    .sort((a,b) => per[b] - per[a]);
-
-  /*
-    Para mantener legibilidad, el gráfico muestra las 7
-    personas con más registros. El KPI sigue contando todas.
-  */
-  const maxPersonas = 7;
-  const labels2Top = labels2.slice(0,maxPersonas);
-  const data2Top = labels2Top.map(k => per[k]);
-
-  if(labels2.length > maxPersonas){
-    const otros = labels2.slice(maxPersonas)
-      .reduce((sum,k) => sum + per[k],0);
-    labels2Top.push("OTROS");
-    data2Top.push(otros);
-  }
-
-  chart2 = new Chart(document.getElementById("graf2"),{
-    type:"doughnut",
-    data:{
-      labels:labels2Top,
-      datasets:[{
-        data:data2Top,
-        backgroundColor:labels2Top.map((_,i) => colorFor(i)),
-        borderWidth:3,
-        borderColor:"#FFFFFF",
-        hoverOffset:5
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      cutout:"62%",
-      animation:{duration:450},
-      plugins:{
-        legend:{
-          position:"bottom",
-          labels:{
-            boxWidth:11,boxHeight:11,padding:10,
-            font:{size:10,weight:"600"},
-            color:TEXT,
-            usePointStyle:true
-          }
-        },
-        tooltip:{
-          backgroundColor:INK,
-          padding:10,
-          callbacks:{
-            label:ctx => " " + ctx.label + ": " + ctx.parsed + " auditorías"
-          }
-        }
-      }
-    }
-  });
-
-  document.getElementById("footPersonas").textContent =
-    labels2.length
-      ? labels2.length + " personas con registro"
-      : "Sin personas en la selección";
-
-  /* -----------------------------
-     3. TENDENCIA POR FECHA
-     ----------------------------- */
-  const porFecha = {};
-
-  filtrados.forEach(r => {
-    const f = convertir(r.fecha);
-    if(f) porFecha[f] = (porFecha[f] || 0) + 1;
-  });
-
-  const labels3 = Object.keys(porFecha).sort();
-  const data3 = labels3.map(k => porFecha[k]);
-
-  const displayDates = labels3.map(f => {
-    const parts = f.split("-");
-    return parts.length === 3 ? `${parts[2]}/${parts[1]}` : f;
-  });
-
-  chart3 = new Chart(document.getElementById("graf3"),{
-    type:"line",
-    data:{
-      labels:displayDates,
-      datasets:[{
-        label:"Auditorías",
-        data:data3,
-        borderColor:BRAND,
-        backgroundColor:"rgba(207,0,46,.10)",
-        pointBackgroundColor:ACCENT,
-        pointBorderColor:BRAND_DEEP,
-        pointBorderWidth:2,
-        pointRadius:4,
-        pointHoverRadius:6,
-        borderWidth:3,
-        tension:.28,
-        fill:true
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      animation:{duration:450},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:INK,
-          padding:10,
-          callbacks:{
-            label:ctx => " " + ctx.parsed.y + " auditorías"
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{color:TEXT,font:{size:10,weight:"600"},maxRotation:0},
-          grid:{display:false}
-        },
-        y:{
-          beginAtZero:true,
-          ticks:{color:TEXT,precision:0,font:{size:10}},
-          grid:{color:GRID}
-        }
-      }
-    }
-  });
-
-  document.getElementById("footPeriodo").textContent =
-    labels3.length
-      ? labels3.length + " fechas con auditoría"
-      : "Sin fechas válidas en la selección";
-
-  /* -----------------------------
-     4. HALLAZGOS POR ÁREA
-     ----------------------------- */
-  const porArea = {};
-
-  filtrados.forEach(r => {
-    const area = String(r.area || "SIN ÁREA").trim() || "SIN ÁREA";
-    porArea[area] = (porArea[area] || 0) + 1;
-  });
-
-  const labels4 = Object.keys(porArea)
-    .sort((a,b) => porArea[b] - porArea[a]);
-
-  const data4 = labels4.map(k => porArea[k]);
-
-  chart4 = new Chart(document.getElementById("graf4"),{
-    type:"bar",
-    data:{
-      labels:labels4,
-      datasets:[{
-        label:"Auditorías",
-        data:data4,
-        backgroundColor:labels4.map((_,i) => colorFor(i)),
-        borderColor:labels4.map((_,i) => {
-          const c = colorFor(i);
-          return c === ACCENT ? ACCENT_DARK : c;
-        }),
-        borderWidth:1,
-        borderRadius:7,
-        borderSkipped:false,
-        maxBarThickness:38
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      animation:{duration:450},
-      plugins:{
-        legend:{display:false},
-        tooltip:tooltipConfig("auditorías")
-      },
-      scales:{
-        x:{
-          ticks:{
-            color:TEXT,font:{size:10,weight:"600"},
-            maxRotation:45,minRotation:0
-          },
-          grid:{display:false}
-        },
-        y:{
-          beginAtZero:true,
-          ticks:{color:TEXT,precision:0,font:{size:10}},
-          grid:{color:GRID}
-        }
-      }
-    }
-  });
-
-  document.getElementById("footAreas").textContent =
-    labels4.length
-      ? labels4.length + " áreas con registro"
-      : "Sin áreas en la selección";
 }
 
-/* ============================================
-   AUTOCOMPLETES
-   ============================================ */
-function autoPersona(){
-  const input = document.getElementById("persona").value.toLowerCase();
-  const lista = document.getElementById("listaPersona");
-  lista.innerHTML = "";
 
-  if(!input){
-    lista.style.display = "none";
-    return;
+/* =========================================================
+   CARGAR DATOS DESDE SUPABASE
+   ========================================================= */
+
+async function cargar(){
+
+  $('estado').textContent =
+    'Cargando datos...';
+
+
+  try{
+
+    let all = [];
+
+    let from = 0;
+
+
+    while(true){
+
+      const {
+        data,
+        error
+      } =
+        await sb
+          .from(
+            'Auditoria_Recibo'
+          )
+          .select('*')
+          .range(
+            from,
+            from + 999
+          );
+
+
+      if(error){
+        throw error;
+      }
+
+
+      if(
+        !data ||
+        !data.length
+      ){
+        break;
+      }
+
+
+      all.push(
+        ...data
+      );
+
+
+      if(
+        data.length < 1000
+      ){
+        break;
+      }
+
+
+      from += 1000;
+
+    }
+
+
+    datos =
+      all;
+
+
+    filtros();
+
+    actualizar();
+
+  }
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    $('estado').textContent =
+      'No fue posible cargar los datos de Auditoria_Recibo.';
+
   }
 
-  const nombres = [...new Set(
-    datos.map(d => d.nombre).filter(Boolean)
-  )]
-  .filter(n => String(n).toLowerCase().includes(input))
-  .sort((a,b) => String(a).localeCompare(String(b)));
-
-  nombres.forEach(n => {
-    const div = document.createElement("div");
-    div.innerText = n;
-    div.className = "dropdown-item";
-
-    div.onclick = () => {
-      document.getElementById("persona").value = n;
-      lista.innerHTML = "";
-      lista.style.display = "none";
-      aplicarFiltros();
-    };
-
-    lista.appendChild(div);
-  });
-
-  lista.style.display = nombres.length ? "block" : "none";
 }
 
-function autoHallazgo(){
-  const input = document.getElementById("hallazgo").value.toUpperCase();
-  const lista = document.getElementById("listaHallazgo");
-  lista.innerHTML = "";
 
-  if(!input){
-    lista.style.display = "none";
-    return;
-  }
+/* =========================================================
+   BOTÓN APLICAR
+   ========================================================= */
 
-  const hallazgos = [...new Set(
-    datos.map(d => d.hallazgo).filter(Boolean)
-  )]
-  .filter(h => String(h).toUpperCase().includes(input))
-  .sort((a,b) => String(a).localeCompare(String(b)));
+$('btnAplicar')
+  .addEventListener(
+    'click',
+    actualizar
+  );
 
-  hallazgos.forEach(h => {
-    const div = document.createElement("div");
-    div.innerText = h;
-    div.className = "dropdown-item";
 
-    div.onclick = () => {
-      document.getElementById("hallazgo").value = h;
-      lista.innerHTML = "";
-      lista.style.display = "none";
-      aplicarFiltros();
-    };
+/* =========================================================
+   BOTÓN LIMPIAR
+   ========================================================= */
 
-    lista.appendChild(div);
-  });
+$('btnLimpiar')
+  .addEventListener(
+    'click',
+    () => {
 
-  lista.style.display = hallazgos.length ? "block" : "none";
-}
+      [
+        'fPersona',
+        'fInicio',
+        'fFin',
+        'fHallazgo'
+      ]
+      .forEach(
+        id =>
+          $(id).value = ''
+      );
 
-document.addEventListener("click", e => {
-  if(!e.target.closest("#persona") && !e.target.closest("#listaPersona")){
-    document.getElementById("listaPersona").style.display = "none";
-  }
 
-  if(!e.target.closest("#hallazgo") && !e.target.closest("#listaHallazgo")){
-    document.getElementById("listaHallazgo").style.display = "none";
-  }
-});
+      $('fArea').value =
+        '';
 
-/* INIT */
+
+      actualizar();
+
+    }
+  );
+
+
+/* =========================================================
+   CAMBIOS AUTOMÁTICOS
+   ========================================================= */
+
+[
+  'fInicio',
+  'fFin',
+  'fArea'
+]
+.forEach(
+  id =>
+    $(id).addEventListener(
+      'change',
+      actualizar
+    )
+);
+
+
+/* =========================================================
+   INICIALIZAR AUTOCOMPLETE
+   ========================================================= */
+
+sugerencias(
+  'fPersona',
+  'sPersona'
+);
+
+
+sugerencias(
+  'fHallazgo',
+  'sHallazgo'
+);
+
+
+/* =========================================================
+   INICIAR DASHBOARD
+   ========================================================= */
+
 cargar();
 
-if(embed === "true"){
-  document.getElementById("mainHeader").style.display = "none";
-}
 </script>
-<script>document.addEventListener("DOMContentLoaded",function(){const e=document.getElementById("qaHeaderUpdate");const old=document.getElementById("ultimaActualizacion");if(e&&old){const sync=()=>{e.textContent=old.textContent||"—"};sync();new MutationObserver(sync).observe(old,{childList:true,subtree:true,characterData:true});}});</script></body>
+
+</body>
 </html>
