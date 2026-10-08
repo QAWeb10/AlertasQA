@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#CF002E">
 
-<title>QA · Auditoría en Recibo</title>
+<title>QA · Auditoría en Recibo · V32</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2987,6 +2987,11 @@ let qaScannerStream = null;
 let qaScannerIndex = null;
 let qaScannerReader = null;
 let qaScannerFallbackActivo = false;
+// Bloquea restauraciones remotas mientras la cámara/galería está incorporando
+// evidencia. Evita que el polling remoto restaure un snapshot anterior y
+// borre fotografías recién tomadas.
+let qaEvidenciaEnProceso = false;
+let qaUltimaEvidenciaLocal = 0;
 let qaUltimaSincronizacion = "";
 let qaSincronizacionPolling = null;
 let qaUltimoEstadoRemotoAplicado = "";
@@ -3357,14 +3362,26 @@ async function manejarFotoFinal(event){
   const archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
   if(event?.target)event.target.value="";
   if(!archivos.length)return;
+  qaEvidenciaEnProceso=true;
+  qaUltimaEvidenciaLocal=Date.now();
   marcarSincronizando();
-  for(const archivo of archivos){
-    const foto=await prepararFotoParaGuardadoLocal(archivo);
-    if(foto)fotosGeneralesAuditoria.push(foto);
+  try{
+    for(const archivo of archivos){
+      const foto=await prepararFotoParaGuardadoLocal(archivo);
+      if(foto)fotosGeneralesAuditoria.push(foto);
+    }
+    renderizarFotosFinales();
+    // Persistencia local inmediata antes de permitir cualquier lectura remota.
+    await guardarBorradorAhora(false);
+    guardarRespaldoEmergencia();
+    // Después se sincroniza al servidor sin bloquear la cámara.
+    guardarBorrador();
+  }catch(error){
+    console.error("Error guardando fotografía de cierre:",error);
+    mostrarAlertaQA("La fotografía quedó en la pantalla, pero no fue posible crear el respaldo local inmediato. No cierres la auditoría y vuelve a intentar.","warning","Evidencia pendiente");
+  }finally{
+    qaEvidenciaEnProceso=false;
   }
-  renderizarFotosFinales();
-  guardarBorrador();
-  guardarRespaldoEmergencia();
 }
 
 function renderizarFotosFinales(){
@@ -3405,8 +3422,12 @@ async function escanearLpn(index){
     if("BarcodeDetector" in window){
       try{
         const formatos=await BarcodeDetector.getSupportedFormats();
-        const preferidos=["code_128","code_39","ean_13","ean_8","itf","qr_code","data_matrix","upc_a","upc_e"].filter(x=>formatos.includes(x));
-        const detector=new BarcodeDetector(preferidos.length?{formats:preferidos}:undefined);
+        // Estas etiquetas son GS1-128: el símbolo físico es CODE 128.
+        // Si BarcodeDetector no soporta CODE 128 en este dispositivo,
+        // dejamos que el flujo caiga automáticamente a ZXing.
+        if(!formatos.includes("code_128")) throw new Error("BarcodeDetector sin soporte para CODE 128");
+        const preferidos=["code_128"].filter(x=>formatos.includes(x));
+        const detector=new BarcodeDetector({formats:preferidos});
         let candidato="",veces=0,ultimoTiempo=0;
         const ciclo=async()=>{
           if(!qaScannerStream||qaScannerIndex!==index||qaScannerFallbackActivo)return;
@@ -3414,7 +3435,7 @@ async function escanearLpn(index){
             const resultados=await detector.detect(video);
             const vw=video.videoWidth||1,vh=video.videoHeight||1;
             const centroX=vw/2,centroY=vh/2;
-            const r=resultados?.map(x=>({x,raw:normalizarLpn(x.rawValue||""),box:x.boundingBox})).filter(x=>x.raw&&x.raw.length>=5).sort((a,b)=>{
+            const r=resultados?.map(x=>({x,raw:normalizarLpn(x.rawValue||""),box:x.boundingBox})).filter(x=>x.raw&&((/^\d{18}$/.test(x.raw))||x.raw.length>=5)).sort((a,b)=>{
               const da=a.box?Math.hypot((a.box.x+a.box.width/2)-centroX,(a.box.y+a.box.height/2)-centroY):999999;
               const db=b.box?Math.hypot((b.box.x+b.box.width/2)-centroX,(b.box.y+b.box.height/2)-centroY):999999;
               return da-db;
@@ -3450,7 +3471,7 @@ async function escanearLpn(index){
       await reader.decodeFromVideoDevice(trasera?.deviceId,video,async(result,error)=>{
         if(!result||qaScannerIndex!==index)return;
         const raw=normalizarLpn(result.getText?.()||"");
-        if(raw&&raw.length>=5)await completarLpnDesdeScanner(raw,index,mensaje);
+        if(raw&&((/^\d{18}$/.test(raw))||raw.length>=5))await completarLpnDesdeScanner(raw,index,mensaje);
       });
       return;
     }
@@ -4107,7 +4128,7 @@ async function sincronizarRemotoConFusion(estado){
 }
 
 async function sincronizarDesdeServidorSiHayAvance(){
-  if(!auditoriaEnEdicion||qaDraftRestoring||qaDraftFinalizando||qaGuardandoFinal||!esUUIDValido(auditoriaId))return;
+  if(!auditoriaEnEdicion||qaDraftRestoring||qaDraftFinalizando||qaGuardandoFinal||qaEvidenciaEnProceso||Date.now()-qaUltimaEvidenciaLocal<15000||!esUUIDValido(auditoriaId))return;
   try{
     sincronizarDatosAntesDeGuardar();
     const local=sincronizarFotoFinalLocal();
@@ -4220,7 +4241,7 @@ async function esperarGuardadosPendientes(){
 }
 
 async function restaurarEstadoBorrador(estado){
-  if(!estado)return;
+  if(!estado || qaEvidenciaEnProceso)return;
   auditoriaEnEdicion=true;
   window.qaBorradorPropietario=estado.propietario || estado.usuario || usuarioQA?.nombre || "";
   auditoriaId=estado.auditoriaId||generarIdUnico();
@@ -6371,6 +6392,12 @@ function convertirNumeroCientificoATexto(valor){
 }
 
 function normalizarLpn(valor){
+  // Las etiquetas físicas son GS1-128 con AI (00).
+  // Ejemplo de la etiqueta del usuario:
+  // (00) 1 00 37000 310474626 6
+  // El valor que aparece en el Excel es el GS1 COMPLETO de 20 dígitos:
+  // 00100370003104746266
+  // Por eso el formato canónico para LPN GS1 es AI(00) + SSCC de 18 dígitos.
   let v=String(valor ?? "")
     .replace(/\u00A0/g," ")
     .replace(/[\u200B-\u200D\uFEFF]/g,"")
@@ -6385,9 +6412,28 @@ function normalizarLpn(valor){
 
   if(/^\d+\.0+$/.test(v)) v=v.replace(/\.0+$/," ").trim();
 
-  v=v.replace(/\s+/g,"");
+  const sinSeparadores=v.replace(/[\s\-().]/g,"");
 
-  return v;
+  // 1) GS1-128 completo: AI 00 + SSCC (20 dígitos).
+  //    Este es el formato que utiliza el Excel del usuario.
+  if(/^00\d{18}$/.test(sinSeparadores)){
+    return sinSeparadores;
+  }
+
+  // 2) Si el lector entrega solamente el SSCC de 18 dígitos,
+  //    conservarlo como SSCC para que clavesLpn() pueda compararlo
+  //    también contra el formato GS1 completo.
+  if(/^\d{18}$/.test(sinSeparadores)){
+    return sinSeparadores;
+  }
+
+  // 3) Texto GS1 con AI (00), espacios u otros separadores.
+  //    Ejemplo: (00) 1 00 37000 310474626 6
+  const gs1=v.match(/(?:^|\D)00[^0-9]*(\d{18})(?:\D|$)/);
+  if(gs1?.[1]) return "00"+gs1[1];
+
+  // 4) Para LPN alfanuméricas, conservar la normalización anterior.
+  return v.replace(/\s+/g,"");
 }
 
 function clavesLpn(valor){
@@ -6404,6 +6450,15 @@ function clavesLpn(valor){
 
   const compacta=base.replace(/[^A-Z0-9]/g,"");
   agregar(compacta);
+
+  // Compatibilidad GS1: el Excel puede contener el AI (00) y el
+  // escáner puede devolver únicamente el SSCC de 18 dígitos.
+  // Permitimos ambas claves para que la comparación sea robusta.
+  if(/^\d{18}$/.test(compacta)){
+    agregar("00"+compacta);
+  }else if(/^00\d{18}$/.test(compacta)){
+    agregar(compacta.slice(2));
+  }
 
   const sinPrefijo=compacta.replace(/^LPN(?=\d)/,"");
   agregar(sinPrefijo);
@@ -6471,10 +6526,13 @@ function textoExcel(valor){
     if(!Number.isFinite(valor)) return "";
     return Number.isInteger(valor) ? String(valor) : String(valor);
   }
-  return String(valor)
+  const texto=String(valor)
     .replace(/\u00A0/g," ")
     .replace(/[\u200B-\u200D\uFEFF]/g,"")
+    .trim()
+    .replace(/^'+/,"")
     .trim();
+  return convertirNumeroCientificoATexto(texto);
 }
 
 function transformarFilaExcel(row){
@@ -6821,7 +6879,10 @@ async function procesarArchivoExcel(file,opciones={}){
         const item=transformarFilaExcel(row);
         if(!item.lpn) continue;
 
-        const claveUnica=clavesLpn(item.lpn)[0]||normalizarLpn(item.lpn)||item.lpn;
+        const lpnNormalizada=normalizarLpn(item.lpn);
+        if(!lpnNormalizada) continue;
+        item.lpn=lpnNormalizada;
+        const claveUnica=clavesLpn(lpnNormalizada)[0]||lpnNormalizada;
         lpnVistas.add(claveUnica);
         filas.push(item);
         agregadas++;
@@ -7064,30 +7125,40 @@ async function manejarEvidenciaPositiva(event,index){
   const item=auditoriaActual[index];
   const archivos=Array.from(event?.target?.files||[]).filter(f=>f.type?.startsWith("image/"));
   if(!item||!archivos.length){if(event?.target)event.target.value="";return;}
-  if(!lpnAprobada100(index)){
+  qaEvidenciaEnProceso=true;
+  qaUltimaEvidenciaLocal=Date.now();
+  try{
+    if(!lpnAprobada100(index)){
+      if(event?.target)event.target.value="";
+      mostrarAlertaQA("La evidencia positiva solo puede agregarse a una LPN con 100% de aprobación y sin desviaciones.","warning","Evidencia no habilitada");
+      return;
+    }
+    item.evidencia_positiva=item.evidencia_positiva||[];
+    const disponibles=Math.max(0,3-item.evidencia_positiva.length);
+    if(disponibles===0){
+      if(event?.target)event.target.value="";
+      mostrarAlertaQA("Cada LPN puede tener máximo 3 fotografías de evidencia positiva.","warning","Máximo de fotografías");
+      return;
+    }
     if(event?.target)event.target.value="";
-    mostrarAlertaQA("La evidencia positiva solo puede agregarse a una LPN con 100% de aprobación y sin desviaciones.","warning","Evidencia no habilitada");
-    return;
-  }
-  item.evidencia_positiva=item.evidencia_positiva||[];
-  const disponibles=Math.max(0,3-item.evidencia_positiva.length);
-  if(disponibles===0){
-    if(event?.target)event.target.value="";
-    mostrarAlertaQA("Cada LPN puede tener máximo 3 fotografías de evidencia positiva.","warning","Máximo de fotografías");
-    return;
-  }
-  if(event?.target)event.target.value="";
-  marcarSincronizando();
-  const seleccion=archivos.slice(0,disponibles);
-  for(const archivo of seleccion){
-    const foto=await prepararFotoParaGuardadoLocal(archivo);
-    if(foto)item.evidencia_positiva.push(foto);
-  }
-  renderizarEvidenciaPositiva();
-  guardarBorrador();
-  guardarRespaldoEmergencia();
-  if(archivos.length>disponibles){
-    mostrarAlertaQA("Solo se agregaron las fotografías necesarias para completar el máximo de 3 por LPN.","warning","Máximo de fotografías");
+    marcarSincronizando();
+    const seleccion=archivos.slice(0,disponibles);
+    for(const archivo of seleccion){
+      const foto=await prepararFotoParaGuardadoLocal(archivo);
+      if(foto)item.evidencia_positiva.push(foto);
+    }
+    renderizarEvidenciaPositiva();
+    await guardarBorradorAhora(false);
+    guardarRespaldoEmergencia();
+    guardarBorrador();
+    if(archivos.length>disponibles){
+      mostrarAlertaQA("Solo se agregaron las fotografías necesarias para completar el máximo de 3 por LPN.","warning","Máximo de fotografías");
+    }
+  }catch(error){
+    console.error("Error guardando evidencia positiva:",error);
+    mostrarAlertaQA("La fotografía no pudo quedar respaldada localmente. La captura actual no se sincronizará hasta volver a intentarlo.","warning","Evidencia pendiente");
+  }finally{
+    qaEvidenciaEnProceso=false;
   }
 }
 
@@ -7536,6 +7607,8 @@ async function manejarEvidenciaCampo(
     return;
   }
 
+  qaEvidenciaEnProceso=true;
+  qaUltimaEvidenciaLocal=Date.now();
   item.evidencia_campos=item.evidencia_campos||{};
   item.evidencia_campos[categoria]=item.evidencia_campos[categoria]||{};
   item.evidencia_campos[categoria][campo]=item.evidencia_campos[categoria][campo]||[];
@@ -7556,8 +7629,13 @@ async function manejarEvidenciaCampo(
   actualizarResultadoGeneral();
 
   // Primero queda físicamente en IndexedDB/local; después se sincroniza en segundo plano.
-  guardarBorrador();
-  guardarRespaldoEmergencia();
+  try{
+    await guardarBorradorAhora(false);
+    guardarRespaldoEmergencia();
+    guardarBorrador();
+  }finally{
+    qaEvidenciaEnProceso=false;
+  }
 }
 
 
