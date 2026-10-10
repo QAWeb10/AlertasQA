@@ -1,45 +1,37 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#CF002E">
+
 <title>QA · Dashboard de Auditorías</title>
-<meta content="#CF002E" name="theme-color"/>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
 <style>
-/* =========================================================
-   ESTILOS ORIGINALES / BASE
-   ========================================================= */
-
 :root{
   --brand:#CF002E;
   --brand-dark:#A00023;
   --brand-deep:#6E0018;
   --accent:#FDD000;
   --accent-dark:#E6BC00;
-
   --ink:#1A1A1A;
   --ink-soft:#4A4A4A;
   --ink-muted:#8A8A8A;
-
   --line:#E5E5E5;
   --line-soft:#F2F2F2;
   --bg:#F7F7F7;
   --surface:#FFFFFF;
-
   --ok:#1B8A3A;
-
   --radius-sm:7px;
-  --radius-md:11px;
+  --radius:11px;
   --radius-lg:16px;
-
-  --shadow-1:0 2px 7px rgba(0,0,0,.08);
-  --shadow-2:0 5px 16px rgba(0,0,0,.10);
-  --shadow-3:0 10px 28px rgba(0,0,0,.13);
+  --shadow-1:0 1px 2px rgba(0,0,0,.05),0 1px 4px rgba(0,0,0,.035);
+  --shadow-2:0 5px 16px rgba(0,0,0,.075);
+  --shadow-3:0 14px 34px rgba(0,0,0,.15);
 }
 
 *{
@@ -50,342 +42,237 @@ html,
 body{
   margin:0;
   padding:0;
-  background:var(--bg);
-  color:var(--ink);
-  font-family:Arial,Helvetica,sans-serif;
 }
 
 body{
+  text-transform:uppercase;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 90% 0%,rgba(253,208,0,.16),transparent 28%),
+    linear-gradient(180deg,#fff 0%,#F8F8F8 58%,#FFF9DF 100%);
   min-height:100vh;
 }
 
-/* =========================================================
-   HEADER / NAVEGACIÓN
-   ========================================================= */
+button,
+input,
+select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
 
 .qa-unified-header{
   position:sticky;
   top:0;
   z-index:1000;
-
   min-height:68px;
   padding:11px 24px;
-
   display:flex;
   align-items:center;
-  gap:14px;
-
-  background:
-    linear-gradient(
-      90deg,
-      var(--brand-deep) 0%,
-      var(--brand) 55%,
-      #D90032 100%
-    );
-
-  box-shadow:0 4px 12px rgba(0,0,0,.12);
-
+  gap:12px;
   color:#fff;
+  background:linear-gradient(
+    90deg,
+    var(--brand-deep),
+    var(--brand)
+  );
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
 }
 
-.qa-unified-header .logo{
+.logo{
   width:42px;
   height:42px;
-
-  flex:0 0 42px;
-
+  min-width:42px;
+  border-radius:9px;
+  background:var(--accent);
+  color:var(--brand-deep);
   display:flex;
   align-items:center;
   justify-content:center;
-
-  background:var(--accent);
-  color:var(--brand-deep);
-
-  border-radius:9px;
-
-  font-size:16px;
   font-weight:900;
 }
 
-.qa-unified-header .titles{
-  min-width:180px;
-  display:flex;
-  flex-direction:column;
-  line-height:1.05;
+.titles{
+  min-width:0;
 }
 
-.qa-unified-header .t1{
+.t1{
   font-size:10px;
   letter-spacing:1.2px;
-  text-transform:uppercase;
-  font-weight:700;
-  opacity:.9;
+  opacity:.82;
 }
 
-.qa-unified-header .t2{
-  margin-top:3px;
+.t2{
   font-size:18px;
   font-weight:800;
+  line-height:1.15;
+}
+
+.spacer{
+  flex:1;
 }
 
 .qa-unified-nav{
   display:flex;
-  align-items:center;
   gap:6px;
-  margin-left:auto;
 }
 
 .qa-unified-nav a{
-  min-height:34px;
-  padding:0 10px;
-
-  display:flex;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-
+  min-height:34px;
+  padding:0 10px;
   border-radius:8px;
-
   color:#fff;
-  background:rgba(255,255,255,.13);
-
   text-decoration:none;
-
   font-size:10px;
   font-weight:800;
-
-  transition:.15s ease;
+  border:1px solid rgba(255,255,255,.20);
+  background:rgba(255,255,255,.08);
+  white-space:nowrap;
 }
 
 .qa-unified-nav a:hover{
-  background:rgba(255,255,255,.23);
+  background:rgba(255,255,255,.17);
 }
 
 .qa-unified-nav a.active{
   background:var(--accent);
   color:var(--brand-deep);
+  border-color:var(--accent);
 }
 
-.qa-unified-header .badge{
-  height:34px;
-  padding:0 10px;
-
-  display:flex;
+.badge{
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-
-  border-radius:8px;
-
-  background:rgba(253,208,0,.15);
-  border:1px solid rgba(253,208,0,.45);
-
-  color:#fff;
-  font-size:10px;
-  font-weight:800;
-}
-
-.qa-header-update{
-  min-width:125px;
   min-height:34px;
-
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-
-  padding:3px 8px;
-
+  padding:0 10px;
   border-radius:8px;
-
-  background:rgba(255,255,255,.10);
-}
-
-.qa-header-update .update-label{
-  font-size:7px;
-  line-height:1;
-  text-transform:uppercase;
-  opacity:.75;
-}
-
-.qa-header-update .update-value{
-  margin-top:3px;
-  font-size:9px;
-  line-height:1;
-  font-weight:700;
+  background:rgba(253,208,0,.16);
+  border:1px solid rgba(253,208,0,.5);
+  font-size:10px;
+  font-weight:900;
 }
 
 .qa-home{
-  min-height:34px;
-  padding:0 11px;
-
-  display:flex;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-
+  min-height:34px;
+  padding:0 11px;
   border-radius:8px;
-
   background:#fff;
   color:var(--brand-deep);
-
   text-decoration:none;
-
   font-size:10px;
   font-weight:900;
-
-  transition:.15s ease;
+  white-space:nowrap;
 }
 
 .qa-home:hover{
   background:#fffbe0;
 }
 
-/* Ocultar header antiguo cuando existe el nuevo shell */
-body:has(.qa-unified-header) .header{
-  display:none !important;
-}
-
-/* =========================================================
-   CONTENEDOR
-   ========================================================= */
-
-.container,
 .wrap{
-  width:100%;
   max-width:1800px;
-  margin:0 auto;
-  padding:22px 24px 36px;
+  margin:auto;
+  padding:20px 20px 45px;
 }
-
-/* =========================================================
-   FILTROS
-   ========================================================= */
 
 .filters-card{
-  background:var(--surface);
+  background:#fff;
   border:1px solid var(--line);
   border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-1);
-
+  box-shadow:var(--shadow-2);
   padding:16px;
-  margin-bottom:18px;
+  margin-bottom:16px;
 }
 
 .filters-grid{
   display:grid;
-  grid-template-columns:
-    minmax(170px,1.3fr)
-    minmax(130px,1fr)
-    minmax(130px,1fr)
-    minmax(170px,1.3fr)
-    minmax(150px,1fr)
-    auto;
-
+  grid-template-columns:1.4fr 1fr 1fr 1.4fr 1fr 1.4fr auto;
   gap:12px;
   align-items:end;
 }
 
 .field{
-  min-width:0;
   position:relative;
 }
 
 .field label{
   display:block;
   margin-bottom:6px;
-
-  color:var(--ink-soft);
-
-  font-size:11px;
+  font-size:10px;
   font-weight:800;
+  letter-spacing:.7px;
 }
 
-.field input,
-.field select{
+input,
+select{
   width:100%;
-  height:38px;
-
-  padding:0 10px;
-
-  border:1px solid var(--line);
-  border-radius:8px;
-
+  padding:10px 12px;
   background:#fff;
   color:var(--ink);
-
+  border:1.5px solid var(--line);
+  border-radius:var(--radius);
   outline:none;
-
-  font-size:12px;
+  font-size:13px;
 }
 
-.field input:focus,
-.field select:focus{
+input:focus,
+select:focus{
   border-color:var(--brand);
-  box-shadow:0 0 0 2px rgba(207,0,46,.08);
+  box-shadow:0 0 0 3px rgba(207,0,46,.11);
 }
 
 .filter-actions{
   display:flex;
-  gap:7px;
+  gap:8px;
 }
 
 .btn{
-  min-height:38px;
-  padding:0 14px;
-
+  min-height:40px;
+  padding:0 15px;
   border:0;
-  border-radius:8px;
-
-  cursor:pointer;
-
+  border-radius:var(--radius);
   font-size:11px;
   font-weight:900;
+  white-space:nowrap;
 }
 
 .btn-primary{
-  background:var(--brand);
   color:#fff;
-}
-
-.btn-primary:hover{
-  background:var(--brand-dark);
+  background:linear-gradient(
+    180deg,
+    var(--brand),
+    var(--brand-dark)
+  );
 }
 
 .btn-secondary{
-  background:#eee;
-  color:var(--ink-soft);
-}
-
-.btn-secondary:hover{
-  background:#e2e2e2;
-}
-
-/* =========================================================
-   AUTOCOMPLETE
-   ========================================================= */
-
-.autocomplete{
-  position:relative;
+  color:var(--brand-deep);
+  background:#fff;
+  border:1px solid #E8D9A1;
 }
 
 .suggestions{
   position:absolute;
-  top:100%;
+  top:calc(100% + 5px);
   left:0;
   right:0;
-
-  z-index:100;
-
+  z-index:2000;
   display:none;
-
   max-height:220px;
   overflow:auto;
-
   background:#fff;
-
   border:1px solid var(--line);
-  border-top:0;
-
-  border-radius:0 0 8px 8px;
-
-  box-shadow:var(--shadow-2);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-3);
 }
 
 .suggestions.open{
@@ -393,122 +280,339 @@ body:has(.qa-unified-header) .header{
 }
 
 .suggestion{
-  padding:9px 10px;
-
+  padding:10px 12px;
+  border-bottom:1px solid var(--line-soft);
+  font-size:12px;
   cursor:pointer;
-
-  font-size:11px;
 }
 
 .suggestion:hover{
-  background:var(--line-soft);
+  background:#FFF7C9;
+  font-weight:800;
 }
 
-/* =========================================================
-   GRÁFICOS
-   ========================================================= */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:16px;
+}
+
+.kpi{
+  position:relative;
+  overflow:hidden;
+  min-height:105px;
+  padding:16px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-2);
+}
+
+.kpi::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:4px;
+  background:var(--brand);
+}
+
+.kpi:nth-child(2)::before{
+  background:var(--accent-dark);
+}
+
+.kpi:nth-child(3)::before{
+  background:var(--ok);
+}
+
+.kpi:nth-child(4)::before{
+  background:#6E0018;
+}
+
+.kpi:nth-child(5)::before{
+  background:#8A8A8A;
+}
+
+.kpi-label{
+  color:var(--ink-muted);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.7px;
+  margin-bottom:8px;
+}
+
+.kpi-value{
+  font-size:28px;
+  line-height:1;
+  font-weight:900;
+  color:var(--brand-deep);
+}
+
+.kpi-detail{
+  margin-top:8px;
+  color:var(--ink-soft);
+  font-size:9px;
+  font-weight:800;
+}
+
+.kpi-product{
+  min-width:0;
+}
+
+.kpi-product .kpi-value{
+  font-size:14px;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.chart-body{
+  overflow:visible;
+  min-width:0;
+}
+
+.chart-body canvas{
+  display:block;
+  max-width:100%;
+}
 
 .charts-grid{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:18px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:14px;
 }
 
 .chart-card{
   min-width:0;
-
-  background:var(--surface);
-
+  height:100%;
+  overflow:visible;
+  background:#fff;
   border:1px solid var(--line);
   border-radius:var(--radius-lg);
-
   box-shadow:var(--shadow-1);
+  padding:15px;
+}
 
-  padding:16px;
+.chart-card.wide{
+  grid-column:auto;
+}
+
+.chart-card.product-description-mode{
+  grid-column:span 2;
+}
+
+.chart-card.product-description-mode .chart-body{
+  height:620px;
 }
 
 .chart-title{
-  margin-bottom:12px;
-
-  color:var(--ink);
-
-  font-size:13px;
+  margin-bottom:11px;
+  font-size:12px;
   font-weight:900;
+  letter-spacing:.65px;
+}
+
+.product-chart-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:11px;
+}
+
+.product-chart-header .chart-title{
+  margin:0;
+}
+
+.chart-mode{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex:0 0 auto;
+}
+
+.chart-mode label{
+  color:var(--ink-muted);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.4px;
+}
+
+.chart-mode select{
+  width:auto;
+  max-width:132px;
+  padding:5px 22px 5px 8px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:#fafafa;
+  color:var(--ink-soft);
+  font-size:10px;
+  font-weight:700;
+  box-shadow:none;
+}
+
+.chart-mode select:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px rgba(207,0,46,.08);
+}
+
+@media(max-width:420px){
+  .product-chart-header{align-items:flex-start;}
+  .product-chart-header .chart-title{max-width:65%;}
+  .chart-mode select{max-width:112px;}
 }
 
 .chart-body{
   position:relative;
   width:100%;
-  height:330px;
+  height:320px;
+  min-width:0;
+}
+
+.pareto-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:11px;
+}
+.pareto-header .chart-title{margin:0;}
+.chart-expand-btn{
+  flex:0 0 auto;
+  border:1px solid var(--line);
+  background:#fafafa;
+  color:var(--ink-soft);
+  border-radius:7px;
+  padding:6px 9px;
+  font-size:10px;
+  font-weight:800;
+}
+.chart-expand-btn:hover{border-color:var(--brand);color:var(--brand);}
+.chart-card.pareto-expanded{
+  position:fixed;
+  inset:3vh 3vw;
+  z-index:2000;
+  height:auto;
+  max-height:94vh;
+  overflow:auto;
+  padding:20px;
+  box-shadow:var(--shadow-3);
+  display:flex;
+  flex-direction:column;
+  background:#fff;
+}
+.chart-card.pareto-expanded .chart-body{
+  flex:1 1 auto;
+  height:auto;
+  min-height:0;
+  min-height:65vh;
+}
+.pareto-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:1999;
+  background:rgba(20,20,20,.55);
+}
+.pareto-backdrop.visible{display:block;}
+@media(max-width:680px){
+  .chart-card.pareto-expanded{inset:1vh 1vw;padding:12px;}
+  .chart-card.pareto-expanded .chart-body{min-height:75vh;}
 }
 
 .status{
-  margin-top:12px;
-
-  color:var(--ink-muted);
-
+  margin-top:16px;
+  padding:11px;
+  text-align:center;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow-1);
   font-size:10px;
-  text-align:right;
+  font-weight:800;
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+@media(max-width:1200px){
 
-@media(max-width:1100px){
-
-  .qa-unified-header .titles .t2{
-    font-size:15px;
-  }
-
-  .qa-unified-header .badge,
-  .qa-header-update{
-    display:none;
+  .charts-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 
   .filters-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-columns:1fr 1fr 1fr;
   }
 
   .filter-actions{
     grid-column:1/-1;
-    justify-content:flex-end;
   }
+
+  .kpis{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+}
+
+@media(max-width:680px){
+
+  .charts-grid{
+    grid-template-columns:1fr;
+  }
+
+  .chart-card.wide,
+  .chart-card.product-description-mode{
+    grid-column:auto;
+  }
+
+  .chart-card.product-description-mode .chart-body{
+    height:620px;
+  }
+
+  .qa-unified-nav a{
+    padding:0 8px;
+  }
+
 }
 
 @media(max-width:760px){
 
   .qa-unified-header{
     min-height:64px;
-    padding:9px 12px;
-    gap:9px;
+    padding:8px 10px;
+    overflow-x:auto;
+    scrollbar-width:none;
   }
 
-  .qa-unified-header .logo{
-    width:38px;
-    height:38px;
-    flex-basis:38px;
-  }
-
-  .qa-unified-header .titles .t1{
-    font-size:8px;
-  }
-
-  .qa-unified-header .titles .t2{
-    font-size:13px;
-  }
-
-  .qa-unified-nav{
+  .qa-unified-header::-webkit-scrollbar{
     display:none;
   }
 
-  .qa-home{
-    margin-left:auto;
+  .t1{
+    font-size:7px;
   }
 
-  .wrap,
-  .container{
-    padding:14px 12px 28px;
+  .t2{
+    font-size:13px;
+  }
+
+  .badge{
+    display:none;
+  }
+
+  .qa-unified-nav{
+    gap:4px;
+  }
+
+  .qa-unified-nav a{
+    min-height:32px;
+    padding:0 7px;
+    font-size:9px;
+  }
+
+  .kpis{
+    grid-template-columns:1fr 1fr;
   }
 
   .filters-grid{
@@ -523,162 +627,69 @@ body:has(.qa-unified-header) .header{
     flex:1;
   }
 
-  .charts-grid{
+  .wrap{
+    padding:14px 10px 30px;
+  }
+
+}
+
+@media(max-width:500px){
+
+  .kpis{
     grid-template-columns:1fr;
+  }
+
+  .kpi{
+    min-height:90px;
   }
 
   .chart-body{
     height:290px;
   }
+
+  .qa-unified-nav a{
+    font-size:0;
+    width:32px;
+    padding:0;
+  }
+
+  .qa-home{
+    display:none;
+  }
+
 }
 </style>
-
-<style id="qa-unified-shell">
-
-/* =========================================================
-   SHELL ÚNICO PARA LOS 4 DASHBOARDS
-   ========================================================= */
-
-.qa-unified-header{
-  --qa-brand:#CF002E;
-  --qa-brand-dark:#A00023;
-  --qa-brand-deep:#6E0018;
-  --qa-accent:#FDD000;
-
-  position:sticky;
-  top:0;
-  z-index:1000;
-
-  min-height:68px;
-  padding:11px 24px;
-
-  display:flex;
-  align-items:center;
-
-  background:
-    linear-gradient(
-      90deg,
-      var(--qa-brand-deep),
-      var(--qa-brand),
-      #D90032
-    );
-
-  box-shadow:0 4px 12px rgba(0,0,0,.12);
-
-  font-family:Arial,Helvetica,sans-serif;
-}
-
-.qa-unified-header .logo{
-  width:42px;
-  height:42px;
-
-  border-radius:9px;
-
-  background:var(--qa-accent);
-  color:var(--qa-brand-deep);
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  font-weight:900;
-}
-
-.qa-unified-header .t1{
-  font-size:10px;
-  letter-spacing:1.2px;
-  font-weight:700;
-}
-
-.qa-unified-header .t2{
-  font-size:18px;
-  font-weight:800;
-}
-
-.qa-unified-nav{
-  display:flex;
-  gap:6px;
-}
-
-.qa-unified-nav a{
-  min-height:34px;
-  padding:0 10px;
-
-  border-radius:8px;
-
-  background:rgba(255,255,255,.13);
-
-  color:#fff;
-
-  font-size:10px;
-  font-weight:800;
-
-  text-decoration:none;
-}
-
-.qa-unified-nav a:hover{
-  background:rgba(255,255,255,.23);
-}
-
-.qa-unified-nav a.active{
-  background:var(--qa-accent);
-  color:var(--qa-brand-deep);
-}
-
-.qa-home{
-  min-height:34px;
-  padding:0 11px;
-
-  border-radius:8px;
-
-  background:#fff;
-  color:var(--qa-brand-deep);
-
-  font-size:10px;
-  font-weight:900;
-
-  text-decoration:none;
-}
-
-body:has(.qa-unified-header) .container{
-  max-width:1800px;
-}
-
-</style>
-
 </head>
 
 <body>
-
-<!-- =====================================================
-     NAVEGACIÓN
-     ===================================================== -->
 
 <header class="qa-unified-header">
 
   <div class="logo">QA</div>
 
   <div class="titles">
-    <div class="t1">Sistema de Gestión de Calidad</div>
+    <div class="t1">SISTEMA DE GESTIÓN DE CALIDAD</div>
     <div class="t2">Dashboard de Auditorías</div>
   </div>
+
+  <div class="spacer"></div>
 
   <nav class="qa-unified-nav">
 
     <a href="dashboard.html">
-      📊 Calidad
+      📊 CALIDAD
     </a>
 
     <a href="dashboard-auditorias.html" class="active">
-      📋 Auditorías
+      📋 AUDITORÍAS
     </a>
 
     <a href="dashboard-incidencias.html">
-      ⚠️ Incidencias
+      ⚠️ INCIDENCIAS
     </a>
 
     <a href="Dashboard_Quejas.html">
-      📝 Quejas
+      📝 QUEJAS
     </a>
 
   </nav>
@@ -687,253 +698,322 @@ body:has(.qa-unified-header) .container{
     FY2627
   </div>
 
-  <div class="qa-header-update">
-    <div class="update-label">
-      Última actualización
-    </div>
-
-    <div class="update-value">
-      Datos dinámicos
-    </div>
-  </div>
-
-  <a class="qa-home" href="index.html">
-    🏠 Home
+  <a href="index.html" class="qa-home">
+    🏠 HOME
   </a>
 
 </header>
 
-
-<!-- =====================================================
-     CONTENIDO PRINCIPAL
-     ===================================================== -->
-
 <div class="wrap">
 
-  <main class="dashboard-main">
+  <section class="filters-card">
 
-    <!-- =================================================
-         FILTROS DINÁMICOS
-         ================================================= -->
+    <div class="filters-grid">
 
-    <section class="filters-card">
+      <div class="field">
 
-      <div class="filters-grid">
+        <label>PERSONA</label>
 
-        <div class="field autocomplete">
+        <input
+          id="fPersona"
+          type="text"
+          placeholder="TODAS LAS PERSONAS"
+          autocomplete="off"
+        >
 
-          <label for="fPersona">
-            Persona
-          </label>
-
-          <input
-            id="fPersona"
-            type="text"
-            placeholder="Todas las personas"
-            autocomplete="off"
-          >
-
-          <div
-            id="sPersona"
-            class="suggestions">
-          </div>
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="fInicio">
-            Fecha inicio
-          </label>
-
-          <input
-            id="fInicio"
-            type="date"
-          >
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="fFin">
-            Fecha fin
-          </label>
-
-          <input
-            id="fFin"
-            type="date"
-          >
-
-        </div>
-
-
-        <div class="field autocomplete">
-
-          <label for="fHallazgo">
-            Hallazgo
-          </label>
-
-          <input
-            id="fHallazgo"
-            type="text"
-            placeholder="Todos los hallazgos"
-            autocomplete="off"
-          >
-
-          <div
-            id="sHallazgo"
-            class="suggestions">
-          </div>
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="fArea">
-            Área
-          </label>
-
-          <select id="fArea">
-
-            <option value="">
-              Todas las áreas
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <div class="filter-actions">
-
-          <button
-            id="btnAplicar"
-            class="btn btn-primary">
-            Aplicar
-          </button>
-
-          <button
-            id="btnLimpiar"
-            class="btn btn-secondary">
-            Limpiar
-          </button>
-
-        </div>
+        <div
+          id="sPersona"
+          class="suggestions"
+        ></div>
 
       </div>
 
-    </section>
+      <div class="field">
 
+        <label>FECHA INICIO</label>
 
-    <!-- =================================================
-         GRÁFICOS
-         ================================================= -->
+        <input
+          id="fInicio"
+          type="date"
+        >
 
-    <section class="charts-grid">
+      </div>
 
+      <div class="field">
 
-      <!-- ===============================================
-           1. DESVIACIONES POR HALLAZGO
-           =============================================== -->
+        <label>FECHA FIN</label>
 
-      <article class="chart-card">
+        <input
+          id="fFin"
+          type="date"
+        >
 
-        <div class="chart-title">
-          Desviaciones por hallazgo
-        </div>
+      </div>
 
-        <div class="chart-body">
+      <div class="field">
 
-          <canvas id="chartHallazgo"></canvas>
+        <label>HALLAZGO</label>
 
-        </div>
+        <input
+          id="fHallazgo"
+          type="text"
+          placeholder="TODOS LOS HALLAZGOS"
+          autocomplete="off"
+        >
 
-      </article>
+        <div
+          id="sHallazgo"
+          class="suggestions"
+        ></div>
 
+      </div>
 
-      <!-- ===============================================
-           2. DESVIACIONES POR ORIGEN
-           =============================================== -->
+      <div class="field">
 
-      <article class="chart-card">
+        <label>PLANTA</label>
 
-        <div class="chart-title">
-          Desviaciones por origen
-        </div>
+        <select id="fPlanta">
+          <option value="">
+            TODAS LAS PLANTAS
+          </option>
+        </select>
 
-        <div class="chart-body">
+      </div>
 
-          <canvas id="chartOrigen"></canvas>
+      <div class="field">
 
-        </div>
+        <label>GCAS / DESCRIPCIÓN</label>
 
-      </article>
+        <input
+          id="fGcas"
+          type="text"
+          placeholder="BUSCAR GCAS O DESCRIPCIÓN"
+          autocomplete="off"
+        >
 
+      </div>
 
-      <!-- ===============================================
-           3. DESVIACIONES POR MES
-           =============================================== -->
+      <div class="filter-actions">
 
-      <article class="chart-card">
+        <button
+          id="btnAplicar"
+          class="btn btn-primary"
+        >
+          APLICAR
+        </button>
 
-        <div class="chart-title">
-          Desviaciones por mes
-        </div>
+        <button
+          id="btnLimpiar"
+          class="btn btn-secondary"
+        >
+          LIMPIAR
+        </button>
 
-        <div class="chart-body">
+      </div>
 
-          <canvas id="chartMes"></canvas>
-
-        </div>
-
-      </article>
-
-
-      <!-- ===============================================
-           4. AUDITORÍAS POR PERSONA
-           =============================================== -->
-
-      <article class="chart-card">
-
-        <div class="chart-title">
-          Auditorías por persona
-        </div>
-
-        <div class="chart-body">
-
-          <canvas id="chartPersona"></canvas>
-
-        </div>
-
-      </article>
-
-
-    </section>
-
-
-    <!-- Estado de carga -->
-    <div
-      id="estado"
-      class="status">
     </div>
 
-  </main>
+  </section>
+
+  <section class="kpis">
+
+    <article class="kpi">
+
+      <div class="kpi-label">
+        TOTAL DE AUDITORÍAS
+      </div>
+
+      <div
+        id="kpiTotal"
+        class="kpi-value"
+      >
+        0
+      </div>
+
+      <div class="kpi-detail">
+        AUDITORÍAS REALIZADAS
+      </div>
+
+    </article>
+
+    <article class="kpi">
+
+      <div class="kpi-label">
+        AUDITORÍAS CON ERROR
+      </div>
+
+      <div
+        id="kpiErrores"
+        class="kpi-value"
+      >
+        0
+      </div>
+
+      <div class="kpi-detail">
+        AUDITORÍAS CON AL MENOS UN HALLAZGO
+      </div>
+
+    </article>
+
+    <article class="kpi">
+
+      <div class="kpi-label">
+        TASA DE ERROR
+      </div>
+
+      <div
+        id="kpiTasa"
+        class="kpi-value"
+      >
+        0%
+      </div>
+
+      <div class="kpi-detail">
+        AUDITORÍAS CON ERROR / TOTAL
+      </div>
+
+    </article>
+
+    <article class="kpi">
+
+      <div class="kpi-label">
+        HALLAZGOS
+      </div>
+
+      <div
+        id="kpiHallazgos"
+        class="kpi-value"
+      >
+        0
+      </div>
+
+      <div class="kpi-detail">
+        HALLAZGOS INDIVIDUALES DETECTADOS
+      </div>
+
+    </article>
+
+    <article class="kpi">
+
+      <div class="kpi-label">
+        PLANTAS
+      </div>
+
+      <div
+        id="kpiPlantas"
+        class="kpi-value"
+      >
+        0
+      </div>
+
+      <div class="kpi-detail">
+        ORÍGENES CON AUDITORÍAS
+      </div>
+
+    </article>
+
+    <article class="kpi kpi-product">
+      <div id="kpiProductoLabel" class="kpi-label">GCAS CON MÁS EVENTOS</div>
+      <div id="kpiProducto" class="kpi-value">—</div>
+      <div id="kpiProductoDetalle" class="kpi-detail">0 EVENTOS</div>
+    </article>
+
+  </section>
+
+  <section class="charts-grid">
+
+    <article class="chart-card wide">
+
+      <div class="product-chart-header">
+        <div class="chart-title">
+          TOP 20 PRODUCTOS POR GCAS / DESCRIPCIÓN
+        </div>
+
+        <div class="chart-mode">
+          <label for="modoGcas">VER</label>
+          <select id="modoGcas" aria-label="Agrupar productos por">
+            <option value="gcas">GCAS</option>
+            <option value="descripcion">DESCRIPCIÓN</option>
+          </select>
+        </div>
+      </div>
+
+<div class="chart-body">
+        <canvas id="chartGcas"></canvas>
+      </div>
+
+    </article>
+
+    <article class="chart-card">
+
+      <div class="chart-title">
+        HALLAZGOS DETECTADOS
+      </div>
+
+<div class="chart-body">
+        <canvas id="chartHallazgo"></canvas>
+      </div>
+
+    </article>
+
+    <article class="chart-card">
+
+      <div class="chart-title">
+        ERRORES POR PLANTA
+      </div>
+
+<div class="chart-body">
+        <canvas id="chartPlanta"></canvas>
+      </div>
+
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-title">MESES CON MÁS ERRORES · TOP 10</div>
+      <div class="chart-body">
+        <canvas id="chartMesErrores"></canvas>
+      </div>
+    </article>
+
+<article class="chart-card wide">
+
+      <div class="chart-title">
+        QUIÉN REALIZA MÁS AUDITORÍAS
+      </div>
+
+<div class="chart-body">
+        <canvas id="chartPersona"></canvas>
+      </div>
+
+    </article>
+
+    <article class="chart-card wide" id="paretoCard">
+
+      <div class="pareto-header">
+        <div class="chart-title">PARETO DE LAS DESVIACIONES</div>
+        <button type="button" id="expandPareto" class="chart-expand-btn" aria-expanded="false" onclick="alternarPareto()">⤢ AMPLIAR</button>
+      </div>
+
+      <div class="chart-body">
+        <canvas id="chartPareto"></canvas>
+      </div>
+
+    </article>
+
+  </section>
+
+  <div id="paretoBackdrop" class="pareto-backdrop" aria-hidden="true" onclick="alternarPareto(false)"></div>
+
+  <div
+    id="estado"
+    class="status"
+  >
+    CARGANDO DATOS...
+  </div>
 
 </div>
 
-
-<!-- =====================================================
-     JAVASCRIPT
-     ===================================================== -->
-
 <script>
-
-/* =========================================================
-   SUPABASE
-   ========================================================= */
 
 const SUPABASE_URL =
   'https://wpitemofrqzjcsetmmim.supabase.co';
@@ -947,58 +1027,58 @@ const sb =
     SUPABASE_KEY
   );
 
-
-/* =========================================================
-   VARIABLES
-   ========================================================= */
-
 let datos = [];
-
 let charts = {};
 
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
-const $ = id =>
-  document.getElementById(id);
+const CHART_PALETTE = [
+  '#CF002E','#FF8A00','#FDD000','#8B001F','#FF4D6D',
+  '#FFE082','#6E0018','#FFC107','#E53935','#FFF176',
+  '#A00023','#FFD54F','#C1121F','#FFB300','#7A0018'
+];
 
 
-const clean = value =>
-  String(value ?? '').trim();
+const $ =
+  id => document.getElementById(id);
 
+const clean =
+  v => String(v ?? '').trim();
 
-const norm = value =>
-  clean(value).toLowerCase();
+const norm =
+  v =>
+    clean(v)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase();
 
+function fecha(v){
 
-/* =========================================================
-   FECHAS
-   ========================================================= */
+  if(!v) return null;
 
-function fecha(value){
+  const d = new Date(v);
 
-  if(!value){
-    return null;
-  }
-
-  const d =
-    new Date(value);
-
-  return isNaN(d)
+  return isNaN(d.getTime())
     ? null
     : d;
+
 }
 
+function fechaRegistro(r){
 
-function mes(value){
+  return fecha(
+    r?.fecha ||
+    r?.fecha_auditoria ||
+    r?.created_at ||
+    r?.updated_at
+  );
 
-  const d =
-    fecha(value);
+}
+
+function mes(v){
+
+  const d = fecha(v);
 
   if(!d){
-    return 'Sin fecha';
+    return 'SIN FECHA';
   }
 
   return (
@@ -1008,81 +1088,790 @@ function mes(value){
       d.getMonth()+1
     ).padStart(2,'0')
   );
+
 }
 
+function mesLabel(k){
 
-function mesLabel(key){
-
-  if(
-    key === 'Sin fecha'
-  ){
-    return key;
+  if(k === 'SIN FECHA'){
+    return k;
   }
 
-  const [
-    year,
-    month
-  ] =
-    key.split('-');
+  const [y,m] =
+    k.split('-');
 
-  const d =
-    new Date(
-      Number(year),
-      Number(month)-1,
-      1
-    );
-
-  return d.toLocaleDateString(
+  return new Date(
+    Number(y),
+    Number(m)-1,
+    1
+  )
+  .toLocaleDateString(
     'es-MX',
     {
       month:'short',
       year:'numeric'
     }
-  );
+  )
+  .toUpperCase();
+
 }
 
+function planta(r){
 
-/* =========================================================
-   ORIGEN
-   ========================================================= */
+  return clean(
+    r?.origen
+  ) || 'SIN PLANTA';
 
-/*
-   Si existe un campo "origen" se utiliza.
-   Si no existe, se utiliza "area" como origen disponible
-   dentro de Auditoria_Recibo.
-*/
+}
 
-function origen(row){
+function parseArray(v){
+
+  if(Array.isArray(v)){
+    return v;
+  }
+
+  if(typeof v === 'string'){
+
+    try{
+
+      const x =
+        JSON.parse(v);
+
+      return Array.isArray(x)
+        ? x
+        : [];
+
+    }catch(e){
+
+      return [];
+
+    }
+
+  }
+
+  return [];
+
+}
+
+function parseObject(v){
+
+  if(
+    v &&
+    typeof v === 'object' &&
+    !Array.isArray(v)
+  ){
+
+    return v;
+
+  }
+
+  if(typeof v === 'string'){
+
+    try{
+
+      const x =
+        JSON.parse(v);
+
+      return (
+        x &&
+        typeof x === 'object' &&
+        !Array.isArray(x)
+      )
+        ? x
+        : {};
+
+    }catch(e){
+
+      return {};
+
+    }
+
+  }
+
+  return {};
+
+}
+
+function parsearCodigosRegistro(registro){
+
+  const valor = registro?.codigos;
+
+  if(Array.isArray(valor)){
+    return valor;
+  }
+
+  let parsed = valor;
+
+  if(typeof valor === 'string'){
+    try{
+      parsed = JSON.parse(valor);
+    }catch(e){
+      return [];
+    }
+  }
+
+  if(!parsed || typeof parsed !== 'object'){
+    return [];
+  }
+
+  if(Array.isArray(parsed)){
+    return parsed;
+  }
+
+  const tieneCamposProducto = item =>
+    item && typeof item === 'object' && (
+      item.gcas !== undefined ||
+      item.GCAS !== undefined ||
+      item.descripcion !== undefined ||
+      item.descripcion_producto !== undefined ||
+      item.description !== undefined
+    );
+
+  if(tieneCamposProducto(parsed)){
+    return [parsed];
+  }
+
+  return Object.values(parsed).filter(
+    item => item && typeof item === 'object'
+  );
+
+}
+
+function datosProductoDeRegistro(registro){
+
+  return parsearCodigosRegistro(registro).map(item=>({
+    gcas: clean(
+      item?.gcas ??
+      item?.GCAS ??
+      item?.codigo_gcas ??
+      item?.codigoGcas ??
+      item?.codigo
+    ),
+    descripcion: clean(
+      item?.descripcion ??
+      item?.Descripción ??
+      item?.descripcion_producto ??
+      item?.description ??
+      item?.item_description
+    )
+  })).filter(item=>item.gcas || item.descripcion);
+
+}
+
+function contarProductos(rows, campo){
+
+  const mapa = new Map();
+
+  rows.forEach(registro=>{
+    datosProductoDeRegistro(registro).forEach(producto=>{
+      const valor = clean(producto[campo]);
+      if(!valor){
+        return;
+      }
+      mapa.set(valor, (mapa.get(valor) || 0) + 1);
+    });
+  });
+
+  return [...mapa.entries()].sort((a,b)=>
+    b[1] - a[1] || a[0].localeCompare(b[0], 'es', {sensitivity:'base'})
+  );
+
+}
+
+const CAMPOS_HALLAZGO = [
+
+  'hallazgo',
+  'hallazgos',
+  'tipo_hallazgo',
+  'tipoHallazgo'
+
+];
+
+const CAMPOS_ANIDADOS_HALLAZGO = [
+
+  'hallazgo',
+  'hallazgos',
+  'tipo_hallazgo',
+  'tipoHallazgo'
+
+];
+
+const NO_HALLAZGO = new Set([
+
+  '',
+  'NINGUNO',
+  'NINGUNA',
+  'NONE',
+  'NO',
+  'N/A',
+  'NA',
+  'N/D',
+  'ND',
+  'SIN',
+  'SIN HALLAZGO',
+  'SIN HALLAZGOS',
+  'SIN ERROR',
+  'SIN ERRORES',
+  'NO APLICA',
+  'NO APLICA.',
+  'OK',
+  'CORRECTO',
+  'CORRECTA',
+  'SI',
+  'SÍ',
+  'TRUE',
+  'FALSE',
+  '0',
+  '1',
+  'PLANTA',
+  'OPERACION',
+  'OPERACIÓN'
+
+]);
+
+function normalizarHallazgo(v){
+
+  let s =
+    clean(v);
+
+  if(!s){
+    return '';
+  }
+
+  s =
+    s
+      .normalize('NFD')
+      .replace(
+        /[\u0300-\u036f]/g,
+        ''
+      )
+      .replace(
+        /\s+/g,
+        ' '
+      )
+      .trim()
+      .toUpperCase();
+
+  if(
+    NO_HALLAZGO.has(s)
+  ){
+
+    return '';
+
+  }
+
+  if(
+    /^\d+$/.test(
+      s.replace(
+        /[\s-]/g,
+        ''
+      )
+    )
+  ){
+
+    return '';
+
+  }
+
+  if(
+    /^[A-Z0-9_-]{8,}$/.test(s) &&
+    /\d/.test(s)
+  ){
+
+    return '';
+
+  }
+
+  if([
+    'MAL EMPLAYADO',
+    'MAL EMPLAYADA',
+    'EMPLAYADO INCORRECTO',
+    'EMPLAYADO INCORRECTAMENTE'
+  ].includes(s)){
+
+    return 'MAL EMPLAYADO';
+
+  }
+
+  if([
+    'MAL ETIQUETADO',
+    'MAL ETIQUETADA',
+    'ETIQUETADO INCORRECTO',
+    'ETIQUETADA INCORRECTAMENTE',
+    'ETIQUETADO INCORRECTAMENTE'
+  ].includes(s)){
+
+    return 'MAL ETIQUETADO';
+
+  }
+
+  if([
+    'CODIGO ERRONEO',
+    'CODIGO INCORRECTO',
+    'ERROR DE CODIGO',
+    'ERROR DE CÓDIGO',
+    'CÓDIGO ERRÓNEO',
+    'CÓDIGO INCORRECTO'
+  ].includes(s)){
+
+    return 'CÓDIGO ERRÓNEO';
+
+  }
+
+  if([
+    'PLAGA',
+    'PLAGAS',
+    'PRESENCIA DE PLAGA',
+    'PRESENCIA DE PLAGAS'
+  ].includes(s)){
+
+    return 'PLAGA';
+
+  }
+
+  if([
+    'PALLET ROTO',
+    'PALLET DAÑADO',
+    'PALLET DANADO',
+    'PALLET DEFECTUOSO'
+  ].includes(s)){
+
+    return 'PALLET ROTO';
+
+  }
+
+  if([
+    'LOTE INCORRECTO',
+    'LOTE ERRONEO',
+    'LOTE ERRÓNEO',
+    'ERROR DE LOTE'
+  ].includes(s)){
+
+    return 'LOTE INCORRECTO';
+
+  }
+
+  return s;
+
+}
+
+function agregarHallazgo(
+  resultado,
+  valor
+){
+
+  if(
+    valor === null ||
+    valor === undefined
+  ){
+
+    return;
+
+  }
+
+  if(Array.isArray(valor)){
+
+    valor.forEach(
+      x =>
+        agregarHallazgo(
+          resultado,
+          x
+        )
+    );
+
+    return;
+
+  }
+
+  if(
+    typeof valor === 'object'
+  ){
+
+    CAMPOS_ANIDADOS_HALLAZGO
+      .forEach(campo=>{
+
+        if(
+          valor[campo] !== undefined
+        ){
+
+          agregarHallazgo(
+            resultado,
+            valor[campo]
+          );
+
+        }
+
+      });
+
+    return;
+
+  }
+
+  const h =
+    normalizarHallazgo(valor);
+
+  if(
+    !h ||
+    resultado.includes(h)
+  ){
+
+    return;
+
+  }
+
+  resultado.push(h);
+
+}
+
+function revisarErroresQA(
+  obj,
+  mapa,
+  resultado
+){
+
+  if(
+    !obj ||
+    typeof obj !== 'object'
+  ){
+
+    return;
+
+  }
+
+  Object.entries(mapa)
+    .forEach(
+      ([campo,texto])=>{
+
+        if(
+          norm(obj[campo]) === 'error'
+        ){
+
+          agregarHallazgo(
+            resultado,
+            texto
+          );
+
+        }
+
+      }
+    );
+
+}
+
+function revisaPallet(
+  item,
+  resultado
+){
+
+  const mapa = {
+
+    pallet_buen_estado:
+      'PALLET ROTO',
+
+    sin_tablas_rotas:
+      'TABLAS ROTAS',
+
+    sin_clavos_expuestos:
+      'CLAVOS EXPUESTOS',
+
+    stretch_correcto:
+      'STRETCH INCORRECTO',
+
+    patron_estiba_correcto:
+      'ESTIBADO INCORRECTO',
+
+    carga_estable:
+      'CARGA INESTABLE',
+
+    alineacion_correcta:
+      'ALINEACIÓN INCORRECTA'
+
+  };
+
+  revisarErroresQA(
+    parseObject(
+      item?.pallet
+    ),
+    mapa,
+    resultado
+  );
+
+}
+
+function obtenerHallazgos(r){
+
+  const resultado = [];
+
+  CAMPOS_HALLAZGO
+    .forEach(campo=>{
+
+      if(
+        r?.[campo] !== undefined &&
+        r?.[campo] !== null
+      ){
+
+        agregarHallazgo(
+          resultado,
+          r[campo]
+        );
+
+      }
+
+    });
+
+  revisarErroresQA(
+    parseObject(
+      r?.generales
+    ),
+    {
+
+      etiqueta_proveedor:
+        'ETIQUETA PROVEEDOR ILEGIBLE',
+
+      empaque_integro:
+        'EMPAQUE DAÑADO',
+
+      sin_humedad:
+        'HUMEDAD',
+
+      sin_contaminacion:
+        'CONTAMINACIÓN',
+
+      sin_plagas:
+        'PLAGA',
+
+      caducidad_correcta:
+        'CADUCIDAD INCORRECTA'
+
+    },
+    resultado
+  );
+
+  revisaPallet(
+    r,
+    resultado
+  );
+
+  revisarErroresQA(
+    parseObject(
+      r?.granel
+    ),
+    {
+
+      contenedor_limpio:
+        'CONTENEDOR SUCIO',
+
+      sin_material_extrano:
+        'MATERIAL EXTRAÑO',
+
+      sin_mezcla_sku:
+        'MEZCLA SKU',
+
+      sin_mezcla_lotes:
+        'MEZCLA DE LOTES'
+
+    },
+    resultado
+  );
+
+  revisarErroresQA(
+    parseObject(
+      r?.inventario
+    ),
+    {
+
+      coincide_codigo:
+        'CÓDIGO INCORRECTO',
+
+      coincide_lote:
+        'LOTE INCORRECTO',
+
+      coincide_fisico_sistema:
+        'DIFERENCIA FÍSICA VS SISTEMA'
+
+    },
+    resultado
+  );
+
+  if(
+    norm(r?.codigo_ok) === 'error'
+  ){
+
+    agregarHallazgo(
+      resultado,
+      'CÓDIGO INCORRECTO'
+    );
+
+  }
+
+  if(
+    norm(r?.lote_ok) === 'error'
+  ){
+
+    agregarHallazgo(
+      resultado,
+      'LOTE INCORRECTO'
+    );
+
+  }
+
+  if(
+    norm(r?.cantidad_ok) === 'error'
+  ){
+
+    agregarHallazgo(
+      resultado,
+      'CANTIDAD INCORRECTA'
+    );
+
+  }
+
+  const fisico =
+    clean(
+      r?.fisico_cantidad
+    );
+
+  const sistema =
+    clean(
+      r?.sistema_cantidad
+    );
+
+  if(
+    fisico !== '' &&
+    sistema !== '' &&
+    Number.isFinite(
+      Number(fisico)
+    ) &&
+    Number.isFinite(
+      Number(sistema)
+    ) &&
+    Number(fisico) !==
+      Number(sistema)
+  ){
+
+    agregarHallazgo(
+      resultado,
+      'DIFERENCIA FÍSICA'
+    );
+
+  }
+
+  Object.values(
+    r || {}
+  )
+    .forEach(valor=>{
+
+      const arr =
+        parseArray(valor);
+
+      if(!arr.length){
+        return;
+      }
+
+      arr.forEach(item=>{
+
+        if(
+          !item ||
+          typeof item !== 'object'
+        ){
+
+          return;
+
+        }
+
+        CAMPOS_ANIDADOS_HALLAZGO
+          .forEach(campo=>{
+
+            if(
+              item[campo] !== undefined &&
+              item[campo] !== null
+            ){
+
+              agregarHallazgo(
+                resultado,
+                item[campo]
+              );
+
+            }
+
+          });
+
+      });
+
+    });
+
+  return resultado;
+
+}
+
+function tieneError(r){
 
   return (
-    clean(row.origen) ||
-    clean(row.area) ||
-    'Sin origen'
+    obtenerHallazgos(r)
+      .length > 0
   );
 
 }
 
+function hallazgosFilas(rows){
 
-/* =========================================================
-   VALORES ÚNICOS
-   ========================================================= */
+  const salida = [];
 
-function unique(
-  rows,
-  field
-){
+  rows.forEach(r=>{
+
+    obtenerHallazgos(r)
+      .forEach(h=>{
+
+        salida.push({
+          hallazgo:h
+        });
+
+      });
+
+  });
+
+  return salida;
+
+}
+
+function contar(rows,fn){
+
+  const mapa = {};
+
+  rows.forEach(r=>{
+
+    const k =
+      clean(fn(r));
+
+    if(!k){
+      return;
+    }
+
+    mapa[k] =
+      (mapa[k] || 0) + 1;
+
+  });
+
+  return Object
+    .entries(mapa)
+    .sort(
+      (a,b)=>
+        b[1]-a[1]
+    );
+
+}
+
+function unique(values){
 
   return [
     ...new Set(
-      rows
-        .map(
-          row =>
-            clean(row[field])
-        )
+      values
+        .map(clean)
         .filter(Boolean)
     )
-  ].sort(
-    (a,b) =>
+  ]
+  .sort(
+    (a,b)=>
       a.localeCompare(
         b,
         'es',
@@ -1094,70 +1883,87 @@ function unique(
 
 }
 
+function semana(v){
 
-/* =========================================================
-   CONTADORES
-   ========================================================= */
+  const d =
+    fecha(v);
 
-function contar(
-  rows,
-  fn
-){
+  if(!d){
+    return 'SIN FECHA';
+  }
 
-  const map = {};
+  const x =
+    new Date(
+      Date.UTC(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate()
+      )
+    );
 
-  rows.forEach(
-    row => {
+  const day =
+    x.getUTCDay() || 7;
 
-      const key =
-        fn(row);
-
-      map[key] =
-        (map[key] || 0) + 1;
-
-    }
+  x.setUTCDate(
+    x.getUTCDate() +
+    4 -
+    day
   );
 
-  return Object
-    .entries(map)
-    .sort(
-      (a,b) =>
-        b[1] - a[1]
+  const year =
+    x.getUTCFullYear();
+
+  const first =
+    new Date(
+      Date.UTC(
+        year,
+        0,
+        1
+      )
     );
+
+  const number =
+    Math.ceil(
+      (
+        (
+          x-first
+        ) / 86400000 + 1
+      ) / 7
+    );
+
+  return (
+    year +
+    '-S' +
+    String(number)
+      .padStart(2,'0')
+  );
 
 }
 
+function semanaLabel(k){
 
-/* =========================================================
-   DESTRUIR GRÁFICOS
-   ========================================================= */
+  if(
+    k === 'SIN FECHA'
+  ){
 
-function destroy(){
+    return k;
 
-  Object
-    .values(charts)
-    .forEach(
-      chart => {
+  }
 
-        try{
-          chart.destroy();
-        }
-        catch(e){}
+  const p =
+    k.split('-S');
 
-      }
-    );
-
-  charts = {};
+  return (
+    'SEMANA ' +
+    p[1] +
+    ' · ' +
+    p[0]
+  );
 
 }
 
-
-/* =========================================================
-   OPCIONES BASE CHART.JS
-   ========================================================= */
-
-function base(
-  horizontal = false
+function opcionesChart(
+  horizontal=false
 ){
 
   return {
@@ -1171,6 +1977,21 @@ function base(
         ? 'y'
         : 'x',
 
+    elements:{
+      bar:{borderRadius:6,borderSkipped:false},
+      line:{borderWidth:3},
+      point:{radius:4,hoverRadius:6}
+    },
+
+    layout:{
+      padding:{
+        top:22,
+        right:38,
+        bottom:10,
+        left:12
+      }
+    },
+
     plugins:{
 
       legend:{
@@ -1178,7 +1999,53 @@ function base(
       },
 
       tooltip:{
-        enabled:true
+
+        callbacks:{
+
+          label:
+            context =>
+              ' ' +
+              Number(
+                context.raw
+              ).toLocaleString(
+                'es-MX'
+              )
+
+        }
+
+      },
+
+      datalabels:{
+
+        display:true,
+
+        color:'#1A1A1A',
+
+        anchor:'end',
+
+        align:
+          horizontal
+            ? 'right'
+            : 'top',
+
+        offset:4,
+
+        clamp:true,
+
+        clip:false,
+
+        font:{
+          weight:'900',
+          size:10
+        },
+
+        formatter:
+          value =>
+            Number(value)
+              .toLocaleString(
+                'es-MX'
+              )
+
       }
 
     },
@@ -1186,18 +2053,90 @@ function base(
     scales:{
 
       x:{
+
         beginAtZero:true,
+        grace:'18%',
+        grid:{color:'rgba(26,26,26,.07)',drawBorder:false},
+
         ticks:{
-          precision:0
+          color:'#666',
+          font:{size:10,weight:'700'},
+
+          precision:0,
+
+          callback:
+            value =>
+              Number(value)
+                .toLocaleString(
+                  'es-MX'
+                )
+
         }
+
       },
 
-      y:{
-        beginAtZero:true,
-        ticks:{
-          precision:0
-        }
-      }
+      y:
+
+        horizontal
+
+          ? {
+
+              type:'category',
+              grid:{display:false,drawBorder:false},
+
+              ticks:{
+
+                autoSkip:false,
+
+                color:'#1A1A1A',
+
+                font:{
+                  size:10,
+                  weight:'800'
+                },
+
+                padding:8,
+                callback:function(value){
+                  const label = this.getLabelForValue(value) || '';
+                  const words = String(label).split(/\s+/);
+                  const lines = [];
+                  let line = '';
+                  words.forEach(word => {
+                    if ((line + ' ' + word).trim().length > 22 && line) {
+                      lines.push(line);
+                      line = word;
+                    } else {
+                      line = (line + ' ' + word).trim();
+                    }
+                  });
+                  if (line) lines.push(line);
+                  return lines.length ? lines : label;
+                }
+
+              }
+
+            }
+
+          : {
+
+              beginAtZero:true,
+              grid:{color:'rgba(26,26,26,.07)',drawBorder:false},
+
+              ticks:{
+                color:'#666',
+                font:{size:10,weight:'700'},
+                precision:0,
+
+                callback:
+                  value =>
+                    Number(value)
+                      .toLocaleString(
+                        'es-MX'
+                      )
+
+              }
+
+            }
 
     }
 
@@ -1205,16 +2144,11 @@ function base(
 
 }
 
-
-/* =========================================================
-   GRÁFICO DE BARRAS
-   ========================================================= */
-
-function bar(
+function crearBarra(
   id,
   labels,
   values,
-  horizontal = false
+  horizontal=false
 ){
 
   return new Chart(
@@ -1231,28 +2165,34 @@ function bar(
 
           data:values,
 
-          borderWidth:1,
+          backgroundColor:labels.map((_,i)=>CHART_PALETTE[i % CHART_PALETTE.length]),
+          hoverBackgroundColor:labels.map((_,i)=>CHART_PALETTE[i % CHART_PALETTE.length]),
+          borderColor:'transparent',
+          borderWidth:0,
 
-          borderRadius:5
+          borderRadius:6,
+          borderSkipped:false,
+          maxBarThickness:48
 
         }]
 
       },
 
       options:
-        base(horizontal)
+        opcionesChart(
+          horizontal
+        ),
+
+      plugins:[
+        ChartDataLabels
+      ]
 
     }
   );
 
 }
 
-
-/* =========================================================
-   GRÁFICO DE LÍNEA
-   ========================================================= */
-
-function line(
+function crearLinea(
   id,
   labels,
   values
@@ -1272,30 +2212,619 @@ function line(
 
           data:values,
 
-          tension:.25,
+          borderColor:'#CF002E',
+          backgroundColor:'rgba(207,0,46,.10)',
+          pointBackgroundColor:'#CF002E',
+          pointBorderColor:'#FFFFFF',
+          pointBorderWidth:2,
+          tension:.3,
 
-          fill:false,
+          borderWidth:3,
 
-          borderWidth:2,
+          pointRadius:4,
 
-          pointRadius:3
+          pointHoverRadius:6,
+
+          fill:true
 
         }]
 
       },
 
       options:
-        base()
+        opcionesChart(false),
+
+      plugins:[
+        ChartDataLabels
+      ]
 
     }
   );
 
 }
 
+function crearPareto(
+  id,
+  labels,
+  values
+){
 
-/* =========================================================
-   FILTRAR DATOS
-   ========================================================= */
+  const total =
+    values.reduce(
+      (a,b)=>
+        a+b,
+      0
+    );
+
+  let acumulado = 0;
+
+  const porcentajeAcumulado =
+    values.map(
+      value => {
+
+        acumulado +=
+          value;
+
+        return total
+          ? (
+              acumulado /
+              total
+            ) * 100
+          : 0;
+
+      }
+    );
+
+  return new Chart(
+    $(id),
+    {
+
+      type:'bar',
+
+      data:{
+
+        labels,
+
+        datasets:[
+
+          {
+
+            type:'bar',
+
+            label:'HALLAZGOS',
+
+            data:values,
+
+            yAxisID:'y',
+
+            backgroundColor:labels.map((_,i)=>CHART_PALETTE[i % CHART_PALETTE.length]),
+            hoverBackgroundColor:labels.map((_,i)=>CHART_PALETTE[i % CHART_PALETTE.length]),
+            borderColor:'transparent',
+            borderWidth:0,
+
+            borderRadius:6,
+            borderSkipped:false,
+            maxBarThickness:52,
+
+            datalabels:{
+
+              display:true,
+
+              color:'#1A1A1A',
+
+              anchor:'end',
+
+              align:'top',
+
+              offset:4,
+
+              clamp:true,
+
+              clip:false,
+
+              font:{
+                weight:'900',
+                size:11
+              },
+
+              formatter:
+                value =>
+                  Number(value)
+                    .toLocaleString(
+                      'es-MX'
+                    )
+
+            }
+
+          },
+
+          {
+
+            type:'line',
+
+            label:'ACUMULADO',
+
+            data:
+              porcentajeAcumulado,
+
+            yAxisID:'yPercent',
+
+            borderColor:'#CF002E',
+            backgroundColor:'rgba(207,0,46,.10)',
+            pointBackgroundColor:'#CF002E',
+            pointBorderColor:'#FFFFFF',
+            pointBorderWidth:2,
+            tension:.3,
+
+            borderWidth:3,
+
+            pointRadius:4,
+
+            pointHoverRadius:6,
+
+            fill:false,
+
+            datalabels:{
+
+              display:true,
+
+              color:'#1A1A1A',
+
+              anchor:'end',
+
+              align:'top',
+
+              offset:4,
+
+              clamp:true,
+
+              clip:false,
+
+              font:{
+                weight:'900',
+                size:10
+              },
+
+              formatter:
+                value =>
+                  Number(value)
+                    .toFixed(0) +
+                  '%'
+
+            }
+
+          }
+
+        ]
+
+      },
+
+      options:{
+
+        responsive:true,
+
+        maintainAspectRatio:false,
+
+        layout:{
+          padding:{
+            top:36,
+            right:48,
+            bottom:14,
+            left:14
+          }
+        },
+
+        plugins:{
+
+          legend:{
+            display:true,
+            position:'top'
+          },
+
+          tooltip:{
+
+            callbacks:{
+
+              label:
+                context => {
+
+                  if(
+                    context.datasetIndex === 1
+                  ){
+
+                    return (
+                      ' ' +
+                      Number(
+                        context.raw
+                      ).toFixed(1) +
+                      '%'
+                    );
+
+                  }
+
+                  return (
+                    ' ' +
+                    Number(
+                      context.raw
+                    ).toLocaleString(
+                      'es-MX'
+                    )
+                  );
+
+                }
+
+            }
+
+          }
+
+        },
+
+        scales:{
+
+          x:{
+
+            ticks:{
+              autoSkip:false,
+              maxRotation:0,
+              minRotation:0,
+              font:{size:9, weight:'700'},
+              callback:function(value){
+                const label = this.getLabelForValue(value) || '';
+                const words = String(label).split(/\s+/);
+                const lines = [];
+                let line = '';
+                words.forEach(word => {
+                  if ((line + ' ' + word).trim().length > 14 && line) {
+                    lines.push(line);
+                    line = word;
+                  } else {
+                    line = (line + ' ' + word).trim();
+                  }
+                });
+                if (line) lines.push(line);
+                return lines;
+              }
+            }
+
+          },
+
+          y:{
+
+            beginAtZero:true,
+
+            ticks:{
+
+              precision:0,
+
+              callback:
+                value =>
+                  Number(value)
+                    .toLocaleString(
+                      'es-MX'
+                    )
+
+            }
+
+          },
+
+          yPercent:{
+
+            beginAtZero:true,
+
+            max:100,
+
+            position:'right',
+
+            grid:{
+              drawOnChartArea:false
+            },
+
+            ticks:{
+              callback:
+                value =>
+                  value + '%'
+            }
+
+          }
+
+        }
+
+      },
+
+      plugins:[
+        ChartDataLabels
+      ]
+
+    }
+  );
+
+}
+
+function alternarPareto(expandir){
+  const card = $('paretoCard');
+  const backdrop = $('paretoBackdrop');
+  const button = $('expandPareto');
+  if (!card || !backdrop || !button) return;
+  const abrir = typeof expandir === 'boolean'
+    ? expandir
+    : !card.classList.contains('pareto-expanded');
+  card.classList.toggle('pareto-expanded', abrir);
+  backdrop.classList.toggle('visible', abrir);
+  backdrop.setAttribute('aria-hidden', String(!abrir));
+  button.setAttribute('aria-expanded', String(abrir));
+  button.textContent = abrir ? '✕ CERRAR' : '⤢ AMPLIAR';
+  if (charts.pareto) requestAnimationFrame(() => charts.pareto.resize());
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') alternarPareto(false);
+});
+
+function destruirCharts(){
+
+  Object
+    .values(charts)
+    .forEach(chart=>{
+
+      try{
+        chart.destroy();
+      }catch(e){}
+
+    });
+
+  charts = {};
+
+}
+
+function actualizarKPIs(
+  rows,
+  errores,
+  hallazgos,
+  campoProducto,
+  productoPrincipal
+){
+
+  const total =
+    rows.length;
+
+  const conError =
+    errores.length;
+
+  const tasa =
+    total
+      ? (
+          conError /
+          total
+        ) * 100
+      : 0;
+
+  const plantas =
+    unique(
+      rows.map(planta)
+    )
+    .filter(
+      p =>
+        p !== 'SIN PLANTA'
+    )
+    .length;
+
+  $('kpiTotal').textContent =
+    total.toLocaleString(
+      'es-MX'
+    );
+
+  $('kpiErrores').textContent =
+    conError.toLocaleString(
+      'es-MX'
+    );
+
+  $('kpiTasa').textContent =
+    tasa.toFixed(1) + '%';
+
+  $('kpiHallazgos').textContent =
+    hallazgos.length
+      .toLocaleString(
+        'es-MX'
+      );
+
+  $('kpiPlantas').textContent =
+    plantas.toLocaleString(
+      'es-MX'
+    );
+
+  $('kpiProductoLabel').textContent =
+    (campoProducto === 'descripcion' ? 'DESCRIPCIÓN' : 'GCAS') +
+    ' CON MÁS EVENTOS';
+
+  $('kpiProducto').textContent =
+    productoPrincipal ? productoPrincipal[0] : 'SIN DATOS';
+
+  $('kpiProductoDetalle').textContent =
+    (productoPrincipal ? productoPrincipal[1] : 0).toLocaleString('es-MX') +
+    ' EVENTOS';
+
+}
+
+function actualizar(){
+
+  const rows =
+    filtrar();
+
+  const errores =
+    rows.filter(
+      tieneError
+    );
+
+  const hallazgos =
+    hallazgosFilas(
+      rows
+    );
+
+  destruirCharts();
+
+  const h =
+    contar(
+      hallazgos,
+      r =>
+        r.hallazgo
+    );
+
+  charts.hallazgo =
+    crearBarra(
+      'chartHallazgo',
+
+      h.map(
+        x =>
+          x[0]
+            .toUpperCase()
+      ),
+
+      h.map(
+        x =>
+          x[1]
+      ),
+
+      true
+    );
+
+  const p =
+    contar(
+      errores,
+      planta
+    );
+
+  charts.planta =
+    crearBarra(
+      'chartPlanta',
+
+      p.map(
+        x =>
+          x[0]
+            .toUpperCase()
+      ),
+
+      p.map(
+        x =>
+          x[1]
+      ),
+
+      p.length >= 1
+    );
+
+  const erroresPorMes = new Map();
+  errores.forEach(registro => {
+    const clave = mes(fechaRegistro(registro));
+    erroresPorMes.set(clave, (erroresPorMes.get(clave) || 0) + 1);
+  });
+
+  const mesesConErrores = [...erroresPorMes.entries()]
+    .sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))
+    .slice(0, 10);
+
+  charts.mesErrores = crearBarra(
+    'chartMesErrores',
+    mesesConErrores.map(x => mesLabel(x[0])),
+    mesesConErrores.map(x => x[1]),
+    true
+  );
+
+  const a =
+    contar(
+      rows,
+      r =>
+        clean(r.nombre) ||
+        'SIN PERSONA'
+    ).slice(0, 8);
+
+  charts.persona =
+    crearBarra(
+      'chartPersona',
+
+      a.map(
+        x =>
+          x[0]
+            .toUpperCase()
+      ),
+
+      a.map(
+        x =>
+          x[1]
+      ),
+
+      a.length >= 1
+    );
+
+  const pareto =
+    contar(
+      hallazgos,
+      r =>
+        r.hallazgo
+    );
+
+  charts.pareto =
+    crearPareto(
+      'chartPareto',
+
+      pareto.map(
+        x =>
+          x[0]
+            .toUpperCase()
+      ),
+
+      pareto.map(
+        x =>
+          x[1]
+      )
+    );
+
+  const campoProducto =
+    $('modoGcas')?.value === 'descripcion'
+      ? 'descripcion'
+      : 'gcas';
+
+  const productosAgrupados =
+    contarProductos(rows, campoProducto).slice(0, 20);
+
+  const tarjetaProducto = $('chartGcas')?.closest('.chart-card');
+  tarjetaProducto?.classList.toggle(
+    'product-description-mode',
+    campoProducto === 'descripcion'
+  );
+
+  charts.gcas = crearBarra(
+    'chartGcas',
+    productosAgrupados.map(x => x[0].toUpperCase()),
+    productosAgrupados.map(x => x[1]),
+    true
+  );
+
+  actualizarKPIs(
+    rows,
+    errores,
+    hallazgos,
+    campoProducto,
+    productosAgrupados[0] || null
+  );
+
+  const tasa =
+    rows.length
+      ? (
+          errores.length /
+          rows.length
+        ) * 100
+      : 0;
+
+  $('estado').innerHTML =
+
+    `${rows.length.toLocaleString('es-MX')} AUDITORÍAS · ` +
+
+    `${errores.length.toLocaleString('es-MX')} CON ERROR · ` +
+
+    `${hallazgos.length.toLocaleString('es-MX')} HALLAZGOS INDIVIDUALES · ` +
+
+    `${tasa.toFixed(1)}% TASA DE ERROR`;
+
+}
 
 function filtrar(){
 
@@ -1309,11 +2838,15 @@ function filtrar(){
       $('fHallazgo').value
     );
 
-  const area =
+  const plantaSeleccionada =
     norm(
-      $('fArea').value
+      $('fPlanta').value
     );
 
+  const busquedaGcas =
+    norm(
+      $('fGcas').value
+    );
 
   const inicio =
     $('fInicio').value
@@ -1323,7 +2856,6 @@ function filtrar(){
         )
       : null;
 
-
   const fin =
     $('fFin').value
       ? new Date(
@@ -1332,295 +2864,146 @@ function filtrar(){
         )
       : null;
 
+  return datos.filter(r=>{
 
-  return datos.filter(
-    row => {
+    const d =
+      fechaRegistro(r);
 
-      const d =
-        fecha(row.fecha);
+    const hs =
+      obtenerHallazgos(r);
 
+    const coincideGcas =
+      !busquedaGcas ||
+      datosProductoDeRegistro(r).some(producto =>
+        norm(producto.gcas).includes(busquedaGcas) ||
+        norm(producto.descripcion).includes(busquedaGcas)
+      );
 
-      if(
-        persona &&
-        !norm(row.nombre)
-          .includes(persona)
-      ){
-        return false;
-      }
+    return (
+      coincideGcas
+    ) && (
 
+      !persona ||
+      norm(r.nombre)
+        .includes(persona)
 
-      if(
-        hallazgo &&
-        !norm(row.hallazgo)
-          .includes(hallazgo)
-      ){
-        return false;
-      }
+    ) && (
 
+      !hallazgo ||
+      hs.some(
+        h =>
+          norm(h)
+            .includes(hallazgo)
+      )
 
-      if(
-        area &&
-        norm(row.area) !== area
-      ){
-        return false;
-      }
+    ) && (
 
+      !plantaSeleccionada ||
+      norm(planta(r)) ===
+        plantaSeleccionada
 
-      if(
-        inicio &&
-        (
-          !d ||
-          d < inicio
-        )
-      ){
-        return false;
-      }
+    ) && (
 
+      !inicio ||
+      (
+        d &&
+        d >= inicio
+      )
 
-      if(
-        fin &&
-        (
-          !d ||
-          d > fin
-        )
-      ){
-        return false;
-      }
+    ) && (
 
+      !fin ||
+      (
+        d &&
+        d <= fin
+      )
 
-      return true;
+    );
 
-    }
-  );
+  });
 
 }
 
-
-/* =========================================================
-   ACTUALIZAR GRÁFICOS
-   ========================================================= */
-
-function actualizar(){
-
-  const rows =
-    filtrar();
-
-
-  destroy();
-
-
-  /* -------------------------------------------------------
-     DESVIACIONES POR HALLAZGO
-     ------------------------------------------------------- */
-
-  let x =
-    contar(
-      rows,
-      row =>
-        clean(
-          row.hallazgo
-        ) ||
-        'Sin hallazgo'
-    );
-
-
-  charts.hallazgo =
-    bar(
-      'chartHallazgo',
-
-      x.map(
-        value =>
-          value[0]
-      ),
-
-      x.map(
-        value =>
-          value[1]
-      ),
-
-      x.length >= 6
-    );
-
-
-  /* -------------------------------------------------------
-     DESVIACIONES POR ORIGEN
-     ------------------------------------------------------- */
-
-  x =
-    contar(
-      rows,
-      origen
-    );
-
-
-  charts.origen =
-    bar(
-      'chartOrigen',
-
-      x.map(
-        value =>
-          value[0]
-      ),
-
-      x.map(
-        value =>
-          value[1]
-      ),
-
-      x.length >= 6
-    );
-
-
-  /* -------------------------------------------------------
-     DESVIACIONES POR MES
-     ------------------------------------------------------- */
-
-  x =
-    contar(
-      rows,
-      row =>
-        mes(row.fecha)
-    );
-
-
-  x.sort(
-    (a,b) =>
-      a[0].localeCompare(
-        b[0]
-      )
-  );
-
-
-  charts.mes =
-    line(
-      'chartMes',
-
-      x.map(
-        value =>
-          mesLabel(
-            value[0]
-          )
-      ),
-
-      x.map(
-        value =>
-          value[1]
-      )
-    );
-
-
-  /* -------------------------------------------------------
-     AUDITORÍAS POR PERSONA
-     ------------------------------------------------------- */
-
-  x =
-    contar(
-      rows,
-      row =>
-        clean(
-          row.nombre
-        ) ||
-        'Sin persona'
-    );
-
-
-  charts.persona =
-    bar(
-      'chartPersona',
-
-      x.map(
-        value =>
-          value[0]
-      ),
-
-      x.map(
-        value =>
-          value[1]
-      ),
-
-      x.length >= 6
-    );
-
-
-  /* -------------------------------------------------------
-     ESTADO
-     ------------------------------------------------------- */
-
-  $('estado').textContent =
-    `${rows.length.toLocaleString('es-MX')} registros mostrados`;
-
-}
-
-
-/* =========================================================
-   CARGAR OPCIONES DE FILTROS
-   ========================================================= */
-
-function filtros(){
+function cargarFiltros(){
 
   const personas =
     unique(
-      datos,
-      'nombre'
+      datos.map(
+        r =>
+          clean(r.nombre)
+      )
     );
-
 
   const hallazgos =
     unique(
-      datos,
-      'hallazgo'
+      hallazgosFilas(datos)
+        .map(
+          x =>
+            x.hallazgo
+        )
     );
 
-
-  const areas =
+  const plantas =
     unique(
-      datos,
-      'area'
+      datos.map(planta)
     );
 
+  $('fPlanta').innerHTML =
+    '<option value="">TODAS LAS PLANTAS</option>' +
 
-  /* Área */
-
-  $('fArea').innerHTML =
-    '<option value="">Todas las áreas</option>' +
-
-    areas
+    plantas
       .map(
-        value =>
-          `<option value="${value.replace(/"/g,'&quot;')}">${value}</option>`
+        p =>
+          `<option value="${
+            p.replace(
+              /"/g,
+              '&quot;'
+            )
+          }">${
+            p.toUpperCase()
+          }</option>`
       )
       .join('');
-
-
-  /* Personas */
 
   $('sPersona').innerHTML =
     personas
       .map(
-        value =>
-          `<div class="suggestion" data-value="${value.replace(/"/g,'&quot;')}">${value}</div>`
+        p =>
+          `<div
+             class="suggestion"
+             data-value="${
+               p.replace(
+                 /"/g,
+                 '&quot;'
+               )
+             }"
+           >${
+             p.toUpperCase()
+           }</div>`
       )
       .join('');
-
-
-  /* Hallazgos */
 
   $('sHallazgo').innerHTML =
     hallazgos
       .map(
-        value =>
-          `<div class="suggestion" data-value="${value.replace(/"/g,'&quot;')}">${value}</div>`
+        h =>
+          `<div
+             class="suggestion"
+             data-value="${
+               h.replace(
+                 /"/g,
+                 '&quot;'
+               )
+             }"
+           >${
+             h.toUpperCase()
+           }</div>`
       )
       .join('');
 
 }
 
-
-/* =========================================================
-   SUGERENCIAS
-   ========================================================= */
-
-function sugerencias(
+function activarSugerencias(
   inputId,
   listId
 ){
@@ -1631,51 +3014,40 @@ function sugerencias(
   const list =
     $(listId);
 
-
   input.addEventListener(
     'input',
-    () => {
+    ()=>{
 
       const q =
         norm(
           input.value
         );
 
-
       [
         ...list.children
       ]
-      .forEach(
-        element => {
+      .forEach(item=>{
 
-          element.style.display =
-            (
-              !q ||
-              norm(
-                element.dataset.value
-              ).includes(q)
-            )
-              ? ''
-              : 'none';
+        item.style.display =
+          !q ||
+          norm(
+            item.dataset.value
+          ).includes(q)
+            ? ''
+            : 'none';
 
-        }
-      );
-
+      });
 
       list.classList.add(
         'open'
       );
 
-
-      actualizar();
-
     }
   );
-
 
   input.addEventListener(
     'focus',
-    () => {
+    ()=>{
 
       list.classList.add(
         'open'
@@ -1684,44 +3056,38 @@ function sugerencias(
     }
   );
 
-
   list.addEventListener(
     'click',
-    event => {
+    e=>{
 
       const item =
-        event.target.closest(
+        e.target.closest(
           '.suggestion'
         );
-
 
       if(!item){
         return;
       }
 
-
       input.value =
         item.dataset.value;
-
 
       list.classList.remove(
         'open'
       );
-
 
       actualizar();
 
     }
   );
 
-
   document.addEventListener(
     'click',
-    event => {
+    e=>{
 
       if(
         !input.parentElement
-          .contains(event.target)
+          .contains(e.target)
       ){
 
         list.classList.remove(
@@ -1735,23 +3101,16 @@ function sugerencias(
 
 }
 
-
-/* =========================================================
-   CARGAR DATOS DESDE SUPABASE
-   ========================================================= */
-
 async function cargar(){
 
   $('estado').textContent =
-    'Cargando datos...';
-
+    'CARGANDO DATOS...';
 
   try{
 
-    let all = [];
+    let registros = [];
 
-    let from = 0;
-
+    let desde = 0;
 
     while(true){
 
@@ -1765,68 +3124,69 @@ async function cargar(){
           )
           .select('*')
           .range(
-            from,
-            from + 999
+            desde,
+            desde + 999
           );
-
 
       if(error){
         throw error;
       }
 
-
       if(
         !data ||
         !data.length
       ){
+
         break;
+
       }
 
-
-      all.push(
+      registros.push(
         ...data
       );
-
 
       if(
         data.length < 1000
       ){
+
         break;
+
       }
 
-
-      from += 1000;
+      desde += 1000;
 
     }
 
-
     datos =
-      all;
+      registros;
 
+    cargarFiltros();
 
-    filtros();
+    activarSugerencias(
+      'fPersona',
+      'sPersona'
+    );
+
+    activarSugerencias(
+      'fHallazgo',
+      'sHallazgo'
+    );
 
     actualizar();
 
-  }
-  catch(error){
+  }catch(error){
 
     console.error(
+      'ERROR CARGANDO AUDITORÍAS:',
       error
     );
 
-
     $('estado').textContent =
-      'No fue posible cargar los datos de Auditoria_Recibo.';
+      'ERROR AL CARGAR AUDITORIA_RECIBO.';
 
   }
 
 }
-
-
-/* =========================================================
-   BOTÓN APLICAR
-   ========================================================= */
 
 $('btnAplicar')
   .addEventListener(
@@ -1834,75 +3194,56 @@ $('btnAplicar')
     actualizar
   );
 
-
-/* =========================================================
-   BOTÓN LIMPIAR
-   ========================================================= */
-
 $('btnLimpiar')
   .addEventListener(
     'click',
-    () => {
+    ()=>{
 
-      [
-        'fPersona',
-        'fInicio',
-        'fFin',
-        'fHallazgo'
-      ]
-      .forEach(
-        id =>
-          $(id).value = ''
-      );
-
-
-      $('fArea').value =
-        '';
-
+      $('fPersona').value = '';
+      $('fInicio').value = '';
+      $('fFin').value = '';
+      $('fHallazgo').value = '';
+      $('fPlanta').value = '';
+      $('fGcas').value = '';
 
       actualizar();
 
     }
   );
 
+$('fInicio')
+  .addEventListener(
+    'change',
+    actualizar
+  );
 
-/* =========================================================
-   CAMBIOS AUTOMÁTICOS
-   ========================================================= */
+$('fFin')
+  .addEventListener(
+    'change',
+    actualizar
+  );
 
-[
-  'fInicio',
-  'fFin',
-  'fArea'
-]
-.forEach(
-  id =>
-    $(id).addEventListener(
-      'change',
-      actualizar
-    )
-);
+$('fPlanta')
+  .addEventListener(
+    'change',
+    actualizar
+  );
 
+$('fGcas')
+  .addEventListener(
+    'keydown',
+    e=>{
+      if(e.key === 'Enter'){
+        actualizar();
+      }
+    }
+  );
 
-/* =========================================================
-   INICIALIZAR AUTOCOMPLETE
-   ========================================================= */
-
-sugerencias(
-  'fPersona',
-  'sPersona'
-);
-
-
-sugerencias(
-  'fHallazgo',
-  'sHallazgo'
-);
-
-
-/* =========================================================
-   INICIAR DASHBOARD
-   ========================================================= */
+$('modoGcas')
+  .addEventListener(
+    'change',
+    actualizar
+  );
 
 cargar();
 
