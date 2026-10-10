@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#CF002E">
 
-<title>QA · Auditoría en Recibo · V52 CON INCIDENCIAS</title>
+<title>QA · Auditoría en Recibo · V56 FLUJO LPN</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2430,7 +2430,6 @@ button{
 
           <select
             id="origen"
-            required
             autocomplete="off">
             <option value="">Seleccionar origen</option>
             <option value="AEROBAL">AEROBAL</option>
@@ -2444,6 +2443,7 @@ button{
             <option value="GELCAPS">GELCAPS</option>
             <option value="GERMANY IMP">GERMANY IMP</option>
             <option value="GREENSBORO">GREENSBORO</option>
+            <option value="HFC PRESTIGE INTERNA">HFC PRESTIGE INTERNA</option>
             <option value="IMPORTADO">IMPORTADO</option>
             <option value="IRAPUATO (CHRONOS)">IRAPUATO (CHRONOS)</option>
             <option value="MARISCALA">MARISCALA</option>
@@ -3258,11 +3258,12 @@ function obtenerChecksFaltantesLpn(item){
     if(!String(item?.lote||"").trim())faltantes.push("lote");
     if(item?.sistema_cantidad===""||item?.sistema_cantidad===null||item?.sistema_cantidad===undefined)faltantes.push("cantidad sistema");
   }
-  for(const [categoria,campo] of checksRequeridosParaItem(item)){
-    if(!["OK","ERROR"].includes(item?.[categoria]?.[campo]))faltantes.push(campo.replaceAll("_"," "));
-  }
-  if(existeErrorObjetivo(item)){
-    if(!String(item.error_detalle||"").trim())faltantes.push("detalle del hallazgo");
+  // V53: los botones BIEN/MAL de los criterios antiguos ya no forman parte
+  // de la tarjeta visible de LPN. No deben bloquear la finalización.
+  // La gestión del hallazgo solo es obligatoria si el auditor agregó
+  // explícitamente un +Agregar hallazgo y seleccionó un tipo de desviación.
+  const hallazgoExplicito=(item?.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
+  if(hallazgoExplicito){
     if(!["PLANTA","OPERACION"].includes(item.error_tipo))faltantes.push("clasificación del hallazgo");
     if(!String(item.responsable_cuadrilla||"").trim())faltantes.push("cuadrilla responsable");
     if(!String(item.responsable_coordinador||"").trim())faltantes.push("coordinador responsable");
@@ -3290,12 +3291,18 @@ function activarLpn(index){
 
 function controlarAperturaLpn(index){
   const card=document.getElementById(`lpnCard_${index}`);
-  if(!card || !card.open) return;
-  document.querySelectorAll("#auditList .lpn-card").forEach((otra,otroIndex)=>{
-    if(otroIndex!==index && otra.open) otra.open=false;
-  });
+  if(!card) return;
+  if(card.open){
+    document.querySelectorAll("#auditList .lpn-card").forEach((otra,otroIndex)=>{
+      if(otroIndex!==index && otra.open){
+        otra.open=false;
+        const otroBtn=otra.querySelector(".lpn-card-head button");
+        if(otroBtn)otroBtn.textContent="Abrir";
+      }
+    });
+  }
   const btn=card.querySelector(".lpn-card-head button");
-  if(btn)btn.textContent="Minimizar";
+  if(btn)btn.textContent=card.open?"Minimizar":"Abrir";
 }
 
 function abrirSiguienteLpnPendiente(index){
@@ -4259,7 +4266,7 @@ async function guardarBorradorRemoto(estado){
           if(!remotoActual)return;
           const estadoEvidencias={...remotoActual,evidencias_generales:compartido?.evidencias_generales||remotoActual.evidencias_generales||[]};
           const {error}=await qaSupabaseConTimeout(
-            supabaseClient.from("Auditoria_Recibo_Borrador").update({estado:{...estadoEvidencias,auditoriaActual:[]}}).eq("auditoria_id",estado.auditoriaId),
+            supabaseClient.from("Auditoria_Recibo_Borrador").update({estado:estadoEvidencias}).eq("auditoria_id",estado.auditoriaId),
             "Sincronización de evidencias",15000
           );
           if(error)throw error;
@@ -5272,14 +5279,14 @@ function actualizarLpn(index,campo,valor){
   if(typeof actualizarEstadoLpn === "function"){
     actualizarEstadoLpn(index);
   }
-  const completaDespues = lpnEstaCompleta(item);
-  if(typeof actualizarIndicadorCompletoLpn === "function")actualizarIndicadorCompletoLpn(index);
-
-  if(completaDespues){
-    const card=document.getElementById(`lpnCard_${index}`);
-    if(card) card.open=false;
-    abrirSiguienteLpnPendiente(index);
+  // Mostrar inmediatamente la decisión SIN DESVIACIÓN / PLANTA / OPERACIÓN
+  // al capturar una LPN, incluso antes de que termine la búsqueda en Excel.
+  if(String(item.lpn||"").trim() && typeof mostrarEstadoLpn === "function"){
+    mostrarEstadoLpn(index);
   }
+  // No minimizar automáticamente al capturar la LPN: el auditor debe poder
+  // decidir primero si existe desviación y clasificarla como planta/operación.
+  if(typeof actualizarIndicadorCompletoLpn === "function")actualizarIndicadorCompletoLpn(index);
 
   if(typeof actualizarResultadoGeneral === "function"){
     actualizarResultadoGeneral();
@@ -5416,6 +5423,7 @@ function buscarLpnExcel(index,mostrarAviso=true){
     if(notFound) notFound.className="hidden";
 
     actualizarEstadoLpn(index);
+    mostrarEstadoLpn(index);
     actualizarResultadoGeneral();
 
   }else{
@@ -5431,6 +5439,7 @@ function buscarLpnExcel(index,mostrarAviso=true){
     }
     actualizarVistaLpn(index);
     actualizarEstadoLpn(index);
+    mostrarEstadoLpn(index);
     if(mostrarAviso) actualizarResultadoGeneral();
   }
 }
@@ -5902,6 +5911,10 @@ function crearLpnCard(item,index,abrir=false){
                 id="errorTipo_${index}"
                 onchange="actualizarError(${index})">
 
+                <option value="" selected disabled>
+                  Selecciona una desviación...
+                </option>
+
                 <option value="PLANTA">
                   DESVIACIÓN DE PLANTA
                 </option>
@@ -6107,13 +6120,16 @@ function actualizarHallazgoBloque(index,id,campo,valor){
   if(campo==='tipo' && h.tipo!=='Otro') h.descripcion='';
   if(campo==='descripcion' && h.tipo!=='Otro') h.descripcion='';
   guardarBorrador();
-  if(campo==='tipo') renderizarHallazgosBloque(index);
+  if(campo==='tipo'){
+    renderizarHallazgosBloque(index);
+    evaluarLpn(index);
+  }
 }
 function eliminarHallazgoBloque(index,id){
   const item=auditoriaActual[index]; if(!item)return;
   item.hallazgos_bloque=asegurarHallazgosBloque(item).filter(x=>String(x.id)!==String(id));
   if(item.evidencia_campos?.hallazgos_bloque)delete item.evidencia_campos.hallazgos_bloque[id];
-  renderizarHallazgosBloque(index); guardarBorrador();
+  renderizarHallazgosBloque(index); evaluarLpn(index); guardarBorrador();
 }
 function renderizarHallazgosBloque(index){
   const item=auditoriaActual[index], cont=document.getElementById(`hallazgosBloqueLista_${index}`); if(!item||!cont)return;
@@ -7059,11 +7075,7 @@ function marcarQA(
   evaluarLpn(index);
   actualizarEstadoLpn(index);
   actualizarIndicadorCompletoLpn(index);
-  if(lpnEstaCompleta(item)){
-    const card=document.getElementById(`lpnCard_${index}`);
-    if(card) card.open=false;
-    abrirSiguienteLpnPendiente(index);
-  }
+  // Se conserva abierta la tarjeta hasta que el usuario decida minimizarla.
   guardarBorrador();
 
 }
@@ -7225,6 +7237,7 @@ function evaluarLpn(
     item.inventario?.coincide_lote === "ERROR";
 
   const tieneDesviacion =
+    (item.error_tipo_manual && ["PLANTA","OPERACION"].includes(item.error_tipo)) ||
     hallazgos.length > 0 ||
     item.playo_estado === "ERROR" ||
     item.danos === "ERROR" ||
@@ -7235,16 +7248,10 @@ function evaluarLpn(
     item.mezcla_codigos_ok === "ERROR" ||
     obtenerTodosLosChecks(item).some(x => x.valor === "ERROR");
 
-  if(!tieneDesviacion){
-    item.error_tipo = "NINGUNO";
-    item.error_tipo_manual = false;
-  }else if(!item.error_tipo_manual){
-    item.error_tipo =
-      errorPlanta
-        ? "PLANTA"
-        : errorOperacion
-          ? "OPERACION"
-          : "NINGUNO";
+  if(!item.error_tipo_manual){
+    // Los checks pueden sugerir el tipo, pero no cuentan como selección del auditor.
+    // La gestión del hallazgo solo se abre tras elegir explícitamente un tipo.
+    item.error_tipo = "";
   }
 
   const select =
@@ -7255,7 +7262,9 @@ function evaluarLpn(
   if(select){
 
     select.value =
-      item.error_tipo;
+      ["PLANTA","OPERACION"].includes(String(item.error_tipo||"")) && item.error_tipo_manual
+        ? item.error_tipo
+        : "";
 
   }
 
@@ -7306,7 +7315,8 @@ function evaluarLpn(
     // El panel permanece disponible dentro de la LPN con error, pero no
     // hacemos scroll automático. Así el auditor puede continuar con las
     // siguientes LPN sin ser enviado constantemente al panel del hallazgo.
-    panel.classList.toggle("hidden",!tieneDesviacion);
+    const desviacionSeleccionada = item.error_tipo_manual === true && ["PLANTA","OPERACION"].includes(String(item.error_tipo||""));
+    panel.classList.toggle("hidden", !desviacionSeleccionada);
   }
 
   actualizarVisibilidadEvidencias(index);
@@ -7355,6 +7365,7 @@ function mostrarEstadoLpn(
   }
 
   const tieneDesviacion =
+    (item.error_tipo_manual && ["PLANTA","OPERACION"].includes(item.error_tipo)) ||
     calcularHallazgos(item).length > 0 ||
     obtenerTodosLosChecks(item).some(x => x.valor === "ERROR") ||
     item.playo_estado === "ERROR" ||
@@ -7367,9 +7378,10 @@ function mostrarEstadoLpn(
 
   if(!tieneDesviacion){
 
-    panel.classList.add(
-      "hidden"
-    );
+    // Capturar una LPN no debe abrir Gestión del hallazgo. Solo se muestra
+    // cuando existe un hallazgo agregado manualmente con tipo seleccionado.
+    const hallazgoExplicito=(item.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
+    panel.classList.toggle("hidden",!hallazgoExplicito);
 
     card.classList.remove(
       "error"
@@ -7391,9 +7403,8 @@ function mostrarEstadoLpn(
 
   }else{
 
-    panel.classList.remove(
-      "hidden"
-    );
+    const hallazgoExplicito=(item.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
+    panel.classList.toggle("hidden",!hallazgoExplicito);
 
     card.classList.add(
       "error"
@@ -7453,8 +7464,8 @@ function actualizarError(index){
   const select = document.getElementById(`errorTipo_${index}`);
   const detalle = document.getElementById(`errorDetalleClasificacion_${index}`);
 
-  item.error_tipo = select?.value || "NINGUNO";
-  item.error_tipo_manual = item.error_tipo !== "NINGUNO";
+  item.error_tipo = select?.value || "";
+  item.error_tipo_manual = ["PLANTA","OPERACION"].includes(item.error_tipo);
 
   if(detalle){
     item.error_detalle = detalle.value.trim();
@@ -7770,8 +7781,8 @@ function comprimirImagen(
       reject
     ) => {
 
-      if(!file){
-        reject(new Error("Archivo de evidencia inválido."));
+      if(!file || !(file instanceof Blob)){
+        reject(new TypeError("La evidencia no es un archivo Blob/File válido; puede ser una referencia de borrador o una URL."));
         return;
       }
 
@@ -7932,18 +7943,49 @@ async function subirEvidencias(
   const urls = [];
   const fallas = [];
 
+  const normalizarArchivoEvidencia = async (archivo) => {
+    if(!archivo) throw new Error("Archivo de evidencia vacío.");
+
+    // Las evidencias guardadas en borradores pueden llegar como URL o como
+    // descriptor {tipo:"local", localId}, no como un objeto File directamente.
+    if(typeof archivo === "string") return {url:archivo};
+    if(archivo?.tipo === "url" && archivo.url) return {url:archivo.url};
+
+    if(archivo instanceof Blob) return {blob:archivo, name:archivo.name || "evidencia.jpg", type:archivo.type || "image/jpeg"};
+
+    if(archivo?.blob instanceof Blob) return {blob:archivo.blob, name:archivo.name || "evidencia.jpg", type:archivo.type || archivo.blob.type || "image/jpeg"};
+    if(archivo?.file instanceof Blob) return {blob:archivo.file, name:archivo.file.name || archivo.name || "evidencia.jpg", type:archivo.file.type || archivo.type || "image/jpeg"};
+
+    if(archivo?.tipo === "local" && archivo.localId){
+      const registro = await obtenerArchivoBorradorLocal(archivo.localId);
+      if(!registro?.blob || !(registro.blob instanceof Blob)){
+        throw new Error(`No se encontró el archivo local de evidencia (${archivo.localId}). Vuelve a adjuntar la fotografía.`);
+      }
+      const nombre = registro.name || archivo.name || "evidencia.jpg";
+      const mime = registro.type || archivo.type || registro.blob.type || "image/jpeg";
+      try{
+        return {blob:new File([registro.blob], nombre, {type:mime, lastModified:registro.lastModified || archivo.lastModified || Date.now()}), name:nombre, type:mime};
+      }catch(_){
+        return {blob:registro.blob, name:nombre, type:mime};
+      }
+    }
+
+    throw new TypeError("Formato de evidencia no compatible. Vuelve a adjuntar la fotografía para poder guardarla.");
+  };
+
   const subirArchivo = async (
     archivo,
     tipo,
     rutaExtra = ""
   ) => {
 
-    if(!archivo){
-      throw new Error("Archivo de evidencia inválido.");
-    }
+    const normalizado = await normalizarArchivoEvidencia(archivo);
+    if(normalizado.url) return normalizado.url;
+    archivo = normalizado.blob;
+    const nombreOriginal = normalizado.name || archivo.name || "evidencia.jpg";
 
     let blob = archivo;
-    let contentType = archivo.type || "image/jpeg";
+    let contentType = normalizado.type || archivo.type || "image/jpeg";
     let extension = "jpg";
 
     try{
@@ -7975,7 +8017,7 @@ async function subirEvidencias(
 
       const tipoArchivo =
         String(contentType).split("/")[1] ||
-        String(archivo.name || "jpg").split(".").pop() ||
+        String(nombreOriginal || "jpg").split(".").pop() ||
         "jpg";
 
       extension =
@@ -8348,11 +8390,7 @@ function validarTiempoReal(){
     if(!/^\d{10}$/.test(sto)) faltantes.push("STO de exactamente 10 dígitos");
   }
 
-  const origenEl=document.getElementById("origen");
-  const origenVal=String(origenEl?.value||"").trim();
-  const origenPermitido=[...origenEl?.options||[]].map(o=>String(o.value||"").trim()).filter(Boolean);
-  if(!origenVal) faltantes.push("origen");
-  else if(!origenPermitido.includes(origenVal)) faltantes.push("origen válido del catálogo");
+  // V54: Origen se conserva como dato opcional; ya no bloquea el guardado.
 
   campo("turno","turno");
   campo("cuadrilla","cuadrilla");
@@ -8384,12 +8422,9 @@ function validarTiempoReal(){
       if(item.sistema_cantidad==="" || item.sistema_cantidad===null || item.sistema_cantidad===undefined) faltantes.push(`cantidad de sistema de la LPN ${n}`);
     }
 
-    const checks=checksRequeridosParaItem(item);
-    checks.forEach(([categoria,campoNombre])=>{
-      if(!["OK","ERROR"].includes(item[categoria]?.[campoNombre])){
-        faltantes.push(`respuesta BIEN o MAL en ${campoNombre.replaceAll("_"," ")} de la LPN ${n}`);
-      }
-    });
+    // V53: ya no se solicitan respuestas BIEN/MAL de los criterios heredados.
+    // Se validan los datos visibles de la LPN y los hallazgos que el usuario
+    // haya agregado explícitamente en "HALLAZGOS POR BLOQUE".
 
       (item.hallazgos_bloque||[]).forEach((h,hi)=>{
         if(!String(h.bloque||"").trim())faltantes.push(`bloque del hallazgo ${hi+1} de la LPN ${n}`);
@@ -8399,10 +8434,9 @@ function validarTiempoReal(){
         if(!fotos.length)faltantes.push(`evidencia fotográfica del hallazgo ${hi+1} de la LPN ${n}`);
       });
 
-    const hayHallazgoEnChecks=(calcularHallazgos(item)||[]).some(h=>h.categoria!=="hallazgos_bloque");
-    const clasificacionManualActiva=String(item.error_tipo||"NINGUNO").trim().toUpperCase()!=="NINGUNO";
-    if(hayHallazgoEnChecks || clasificacionManualActiva){
-      if(!String(item.error_detalle||"").trim()) faltantes.push(`descripción del hallazgo de la LPN ${n}`);
+    const hallazgoExplicito=(item.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
+    if(hallazgoExplicito){
+      // V54: la descripción manual del hallazgo por LPN ya no es un campo obligatorio.
       if(item.error_tipo==="NINGUNO") faltantes.push(`clasificación PLANTA u OPERACIÓN del hallazgo de la LPN ${n}`);
       if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
       if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
@@ -9055,12 +9089,20 @@ mostrarAlertaQA(
       }
     }
 
+    const detalleIncidencia=resultadoIncidenciaAutomatica?.error
+      ? `\n\nATENCIÓN: la incidencia automática no pudo crearse. ${resultadoIncidenciaAutomatica.error}`
+      : resultadoIncidenciaAutomatica?.folio
+        ? `\n\nFolio de incidencia generado: ${resultadoIncidenciaAutomatica.folio}.`
+        : resultadoIncidenciaAutomatica?.motivo==="SIN_HALLAZGOS"
+          ? `\n\nNo se generó incidencia porque la auditoría no contiene desviaciones.`
+          : "";
+
     const tareaPendiente = tareasAuditoriaLpn[0];
 
     if(tareaPendiente){
       finalizarAuditoriaGuardadaYMostrarMenu(
         folio,
-        `La auditoría ${folio} fue guardada correctamente.\n\n` +
+        `La auditoría ${folio} fue guardada correctamente.${detalleIncidencia}\n\n` +
         `La LPN ${tareaPendiente.lpn} quedó como tarea pendiente porque no fue corregida.\n\n` +
         `La tarea quedó guardada para que puedas decidir desde el menú qué deseas hacer a continuación.`,
         "warning",
@@ -9069,13 +9111,6 @@ mostrarAlertaQA(
       return;
     }
 
-    const detalleIncidencia=resultadoIncidenciaAutomatica?.error
-      ? `\n\nATENCIÓN: la incidencia automática no pudo crearse. ${resultadoIncidenciaAutomatica.error}`
-      : resultadoIncidenciaAutomatica?.folio
-        ? `\n\nIncidencia relacionada: ${resultadoIncidenciaAutomatica.folio}.`
-        : resultadoIncidenciaAutomatica?.motivo==="SIN_HALLAZGOS"
-          ? `\n\nNo se generó incidencia porque la auditoría no contiene desviaciones.`
-          : "";
     finalizarAuditoriaGuardadaYMostrarMenu(
       folio,
       `La auditoría ${folio} fue guardada correctamente.${detalleIncidencia}\n\n` +
@@ -9589,7 +9624,7 @@ function crearVistaAlmacenaje(
       ? "DESVIACIÓN DE PLANTA"
       : tipoError === "OPERACION"
         ? "DESVIACIÓN DE OPERACIÓN"
-        : "SIN DESVIACIÓN";
+        : "SIN CLASIFICAR";
 
   const estadoInicial =
     item.desviacion_corregida ||
