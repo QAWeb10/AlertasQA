@@ -5201,12 +5201,12 @@ function calcularMuestra(){
     .textContent =
     `Muestra calculada: ${resultado.muestra} LPN/tarimas.`;
 
-  // Si ya existe una muestra/auditoría en pantalla, no la destruimos al
-  // cargar o volver a procesar el Excel. Solo generamos las LPN cuando
-  // todavía no existe ninguna.
+  // Sincroniza el número de bloques con la muestra del Excel vigente y
+  // conserva las respuestas de los bloques que permanecen en la muestra.
   if(!Array.isArray(auditoriaActual) || auditoriaActual.length===0){
     generarMuestra();
   }else{
+    ajustarBloquesLpnAMuestra();
     renderizarAuditoria();
   }
 
@@ -5222,92 +5222,42 @@ function calcularMuestra(){
    GENERAR LPN DE LA MUESTRA
 ========================================================= */
 
-function generarMuestra(){
-
-  if(!muestraCalculada){
-
-    alert(
-      "Primero calcula la muestra."
-    );
-
-    return;
-
-  }
-
-  auditoriaActual = [];
-
-  for(
-    let i=0;
-    i<muestraCalculada;
-    i++
-  ){
-
-    auditoriaActual.push({
-
-      indice:i+1,
-
-      lpn:"",
-      sto:"",
-      gcas:"",
-      lote:"",
-
-      sistema_cantidad:"",
-
-      descripcion:"",
-      cliente:"",
-      inventory_status:"",
-      storage_location:"",
-
-      excel_encontrada:false,
-
-      generales:{},
-      inventario:{},
-      pallet:{},
-      granel:{},
-
-      evidencia_campos:{
-        generales:{},
-        inventario:{},
-        pallet:{},
-        granel:{}
-      },
-
-      evidencia_positiva:[],
-
-
-      playo_estado:"",
-      danos:"",
-      codigo_ok:"",
-      lote_ok:"",
-      cantidad_ok:"",
-      fisico_gcas:"",
-      fisico_lote:"",
-      estibado_ok:"",
-      mezcla_lotes_ok:"",
-      mezcla_codigos_ok:"",
-
-      error_tipo:"NINGUNO",
-      error_detalle:"",
-
-      hallazgos:[],
-
-      responsable_cuadrilla:document.getElementById("cuadrilla")?.value||"",
-      responsable_coordinador:document.getElementById("coordinador")?.value||"",
-      turno:document.getElementById("turno")?.value||"",
-      cuadrilla:document.getElementById("cuadrilla")?.value||"",
-
-      desviacion_corregida:"",
-
-      etapa_auditoria:"TIEMPO_REAL"
-
-    });
-
-  }
-
-  renderizarAuditoria();
-
+function crearItemLpnVacio(indice){
+  return {
+    indice,
+    lpn:"",sto:"",gcas:"",lote:"",sistema_cantidad:"",
+    descripcion:"",cliente:"",inventory_status:"",storage_location:"",
+    excel_encontrada:false,
+    generales:{},inventario:{},pallet:{},granel:{},
+    evidencia_campos:{generales:{},inventario:{},pallet:{},granel:{},hallazgos_bloque:{}},
+    evidencia_positiva:[],
+    playo_estado:"",danos:"",codigo_ok:"",lote_ok:"",cantidad_ok:"",
+    fisico_gcas:"",fisico_lote:"",estibado_ok:"",mezcla_lotes_ok:"",mezcla_codigos_ok:"",
+    error_tipo:"NINGUNO",error_detalle:"",hallazgos:[],hallazgos_bloque:[],
+    responsable_cuadrilla:document.getElementById("cuadrilla")?.value||"",
+    responsable_coordinador:document.getElementById("coordinador")?.value||"",
+    turno:document.getElementById("turno")?.value||"",
+    cuadrilla:document.getElementById("cuadrilla")?.value||"",
+    desviacion_corregida:"",etapa_auditoria:"TIEMPO_REAL"
+  };
 }
 
+function ajustarBloquesLpnAMuestra(){
+  const objetivo=Math.max(0,Number(muestraCalculada)||0);
+  if(!Array.isArray(auditoriaActual))auditoriaActual=[];
+  // Conserva las respuestas existentes y sincroniza la cantidad de bloques
+  // con la muestra calculada a partir del Excel que está cargado actualmente.
+  if(auditoriaActual.length>objetivo)auditoriaActual=auditoriaActual.slice(0,objetivo);
+  while(auditoriaActual.length<objetivo)auditoriaActual.push(crearItemLpnVacio(auditoriaActual.length+1));
+  auditoriaActual.forEach((item,i)=>item.indice=i+1);
+}
+
+function generarMuestra(){
+  if(!muestraCalculada){alert("Primero calcula la muestra.");return;}
+  auditoriaActual=[];
+  for(let i=0;i<muestraCalculada;i++)auditoriaActual.push(crearItemLpnVacio(i+1));
+  renderizarAuditoria();
+}
 
 function actualizarLpn(index,campo,valor){
   const item=auditoriaActual[index];
@@ -5470,19 +5420,18 @@ function buscarLpnExcel(index,mostrarAviso=true){
 
   }else{
     item.excel_encontrada=false;
-
+    // Elimina datos derivados del Excel anterior si la LPN no aparece en el
+    // archivo actual, evitando que sobrevivan STO/GCAS/lote/cantidad obsoletos.
+    item.sto="";item.gcas="";item.lote="";item.sistema_cantidad="";
+    item.descripcion="";item.cliente="";item.inventory_status="";item.storage_location="";
     if(status) status.className="hidden";
-
     if(notFound){
       notFound.className="lpn-not-found";
-      notFound.textContent="⚠ LPN no encontrada en el archivo cargado";
+      notFound.textContent="⚠ LPN no encontrada en el Excel actual";
     }
-
+    actualizarVistaLpn(index);
     actualizarEstadoLpn(index);
-
-    if(mostrarAviso){
-      actualizarResultadoGeneral();
-    }
+    if(mostrarAviso) actualizarResultadoGeneral();
   }
 }
 
@@ -6959,13 +6908,21 @@ async function procesarArchivoExcel(file,opciones={}){
     if(guardar) await guardarBorrador();
 
     if(Array.isArray(auditoriaActual) && auditoriaActual.length){
+      // Limpia los campos importados del Excel anterior antes de cruzar las LPN
+      // con el nuevo archivo ya validado.
+      auditoriaActual.forEach(item=>{
+        item.excel_encontrada=false;
+        item.sto="";item.gcas="";item.lote="";item.sistema_cantidad="";
+        item.descripcion="";item.cliente="";item.inventory_status="";item.storage_location="";
+      });
       auditoriaActual.forEach((item,lpnIndex)=>{
         try{
           if(typeof buscarLpnExcel==="function") buscarLpnExcel(lpnIndex,false);
         }catch(rowError){
-          console.warn("No fue posible cruzar una LPN contra el Excel:",rowError);
+          console.warn("No fue posible cruzar una LPN contra el Excel actual:",rowError);
         }
       });
+      renderizarAuditoria();
       actualizarResultadoGeneral();
       // El cruce de LPN es un paso posterior a la carga; nunca debe invalidar
       // el Excel que ya fue leído ni impedir el guardado del avance.
@@ -8417,9 +8374,9 @@ function validarTiempoReal(){
       if(!item.excel_encontrada){
         faltantes.push(`LPN ${n} encontrada en el archivo de recibo`);
       }
-      if(!item.sto) faltantes.push(`STO de la LPN ${n}`);
-      if(!item.gcas) faltantes.push(`GCAS de la LPN ${n}`);
-      if(!item.lote) faltantes.push(`lote de la LPN ${n}`);
+      if(!String(item.sto??"").trim()) faltantes.push(`STO de la LPN ${n}`);
+      if(!String(item.gcas??"").trim()) faltantes.push(`GCAS de la LPN ${n}`);
+      if(!String(item.lote??"").trim()) faltantes.push(`lote de la LPN ${n}`);
       if(item.sistema_cantidad==="" || item.sistema_cantidad===null || item.sistema_cantidad===undefined) faltantes.push(`cantidad de sistema de la LPN ${n}`);
     }else{
       if(!/^\d{8}$/.test(String(item.gcas||""))) faltantes.push(`GCAS de 8 dígitos de la LPN ${n}`);
@@ -8442,7 +8399,9 @@ function validarTiempoReal(){
         if(!fotos.length)faltantes.push(`evidencia fotográfica del hallazgo ${hi+1} de la LPN ${n}`);
       });
 
-    if((calcularHallazgos(item)||[]).some(h=>h.categoria!=="hallazgos_bloque") || (item.error_tipo && item.error_tipo!=="NINGUNO")){
+    const hayHallazgoEnChecks=(calcularHallazgos(item)||[]).some(h=>h.categoria!=="hallazgos_bloque");
+    const clasificacionManualActiva=String(item.error_tipo||"NINGUNO").trim().toUpperCase()!=="NINGUNO";
+    if(hayHallazgoEnChecks || clasificacionManualActiva){
       if(!String(item.error_detalle||"").trim()) faltantes.push(`descripción del hallazgo de la LPN ${n}`);
       if(item.error_tipo==="NINGUNO") faltantes.push(`clasificación PLANTA u OPERACIÓN del hallazgo de la LPN ${n}`);
       if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
