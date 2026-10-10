@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#CF002E">
 
-<title>QA · Auditoría en Recibo · V32</title>
+<title>QA · Auditoría en Recibo · V52 CON INCIDENCIAS</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -883,8 +883,7 @@ button{
 
 /* =========================================================
    CONFIGURACIÓN SUPERIOR · V20 VISUAL CORREGIDA
-   - Tipo de auditoría ocupa todo el ancho.
-   - Archivo y muestreo quedan juntos, en columnas equilibradas.
+   - Configuración de archivo y muestreo en columnas equilibradas.
    - Datos de recibo permanece debajo, sin ser arrastrado al grid.
 ========================================================= */
 .wrap{
@@ -1809,6 +1808,29 @@ button{
 .inventory-compare-pending{border:1px solid #d1d5db}
 @media(max-width:760px){.inventory-compare-grid{grid-template-columns:1fr}}
 
+/* V45 · Hallazgos por bloque; se retiran los paneles QA antiguos */
+.hallazgos-bloque-panel{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfcfe}
+.hallazgos-bloque-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.hallazgo-bloque-item{margin-top:10px;padding:12px;border:1px solid #e4b8b8;border-radius:10px;background:#fff}
+.hallazgo-bloque-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.hallazgo-bloque-grid .field{min-width:0}
+.hallazgo-bloque-grid textarea{width:100%;min-height:68px;resize:vertical}
+@media(max-width:620px){.hallazgo-bloque-grid{grid-template-columns:1fr}}
+
+/* CONSULTA DE HALLAZGOS EN ALMACENAJE */
+.consulta-hallazgos-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.consulta-hallazgo-card{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;min-width:0}
+.consulta-hallazgo-head{padding:10px 12px;background:#fff7f8;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.consulta-hallazgo-head strong{font-size:12px;overflow-wrap:anywhere}
+.consulta-hallazgo-datos{padding:10px 12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.consulta-hallazgo-dato{min-width:0;font-size:10px;overflow-wrap:anywhere}
+.consulta-hallazgo-dato span{display:block;font-size:8px;text-transform:uppercase;color:var(--ink-muted);font-weight:800;margin-bottom:2px}
+.consulta-hallazgo-fotos{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 10px}
+.consulta-hallazgo-fotos a{display:block;width:76px;height:76px;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.consulta-hallazgo-fotos img{width:100%;height:100%;object-fit:cover}
+.consulta-hallazgo-acciones{display:flex;gap:7px;flex-wrap:wrap;padding:0 12px 12px}
+@media(max-width:700px){.consulta-hallazgos-lista{grid-template-columns:1fr}.consulta-hallazgo-datos{grid-template-columns:1fr 1fr}}
+
 /* =========================================================
    PANEL REPORTES · 20 REGISTROS POR PÁGINA
 ========================================================= */
@@ -1859,7 +1881,7 @@ button{
 .reportes-table .folio{font-family:monospace;font-weight:900;color:var(--brand)}
 .reportes-table .dictamen{font-weight:900}
 .reportes-table .hallazgos{text-align:center;font-weight:900}
-.reportes-table .accion{text-align:center;width:72px}
+.reportes-table .accion{text-align:center;width:125px}
 .reportes-table .btn{min-height:28px;height:28px;padding:5px 9px;font-size:9px;border-radius:7px}
 .reportes-paginacion{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}.reportes-paginacion .pagina{font-size:9px;font-weight:900;color:var(--ink-soft);min-width:80px;text-align:center}.reportes-empty{padding:28px 12px;text-align:center;color:var(--ink-muted);font-size:10px;border:1px dashed var(--line);border-radius:9px}
 @media(max-width:1100px){.reportes-shell{width:min(78vw,1100px)}}
@@ -1879,6 +1901,10 @@ button{
 .auditoria-proceso-meta{font-size:12px;color:#666;line-height:1.5;margin-bottom:10px;}
 .auditoria-proceso-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
+
+/* V42: el tipo de auditoría ya no se muestra como bloque independiente. */
+#tipoAuditoriaSection{display:none !important;}
+#tipoAuditoriaSection{display:none!important}
 </style>
 
 <style>
@@ -2059,7 +2085,7 @@ button{
 <main class="wrap">
 
   <!-- =====================================================
-       01 · TIPO DE AUDITORÍA
+       Selector interno oculto: se conserva para compatibilidad con la lógica existente
   ====================================================== -->
 
 <details class="card compact-section" id="tipoAuditoriaSection" open>
@@ -2138,7 +2164,7 @@ button{
     <summary class="card-head">
 
       <h2>
-        <span class="section-number">02</span>
+        <span class="section-number">01</span>
         Archivo de Recibo
       </h2>
 
@@ -2231,7 +2257,7 @@ button{
     <summary class="card-head">
 
       <h2>
-        <span class="section-number">03</span>
+        <span class="section-number">02</span>
         Muestreo
       </h2>
 
@@ -2358,7 +2384,7 @@ button{
     <div class="card-head">
 
       <h2>
-        <span class="section-number">04</span>
+        <span class="section-number">03</span>
         Datos de recibo
       </h2>
 
@@ -2597,7 +2623,7 @@ button{
       <div>
 
         <h2>
-          <span class="section-number">05</span>
+          <span class="section-number">04</span>
           LPN a auditar
         </h2>
 
@@ -2633,7 +2659,7 @@ button{
      06 · EVIDENCIA POSITIVA · 100% APROBADO
 ====================================================== -->
 <section class="card hidden" id="evidenciaPositivaSection">
-  <div class="card-head"><div><h2><span class="section-number">06</span> Evidencia positiva</h2><small>LPN con 100% de aprobación</small></div></div>
+  <div class="card-head"><div><h2><span class="section-number">05</span> Evidencia positiva</h2><small>LPN con 100% de aprobación</small></div></div>
   <div class="card-body">
     <div id="evidenciaPositivaAlert" class="alert alert-info">El panel se habilitará por LPN cuando todas sus verificaciones estén aprobadas y no exista ninguna desviación.</div>
     <div id="evidenciaPositivaLista" class="evidencia-positiva-list"></div>
@@ -2641,7 +2667,7 @@ button{
 </section>
 
 <!-- =====================================================
-     07 · RESULTADO
+     06 · RESULTADO
 ====================================================== -->
 
 <section class="card" id="resultadoSection">
@@ -2754,8 +2780,7 @@ button{
   </section>
 
   <!-- =====================================================
-       07 · ALMACENAJE
-       DIRECTAMENTE BUSCAR LPN
+       CONSULTA DE LPN CON DESVIACIÓN · ACCESO SOLO DESDE EL OVERLAY PRINCIPAL
   ====================================================== -->
 
 <section
@@ -2767,12 +2792,11 @@ button{
       <div>
 
         <h2>
-          <span class="section-number">07</span>
-          Auditoría en Almacenaje
+          Consulta de LPN con desviación
         </h2>
 
         <small>
-          Seguimiento de una LPN con error
+          Consulta de LPN con hallazgos registrados
         </small>
 
       </div>
@@ -2782,18 +2806,10 @@ button{
     <div class="card-body">
 
       <div class="alert alert-info">
-
-        Busca la LPN o selecciona una tarea pendiente.
-        El sistema recuperará automáticamente la información
-        del recibo y te mostrará el error registrado para
-        validar su corrección.
-
+        Consulta las LPN que tuvieron hallazgos. Selecciona una LPN para ver la información registrada, sus evidencias fotográficas y el PDF de la auditoría original.
       </div>
 
-      <div
-        id="tareasPendientes"
-        class="pending-tasks">
-      </div>
+      <div id="tareasPendientes" class="pending-tasks hidden"></div>
 
       <div class="storage-search">
 
@@ -2806,8 +2822,11 @@ button{
           <input
             id="buscarLpn"
             type="text"
-            placeholder="Ingresa la LPN"
-            autocomplete="off">
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="Ingresa la LPN (solo números)"
+            autocomplete="off"
+            oninput="this.value=this.value.replace(/\D/g,'')">
 
         </div>
 
@@ -2823,6 +2842,7 @@ button{
       </div>
 
       <div id="resultadoAlmacenaje"></div>
+      <div id="consultaHallazgosLista" class="consulta-hallazgos-lista"></div>
 
     </div>
 
@@ -2844,9 +2864,10 @@ button{
       <h2>AUDITORÍA EN RECIBO</h2>
     </div>
     <div class="auditorias-inicio-body">
-      <button type="button" class="btn btn-primary auditorias-inicio-btn" id="btnAuditoriaNueva" onclick="iniciarAuditoriaNueva(); return false;">AUDITORIA NUEVA</button>
-      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso">AUDITORIA EN PROCESO</button>
+      <button type="button" class="btn btn-primary auditorias-inicio-btn" id="btnAuditoriaNueva" onclick="iniciarAuditoriaNueva(); return false;">AUDITORÍA NUEVA</button>
+      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnAuditoriasEnProceso">AUDITORÍA EN PROCESO</button>
       <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnReportesInicio" onclick="abrirReportes(); return false;">REPORTES</button>
+      <button type="button" class="btn btn-secondary auditorias-inicio-btn" id="btnConsultaLpnDesviacion" onclick="abrirConsultaLpnDesviacion(); return false;">CONSULTA DE LPN CON DESVIACIÓN</button>
       <a href="index.html" class="btn btn-secondary auditorias-inicio-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">INICIO</a>
       <div id="auditoriasEnProcesoPanel" class="auditorias-proceso-panel hidden">
         <div id="auditoriasEnProcesoLista"></div>
@@ -2878,6 +2899,13 @@ button{
       <button type="button" class="reportes-close" onclick="cerrarReportes()" aria-label="Cerrar">×</button>
     </div>
     <div class="reportes-body">
+      <div class="reportes-filtros" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;padding:14px;margin:0 0 14px;background:#fff;border:1px solid #e5e5e5;border-radius:10px">
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700">Fecha inicial<input id="reportesFechaDesde" type="date" style="padding:8px;border:1px solid #ddd;border-radius:7px"></label>
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700">Fecha final<input id="reportesFechaHasta" type="date" style="padding:8px;border:1px solid #ddd;border-radius:7px"></label>
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700">STO<input id="reportesFiltroSto" type="search" placeholder="Escribe la STO" style="padding:8px;border:1px solid #ddd;border-radius:7px;min-width:180px"></label>
+        <button type="button" class="btn btn-primary btn-small" onclick="aplicarFiltrosReportes()">Filtrar</button>
+        <button type="button" class="btn btn-secondary btn-small" onclick="limpiarFiltrosReportes()">Limpiar</button>
+      </div>
       <div class="reportes-kpis">
         <div class="reportes-kpi"><span>Total registros</span><strong id="reportesTotal">0</strong></div>
         <div class="reportes-kpi"><span>Página</span><strong id="reportesPagina">1 / 1</strong></div>
@@ -3157,7 +3185,7 @@ function prepararAuditoriaParaBorrador(items){
     const copia={...item};
     delete copia._excelTimer;
     const evidencias={};
-    ["generales","inventario","pallet","granel"].forEach(categoria=>{
+    ["generales","inventario","pallet","granel","hallazgos_bloque"].forEach(categoria=>{
       evidencias[categoria]={};
       Object.entries(item?.evidencia_campos?.[categoria]||{}).forEach(([campo,archivos])=>{
         evidencias[categoria][campo]=(archivos||[]).map(archivo=>{
@@ -3236,7 +3264,6 @@ function obtenerChecksFaltantesLpn(item){
   if(existeErrorObjetivo(item)){
     if(!String(item.error_detalle||"").trim())faltantes.push("detalle del hallazgo");
     if(!["PLANTA","OPERACION"].includes(item.error_tipo))faltantes.push("clasificación del hallazgo");
-    if(!String(item.responsable_usuario||"").trim())faltantes.push("usuario responsable");
     if(!String(item.responsable_cuadrilla||"").trim())faltantes.push("cuadrilla responsable");
     if(!String(item.responsable_coordinador||"").trim())faltantes.push("coordinador responsable");
     if(!["SI","NO"].includes(item.desviacion_corregida))faltantes.push("corrección del hallazgo");
@@ -3389,7 +3416,11 @@ function renderizarFotosFinales(){
   if(!el)return;
   revocarObjectURLsEnElemento(el);el.innerHTML="";
   (fotosGeneralesAuditoria||[]).forEach((archivo,i)=>{
-    const url=typeof archivo==="string"?archivo:window.window.URL.createObjectURL(archivo);
+    let url="";
+    if(typeof archivo==="string")url=archivo;
+    else if(archivo && typeof Blob!=="undefined" && archivo instanceof Blob)url=URL.createObjectURL(archivo);
+    else if(archivo && typeof archivo.url==="string")url=archivo.url;
+    if(!url)return;
     el.insertAdjacentHTML("beforeend",`<div class="qa-final-photo"><img src="${escapeHtml(url)}" ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}"`:""} alt="Fotografía de cierre"><button type="button" onclick="eliminarFotoFinal(${i})">×</button></div>`);
   });
 }
@@ -3463,15 +3494,30 @@ async function escanearLpn(index){
     // Fallback para móviles/navegadores donde BarcodeDetector falla o no existe.
     if(window.ZXingBrowser?.BrowserMultiFormatReader){
       qaScannerFallbackActivo=true;
-      const reader=new window.ZXingBrowser.BrowserMultiFormatReader();
+      let reader;
+      try{
+        const hints=new Map();
+        const hintType=window.ZXing?.DecodeHintType;
+        const barcodeFormat=window.ZXing?.BarcodeFormat;
+        if(hintType?.POSSIBLE_FORMATS&&barcodeFormat?.CODE_128){
+          hints.set(hintType.POSSIBLE_FORMATS,[barcodeFormat.CODE_128]);
+          if(hintType.TRY_HARDER)hints.set(hintType.TRY_HARDER,true);
+          reader=new window.ZXingBrowser.BrowserMultiFormatReader(hints,250);
+        }
+      }catch(e){console.warn("No fue posible configurar el lector CODE 128:",e);}
+      if(!reader)reader=new window.ZXingBrowser.BrowserMultiFormatReader();
       qaScannerReader=reader;
       mensaje.textContent="Lector alternativo activo. Centra la etiqueta y mantén el teléfono estable…";
       const dispositivos=await reader.listVideoInputDevices();
       const trasera=dispositivos.find(d=>/back|rear|environment|trasera|posterior/i.test(d.label||""))||dispositivos[dispositivos.length-1];
       await reader.decodeFromVideoDevice(trasera?.deviceId,video,async(result,error)=>{
         if(!result||qaScannerIndex!==index)return;
-        const raw=normalizarLpn(result.getText?.()||"");
-        if(raw&&((/^\d{18}$/.test(raw))||raw.length>=5))await completarLpnDesdeScanner(raw,index,mensaje);
+        const textoBruto=result.getText?.()||"";
+        const raw=normalizarLpn(textoBruto);
+        const compacto=raw.replace(/[^A-Z0-9]/g,"");
+        const esGS1=/^(?:00)?\d{18}$/.test(compacto);
+        const esLpnAlfanumerica=/^[A-Z0-9][A-Z0-9._/-]{4,}$/.test(compacto);
+        if(raw&&(esGS1||esLpnAlfanumerica))await completarLpnDesdeScanner(textoBruto,index,mensaje);
       });
       return;
     }
@@ -3483,11 +3529,39 @@ async function escanearLpn(index){
   }
 }
 
+function buscarRegistroExcelPorLpnRobusto(valor){
+  if(!excelCargado || !Array.isArray(excelRecibo) || !excelRecibo.length) return null;
+
+  const claves=clavesLpn(valor);
+  for(const clave of claves){
+    const directo=excelIndexLpn?.get(clave);
+    if(directo) return directo;
+  }
+
+  // Segundo nivel: comparación exclusivamente numérica para GS1/SSCC.
+  const scan=normalizarLpn(valor).replace(/\D/g,"");
+  if(scan){
+    const equivalentes=new Set([scan]);
+    if(/^00\d{18}$/.test(scan)) equivalentes.add(scan.slice(2));
+    if(/^\d{18}$/.test(scan)) equivalentes.add("00"+scan);
+
+    for(const registro of excelRecibo){
+      const ex=normalizarLpn(registro?.lpn||"").replace(/\D/g,"");
+      if(equivalentes.has(ex)) return registro;
+      if(/^00\d{18}$/.test(ex) && equivalentes.has(ex.slice(2))) return registro;
+      if(/^\d{18}$/.test(ex) && equivalentes.has("00"+ex)) return registro;
+    }
+  }
+
+  return null;
+}
+
 async function completarLpnDesdeScanner(raw,index,mensaje){
   let valor=normalizarLpn(raw);
   if(excelCargado&&excelIndexLpn?.size){
-    const exacto=clavesLpn(valor).map(k=>excelIndexLpn.get(k)).find(Boolean);
+    const exacto=buscarRegistroExcelPorLpnRobusto(valor);
     if(!exacto){
+      console.warn("LPN escaneada no encontrada en Excel",{raw,normalizada:valor,claves:clavesLpn(valor)});
       if(mensaje)mensaje.textContent="Código leído, pero no coincide con una LPN del Excel. Acerca la etiqueta correcta.";
       return false;
     }
@@ -3765,7 +3839,7 @@ async function guardarBorradorLocal(){
     sincronizarDatosAntesDeGuardar();
     const auditoriaSerializada=prepararAuditoriaParaBorrador(auditoriaActual);
     for(const item of auditoriaActual){
-      for(const categoria of ["generales","inventario","pallet","granel"]){
+      for(const categoria of ["generales","inventario","pallet","granel","hallazgos_bloque"]){
         for(const archivos of Object.values(item?.evidencia_campos?.[categoria]||{})){
           for(const archivo of archivos||[]){
             if(typeof archivo!=="string"&&archivo?.__qaEvidenceId){
@@ -3948,7 +4022,6 @@ function contarDatosCompletosLpn(item){
   if(existeErrorObjetivo(item)){
     if(String(item.error_detalle||"").trim())score+=1;
     if(["PLANTA","OPERACION"].includes(item.error_tipo))score+=1;
-    if(String(item.responsable_usuario||"").trim())score+=1;
     if(String(item.responsable_cuadrilla||"").trim())score+=1;
     if(String(item.responsable_coordinador||"").trim())score+=1;
     if(["SI","NO"].includes(item.desviacion_corregida))score+=1;
@@ -4041,12 +4114,15 @@ async function leerEstadoRemotoCompleto(id){
 function normalizarParaVerificacion(valor){
   if(valor===undefined)return null;
   if(valor===null)return null;
-  if(Array.isArray(valor))return valor.map(normalizarParaVerificacion);
+  if(Array.isArray(valor))return valor.map(v=>v===undefined?null:normalizarParaVerificacion(v));
   if(typeof valor==='object'){
     const out={};
     Object.keys(valor).sort().forEach(k=>{
       // Campos internos/transitorios del navegador que no forman parte del avance.
       if(k==='_qaOrigenRemoto'||k==='_qaLocal'||k==='__proto__')return;
+      // JSON/Supabase omite propiedades undefined. La firma debe hacer lo mismo
+      // para evitar falsos errores de sincronización entre el equipo y el servidor.
+      if(valor[k]===undefined)return;
       out[k]=normalizarParaVerificacion(valor[k]);
     });
     return out;
@@ -4626,7 +4702,26 @@ function mostrarInicioAuditorias(){
   }
 }
 
+function abrirConsultaLpnDesviacion(){
+  const overlayInicio=document.getElementById("auditoriasInicioOverlay");
+  // Solo se permite abrir esta consulta desde el menú principal, nunca desde
+  // una auditoría nueva o una auditoría que se está continuando.
+  if(!overlayInicio || overlayInicio.classList.contains("hidden") || auditoriaEnEdicion){
+    console.warn("La consulta de LPN con desviación solo se abre desde el menú principal.");
+    return;
+  }
+  const radio=document.querySelector('input[name="tipoAuditoria"][value="ALMACENAJE"]');
+  if(radio)radio.checked=true;
+  try{cambiarTipoAuditoria();}catch(error){console.error("Error abriendo consulta de LPN con desviación:",error);}
+  mostrarSistemaAuditoria();
+  const seccion=document.getElementById("almacenajeSection");
+  if(seccion){seccion.classList.remove("hidden");seccion.scrollIntoView({behavior:"smooth",block:"start"});}
+  // El modo de consulta es independiente de crear una auditoría nueva.
+}
+
 function iniciarAuditoriaNueva(){
+  const consulta=document.getElementById("almacenajeSection");
+  if(consulta)consulta.classList.add("hidden");
   const panel=document.getElementById("auditoriasEnProcesoPanel");
   if(panel)panel.classList.add("hidden");
 
@@ -4835,12 +4930,11 @@ function cambiarTipoAuditoria(){
   }
 
   if(!tiempoReal){
-
-    window.scrollTo({
-      top:0,
-      behavior:"smooth"
-    });
-
+    const buscar=document.getElementById("buscarLpn");
+    if(buscar)buscar.value="";
+    window.scrollTo({top:0,behavior:"smooth"});
+    // Almacenaje ahora es únicamente consulta: mostrar desde el inicio todas las LPN con hallazgos.
+    buscarLPNAlmacenaje();
   }
 
 }
@@ -5197,9 +5291,10 @@ function generarMuestra(){
 
       hallazgos:[],
 
-      responsable_usuario:"",
-      responsable_cuadrilla:"",
-      responsable_coordinador:"",
+      responsable_cuadrilla:document.getElementById("cuadrilla")?.value||"",
+      responsable_coordinador:document.getElementById("coordinador")?.value||"",
+      turno:document.getElementById("turno")?.value||"",
+      cuadrilla:document.getElementById("cuadrilla")?.value||"",
 
       desviacion_corregida:"",
 
@@ -5270,6 +5365,10 @@ function actualizarLpnEntrada(
   index,
   valor
 ){
+  // V42: las LPN capturadas manualmente solo admiten dígitos.
+  valor=String(valor??"").replace(/\D/g,"");
+  const campoLpn=document.getElementById(`lpn_${index}`);
+  if(campoLpn && campoLpn.value!==valor)campoLpn.value=valor;
 
   if(validarLpnDuplicada(index,valor,true))return;
 
@@ -5579,6 +5678,20 @@ function renderizarAuditoria(){
       "auditList"
     );
 
+  // Completa automáticamente los datos responsables desde el encabezado,
+  // sin sobrescribir cambios manuales ya capturados por LPN.
+  const coordinadorBase=document.getElementById("coordinador")?.value||"";
+  const cuadrillaBase=document.getElementById("cuadrilla")?.value||"";
+  const turnoBase=document.getElementById("turno")?.value||"";
+  const coordinadoresValidos=[...document.getElementById("coordinador")?.options||[]].map(o=>o.value).filter(Boolean);
+  const cuadrillasValidas=[...document.getElementById("cuadrilla")?.options||[]].map(o=>o.value).filter(Boolean);
+  auditoriaActual.forEach(item=>{
+    if(!item.responsable_coordinador || !coordinadoresValidos.includes(item.responsable_coordinador)) item.responsable_coordinador=coordinadorBase;
+    if(!item.responsable_cuadrilla || !cuadrillasValidas.includes(item.responsable_cuadrilla)) item.responsable_cuadrilla=cuadrillaBase;
+    if(!item.turno) item.turno=turnoBase;
+    if(!item.cuadrilla || !cuadrillasValidas.includes(item.cuadrilla)) item.cuadrilla=cuadrillaBase;
+  });
+
   contenedor.innerHTML = "";
 
   // Solo una LPN permanece abierta: la primera que aún requiere trabajo.
@@ -5605,6 +5718,7 @@ function renderizarAuditoria(){
         });
       });
 
+      renderizarHallazgosBloque(index);
       actualizarEstadoLpn(index);
       actualizarIndicadorCompletoLpn(index);
       const card=document.getElementById(`lpnCard_${index}`);
@@ -5671,11 +5785,12 @@ function crearLpnCard(item,index,abrir=false){
             <input
               id="lpn_${index}"
               type="text"
-              inputmode="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
               autocomplete="off"
-              placeholder="Escanea o captura la LPN"
+              placeholder="Escanea o captura la LPN (solo números)"
               value="${escapeHtml(item.lpn)}"
-              oninput="actualizarLpnEntrada(${index},this.value)"
+              oninput="this.value=this.value.replace(/\D/g,'');actualizarLpnEntrada(${index},this.value)"
               onblur="buscarLpnExcel(${index})"
               onkeydown="if(event.key==='Enter'){event.preventDefault();buscarLpnExcel(${index});}">
             <button type="button" class="btn btn-secondary btn-small" onclick="escanearLpn(${index})">📷 Escanear</button>
@@ -5804,175 +5919,13 @@ function crearLpnCard(item,index,abrir=false){
 
         <div style="height:10px"></div>
 
-        <details
-          class="qa-category"
-          open>
-
-          <summary>
-            GENERALES
-          </summary>
-
-          <div class="qa-grid">
-
-            ${preguntaQA(
-              index,
-              "generales",
-              "etiqueta_proveedor",
-              "Etiqueta proveedor legible"
-            )}
-
-            ${preguntaQA(
-              index,
-              "generales",
-              "empaque_integro",
-              "Empaque íntegro"
-            )}
-
-            ${preguntaQA(
-              index,
-              "generales",
-              "sin_humedad",
-              "Sin humedad"
-            )}
-
-            ${preguntaQA(
-              index,
-              "generales",
-              "sin_contaminacion",
-              "Sin contaminación"
-            )}
-
-            ${preguntaQA(
-              index,
-              "generales",
-              "sin_plagas",
-              "Sin plagas"
-            )}
-
-            ${preguntaQA(
-              index,
-              "generales",
-              "caducidad_correcta",
-              "Caducidad correcta"
-            )}
-
+        <section class="hallazgos-bloque-panel" aria-label="Hallazgos adicionales por bloque">
+          <div class="hallazgos-bloque-head">
+            <div><strong>HALLAZGOS POR BLOQUE</strong><div class="muted" style="font-size:11px;margin-top:3px">Registra todos los hallazgos; cada uno puede tener varias fotografías.</div></div>
+            <button type="button" class="btn btn-primary btn-small" onclick="agregarHallazgoBloque(${index})">+ Agregar hallazgo</button>
           </div>
-
-        </details>
-
-        <details
-          class="qa-category"
-          open>
-
-          <summary>INVENTARIO</summary>
-
-          <div class="qa-grid">
-            ${preguntaQA(index,"inventario","coincide_fisico_sistema","COINCIDE FISICO VS SISTEMA")}
-            ${preguntaQA(index,"inventario","coincide_codigo","COINCIDE CODIGO")}
-            ${preguntaQA(index,"inventario","coincide_lote","COINCIDE LOTE")}
-          </div>
-
-        </details>
-
-        
-        <details
-          class="qa-category ${obtenerTipoRecibo()==="PALLET" ? "" : "hidden"}"
-          ${obtenerTipoRecibo()==="PALLET" ? "open" : ""}>
-
-          <summary>
-            PALLET
-          </summary>
-
-          <div class="qa-grid">
-
-            ${preguntaQA(
-              index,
-              "pallet",
-              "pallet_buen_estado",
-              "Pallet en buen estado"
-            )}
-
-            ${preguntaQA(
-              index,
-              "pallet",
-              "sin_tablas_rotas",
-              "Sin tablas rotas"
-            )}
-
-            ${preguntaQA(
-              index,
-              "pallet",
-              "sin_clavos_expuestos",
-              "Sin clavos expuestos"
-            )}
-
-            ${preguntaQA(
-              index,
-              "pallet",
-              "stretch_correcto",
-              "Stretch correcto"
-            )}
-
-            ${preguntaQA(
-              index,
-              "pallet",
-              "carga_estable",
-              "Carga estable"
-            )}
-
-            ${preguntaQA(
-              index,
-              "pallet",
-              "alineacion_correcta",
-              "Alineación correcta"
-            )}
-
-          </div>
-
-        </details>
-
-        <details
-          class="qa-category ${obtenerTipoRecibo()==="GRANEL" ? "" : "hidden"}"
-          ${obtenerTipoRecibo()==="GRANEL" ? "open" : ""}>
-
-          <summary>
-            GRANEL
-          </summary>
-
-          <div class="qa-grid">
-
-            ${preguntaQA(
-              index,
-              "granel",
-              "contenedor_limpio",
-              "Contenedor limpio"
-            )}
-
-            ${preguntaQA(
-              index,
-              "granel",
-              "sin_material_extrano",
-              "Sin material extraño"
-            )}
-
-            ${preguntaQA(
-              index,
-              "granel",
-              "sin_mezcla_sku",
-              "Sin mezcla SKU"
-            )}
-
-            ${preguntaQA(
-              index,
-              "granel",
-              "sin_mezcla_lotes",
-              "Sin mezcla de lotes"
-            )}
-
-          </div>
-
-        </details>
-
+          <div id="hallazgosBloqueLista_${index}"></div>
+        </section>
 
         <div
           class="error-panel hidden"
@@ -6012,42 +5965,11 @@ function crearLpnCard(item,index,abrir=false){
 
             </div>
 
-            <div class="field">
-
-              <label>
-                ¿Qué se encontró?
-              </label>
-
-              <input
-                id="errorDetalleClasificacion_${index}"
-                type="text"
-                placeholder="Describe claramente el hallazgo"
-                value="${escapeHtml(item.error_detalle)}"
-                oninput="actualizarLpn(${index},'error_detalle',this.value)">
-
-            </div>
-
           </div>
 
           <div
             class="responsibility-grid"
             id="responsibility_${index}">
-
-            <div class="field">
-
-              <label>
-                Usuario responsable
-              </label>
-
-              <input
-                id="responsableUsuario_${index}"
-                type="text"
-                placeholder="Usuario"
-                value="${escapeHtml(item.responsable_usuario)}"
-                onchange="actualizarLpn(${index},'responsable_usuario',this.value)">
-
-            </div>
-
             <div class="field">
 
               <label>
@@ -6085,21 +6007,14 @@ function crearLpnCard(item,index,abrir=false){
                   Selecciona...
                 </option>
 
-                <option value="COORDINADOR A">
-                  COORDINADOR A
-                </option>
-
-                <option value="COORDINADOR B">
-                  COORDINADOR B
-                </option>
-
-                <option value="COORDINADOR C">
-                  COORDINADOR C
-                </option>
-
-                <option value="COORDINADOR D">
-                  COORDINADOR D
-                </option>
+                <option value="ARMANDO SERRANO">ARMANDO SERRANO</option>
+                <option value="ADAN BOLAÑOS">ADAN BOLAÑOS</option>
+                <option value="JULIAN LEON">JULIAN LEON</option>
+                <option value="MICHELLE BELEN">MICHELLE BELEN</option>
+                <option value="JESUS BRIOSO">JESUS BRIOSO</option>
+                <option value="ABRAHAM HERNANDEZ">ABRAHAM HERNANDEZ</option>
+                <option value="FELIX RODRIGUEZ">FELIX RODRIGUEZ</option>
+                <option value="MARIO VILLAGOMEZ">MARIO VILLAGOMEZ</option>
 
               </select>
 
@@ -6144,6 +6059,35 @@ function crearLpnCard(item,index,abrir=false){
 }
 
 
+function aplicarValoresBaseResponsables(){
+  const coordinador=document.getElementById("coordinador")?.value||"";
+  const cuadrilla=document.getElementById("cuadrilla")?.value||"";
+  const turno=document.getElementById("turno")?.value||"";
+  auditoriaActual.forEach((item,index)=>{
+    if(!item.responsable_coordinador){
+      item.responsable_coordinador=coordinador;
+      const el=document.getElementById(`responsableCoordinador_${index}`);
+      if(el)el.value=coordinador;
+    }
+    if(!item.responsable_cuadrilla){
+      item.responsable_cuadrilla=cuadrilla;
+      const el=document.getElementById(`responsableCuadrilla_${index}`);
+      if(el)el.value=cuadrilla;
+    }
+    if(!item.turno)item.turno=turno;
+    if(!item.cuadrilla)item.cuadrilla=cuadrilla;
+  });
+  guardarBorrador();
+}
+
+["coordinador","turno","cuadrilla"].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el && !el.dataset.defaultsResponsablesBound){
+    el.addEventListener("change",aplicarValoresBaseResponsables);
+    el.dataset.defaultsResponsablesBound="1";
+  }
+});
+
 function restaurarValoresLpn(index){
 
   const item =
@@ -6185,6 +6129,65 @@ function restaurarValoresLpn(index){
 
 }
 
+
+/* =========================================================
+   V45 · HALLAZGOS POR BLOQUE
+   Cada hallazgo guarda bloque, clasificación, descripción e imágenes
+   en evidencia_campos.hallazgos_bloque[hallazgo.id] para reutilizar
+   el mecanismo existente de sincronización de evidencias.
+========================================================= */
+function asegurarHallazgosBloque(item){
+  if(!Array.isArray(item.hallazgos_bloque)) item.hallazgos_bloque=[];
+  item.evidencia_campos=item.evidencia_campos||{};
+  item.evidencia_campos.hallazgos_bloque=item.evidencia_campos.hallazgos_bloque||{};
+  return item.hallazgos_bloque;
+}
+function agregarHallazgoBloque(index){
+  const item=auditoriaActual[index]; if(!item)return;
+  const lista=asegurarHallazgosBloque(item);
+  const id=(typeof generarIdUnico==='function'?generarIdUnico():('h'+Date.now()+Math.random().toString(36).slice(2,8))).toString().replace(/[^a-zA-Z0-9_-]/g,'');
+  lista.push({id, bloque:'GENERALES', tipo:'', descripcion:''});
+  item.evidencia_campos.hallazgos_bloque[id]=[];
+  renderizarHallazgosBloque(index); guardarBorrador();
+}
+function actualizarHallazgoBloque(index,id,campo,valor){
+  const item=auditoriaActual[index]; if(!item)return;
+  const h=asegurarHallazgosBloque(item).find(x=>String(x.id)===String(id)); if(!h)return;
+  h[campo]=String(valor??'');
+  // La descripción solo existe cuando el tipo de desviación es OTRO.
+  if(campo==='tipo' && h.tipo!=='Otro') h.descripcion='';
+  if(campo==='descripcion' && h.tipo!=='Otro') h.descripcion='';
+  guardarBorrador();
+  if(campo==='tipo') renderizarHallazgosBloque(index);
+}
+function eliminarHallazgoBloque(index,id){
+  const item=auditoriaActual[index]; if(!item)return;
+  item.hallazgos_bloque=asegurarHallazgosBloque(item).filter(x=>String(x.id)!==String(id));
+  if(item.evidencia_campos?.hallazgos_bloque)delete item.evidencia_campos.hallazgos_bloque[id];
+  renderizarHallazgosBloque(index); guardarBorrador();
+}
+function renderizarHallazgosBloque(index){
+  const item=auditoriaActual[index], cont=document.getElementById(`hallazgosBloqueLista_${index}`); if(!item||!cont)return;
+  const lista=asegurarHallazgosBloque(item);
+  if(!lista.length){cont.innerHTML='<div class="muted" style="font-size:11px;padding:7px 0">Sin hallazgos adicionales registrados. Usa “Agregar hallazgo” cuando aplique.</div>';return;}
+  const bloques=['GENERALES','INVENTARIO','PALLET','GRANEL'];
+  const tipos=['Etiqueta ilegible','Empaque dañado','Humedad','Contaminación','Plagas','Caducidad incorrecta','Diferencia de inventario','Código incorrecto','Lote incorrecto','Pallet defectuoso','Tablas rotas','Clavos expuestos','Stretch incorrecto','Carga inestable','Otro'];
+  cont.innerHTML=lista.map((h,i)=>{
+    const ev=item.evidencia_campos?.hallazgos_bloque?.[h.id]||[];
+    const opts=(arr,val,placeholder)=>`<option value="">${placeholder}</option>`+arr.map(x=>`<option value="${escapeHtml(x)}" ${val===x?'selected':''}>${escapeHtml(x)}</option>`).join('');
+    return `<article class="hallazgo-bloque-item"><div class="hallazgos-bloque-head"><strong>Hallazgo ${i+1}</strong><button type="button" class="btn btn-secondary btn-small" onclick="eliminarHallazgoBloque(${index},'${escapeHtml(h.id)}')">Eliminar</button></div>
+      <div class="hallazgo-bloque-grid">
+        <div class="field"><label>Bloque auditado</label><select onchange="actualizarHallazgoBloque(${index},'${escapeHtml(h.id)}','bloque',this.value)">${opts(bloques,h.bloque,'Selecciona bloque')}</select></div>
+        <div class="field"><label>Tipo de desviación</label><select onchange="actualizarHallazgoBloque(${index},'${escapeHtml(h.id)}','tipo',this.value)">${opts(tipos,h.tipo,'Selecciona desviación')}</select></div>
+        ${h.tipo==='Otro'?`<div class="field" style="grid-column:1/-1"><label>Descripción del hallazgo (obligatoria)</label><textarea required placeholder="Describe la desviación no incluida en el catálogo" onchange="actualizarHallazgoBloque(${index},'${escapeHtml(h.id)}','descripcion',this.value)">${escapeHtml(h.descripcion||'')}</textarea></div>`:''}
+        <div class="field" style="grid-column:1/-1"><label>Evidencia fotográfica (puedes adjuntar varias)</label><div class="field-evidence-actions"><label class="evidence-mini" for="hbCam_${index}_${h.id}">Cámara</label><label class="evidence-mini secondary" for="hbFile_${index}_${h.id}">Archivos</label><strong id="fieldEvidenceCount_${index}_hallazgos_bloque_${h.id}">(${ev.length})</strong></div>
+        <input id="hbCam_${index}_${h.id}" class="hidden" type="file" accept="image/*" capture="environment" multiple onchange="manejarEvidenciaCampo(event,${index},'hallazgos_bloque','${escapeHtml(h.id)}')">
+        <input id="hbFile_${index}_${h.id}" class="hidden" type="file" accept="image/*" multiple onchange="manejarEvidenciaCampo(event,${index},'hallazgos_bloque','${escapeHtml(h.id)}')">
+        <div class="field-evidence-preview" id="fieldEvidencePreview_${index}_hallazgos_bloque_${h.id}"></div></div>
+      </div></article>`;
+  }).join('');
+  lista.forEach(h=>renderizarEvidenciaCampo(index,'hallazgos_bloque',h.id));
+}
 
 /* =========================================================
    PREGUNTA QA
@@ -6391,6 +6394,24 @@ function convertirNumeroCientificoATexto(valor){
   return signo+resultado.replace(/\.0+$/,"").trim().replace(/(\.\d*?)0+$/,"$1");
 }
 
+function limpiarResultadoScannerGS1(valor){
+  let s=String(valor ?? "")
+    .replace(/[\x00-\x1F\x7F]/g,"")
+    .replace(/\u00A0/g," ")
+    .replace(/[\u200B-\u200D\uFEFF]/g,"")
+    .trim();
+
+  // ZXing puede devolver el identificador de simbología GS1-128
+  // antes del dato, por ejemplo ]C1. Ese prefijo NO forma parte de
+  // la LPN y debe eliminarse antes de comparar contra Excel.
+  s=s.replace(/^\]C[0-3]/i,"");
+
+  // Algunos lectores entregan el AI 00 con separadores o texto.
+  // Conservamos los dígitos para que la normalización posterior
+  // pueda reconstruir el GS1 completo.
+  return s.trim();
+}
+
 function normalizarLpn(valor){
   // Las etiquetas físicas son GS1-128 con AI (00).
   // Ejemplo de la etiqueta del usuario:
@@ -6398,7 +6419,7 @@ function normalizarLpn(valor){
   // El valor que aparece en el Excel es el GS1 COMPLETO de 20 dígitos:
   // 00100370003104746266
   // Por eso el formato canónico para LPN GS1 es AI(00) + SSCC de 18 dígitos.
-  let v=String(valor ?? "")
+  let v=limpiarResultadoScannerGS1(valor)
     .replace(/\u00A0/g," ")
     .replace(/[\u200B-\u200D\uFEFF]/g,"")
     .trim()
@@ -6432,7 +6453,17 @@ function normalizarLpn(valor){
   const gs1=v.match(/(?:^|\D)00[^0-9]*(\d{18})(?:\D|$)/);
   if(gs1?.[1]) return "00"+gs1[1];
 
-  // 4) Para LPN alfanuméricas, conservar la normalización anterior.
+  // 4) Si el lector entrega texto adicional alrededor del dato,
+  //    recuperamos primero un bloque GS1 de 20 dígitos o SSCC de 18.
+  //    Esto cubre prefijos/sufijos propios del lector sin alterar
+  //    una LPN alfanumérica válida.
+  const bloque20=v.match(/(?<!\d)(00\d{18})(?!\d)/);
+  if(bloque20?.[1]) return bloque20[1];
+
+  const bloque18=v.match(/(?<!\d)(\d{18})(?!\d)/);
+  if(bloque18?.[1]) return bloque18[1];
+
+  // 5) Para LPN alfanuméricas, conservar la normalización anterior.
   return v.replace(/\s+/g,"");
 }
 
@@ -7104,6 +7135,11 @@ function calcularHallazgos(item){
   const hallazgos=[];
   const checks=[["generales","etiqueta_proveedor","Etiqueta proveedor no legible"],["generales","empaque_integro","Empaque no íntegro"],["generales","sin_humedad","Presencia de humedad"],["generales","sin_contaminacion","Contaminación"],["generales","sin_plagas","Presencia de plagas"],["generales","caducidad_correcta","Caducidad incorrecta"],["inventario","coincide_fisico_sistema","Diferencia física"],["inventario","coincide_codigo","Código no coincide"],["inventario","coincide_lote","Lote no coincide"],["pallet","pallet_buen_estado","Pallet defectuoso"],["pallet","sin_tablas_rotas","Tablas rotas"],["pallet","sin_clavos_expuestos","Clavos expuestos"],["pallet","stretch_correcto","Stretch incorrecto"],["pallet","carga_estable","Carga inestable"],["pallet","alineacion_correcta","Alineación incorrecta"],["granel","contenedor_limpio","Contenedor sucio"],["granel","sin_material_extrano","Material extraño"],["granel","sin_mezcla_sku","Mezcla SKU"],["granel","sin_mezcla_lotes","Mezcla de lotes"]];
   checks.forEach(([cat,campo,texto])=>{if(item[cat]?.[campo]==="ERROR") hallazgos.push({texto,categoria:cat,campo});});
+  (item.hallazgos_bloque||[]).forEach((h,i)=>{
+    const tipo=String(h?.tipo||"").trim();
+    const detalle=String(h?.descripcion||"").trim();
+    if(tipo||detalle)hallazgos.push({texto:`${h?.bloque||"BLOQUE"}: ${tipo||"Desviación"}${detalle?" — "+detalle:""}`,categoria:"hallazgos_bloque",campo:String(h?.id||i)});
+  });
   return hallazgos;
 }
 
@@ -7172,7 +7208,7 @@ function revocarObjectURLsEnElemento(elemento){
   if(!elemento)return;
   elemento.querySelectorAll("[data-qa-object-url]").forEach(img=>{
     const u=img.dataset.qaObjectUrl;
-    if(u&&u.startsWith("blob:"))window.URL && typeof window.URL.revokeObjectURL === "function" && window.URL.revokeObjectURL(u);
+    if(u&&u.startsWith("blob:"))window.URL && typeof window.URL.revokeObjectURL === 'function' && window.URL.revokeObjectURL(u);
     delete img.dataset.qaObjectUrl;
   });
 }
@@ -7676,10 +7712,17 @@ function renderizarEvidenciaCampo(
   archivos.forEach(
     (file,i) => {
 
-      const url =
-        typeof file === "string"
-          ? file
-          : URL.createObjectURL(file);
+      let url = "";
+      if(typeof file === "string"){
+        url = file;
+      }else if(file && typeof Blob !== "undefined" && file instanceof Blob){
+        url = URL.createObjectURL(file);
+      }else if(file && typeof file.url === "string"){
+        url = file.url;
+      }
+      // Los registros serializados (por ejemplo {tipo:"local", localId:"..."})
+      // no son Blob/File y no deben pasarse a URL.createObjectURL.
+      if(!url) return;
 
       cont.insertAdjacentHTML(
         "beforeend",
@@ -7687,7 +7730,7 @@ function renderizarEvidenciaCampo(
           <div class="field-evidence-thumb">
             <img
               src="${escapeHtml(url)}"
-              ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}" onload="this.dataset.qaObjectUrl&&window.URL && typeof window.URL.revokeObjectURL === "function" && window.URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl" onerror="this.dataset.qaObjectUrl&&window.URL && typeof window.URL.revokeObjectURL === "function" && window.URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl"`:""}
+              ${url.startsWith("blob:")?`data-qa-object-url="${escapeHtml(url)}" onload="this.dataset.qaObjectUrl&&window.URL && typeof window.URL.revokeObjectURL === 'function' && window.URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl" onerror="this.dataset.qaObjectUrl&&window.URL && typeof window.URL.revokeObjectURL === 'function' && window.URL.revokeObjectURL(this.dataset.qaObjectUrl);delete this.dataset.qaObjectUrl"`:""}
               alt="Evidencia"
               style="width:100%;height:32px;object-fit:cover;border-radius:4px">
 
@@ -8391,10 +8434,17 @@ function validarTiempoReal(){
       }
     });
 
-    if(existeErrorObjetivo(item)){
+      (item.hallazgos_bloque||[]).forEach((h,hi)=>{
+        if(!String(h.bloque||"").trim())faltantes.push(`bloque del hallazgo ${hi+1} de la LPN ${n}`);
+        if(!String(h.tipo||"").trim())faltantes.push(`tipo de desviación del hallazgo ${hi+1} de la LPN ${n}`);
+        if(String(h.tipo||'')==='Otro' && !String(h.descripcion||"").trim())faltantes.push(`descripción del hallazgo ${hi+1} de la LPN ${n}`);
+        const fotos=item.evidencia_campos?.hallazgos_bloque?.[h.id]||[];
+        if(!fotos.length)faltantes.push(`evidencia fotográfica del hallazgo ${hi+1} de la LPN ${n}`);
+      });
+
+    if((calcularHallazgos(item)||[]).some(h=>h.categoria!=="hallazgos_bloque") || (item.error_tipo && item.error_tipo!=="NINGUNO")){
       if(!String(item.error_detalle||"").trim()) faltantes.push(`descripción del hallazgo de la LPN ${n}`);
       if(item.error_tipo==="NINGUNO") faltantes.push(`clasificación PLANTA u OPERACIÓN del hallazgo de la LPN ${n}`);
-      if(!item.responsable_usuario) faltantes.push(`usuario responsable de la LPN ${n}`);
       if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
       if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
       if(!["SI","NO"].includes(item.desviacion_corregida)) faltantes.push(`indicación de si el error de la LPN ${n} fue corregido`);
@@ -8769,6 +8819,103 @@ function finalizarAuditoriaGuardadaYMostrarMenu(folio, mensaje, tipo="success", 
   }
 }
 
+/* =========================================================
+   CONEXIÓN AUTOMÁTICA CON INCIDENCIAS EN RECIBO
+   Inserta una incidencia en incidencias_recibo cuando la auditoría
+   contiene hallazgos. La referencia de auditoría viaja en desviaciones
+   para no requerir columnas nuevas en la tabla existente.
+========================================================= */
+function obtenerHallazgosParaIncidencia(codigo){
+  const salida=[];
+  const base={
+    gcas:String(codigo?.gcas||codigo?.GCAS||codigo?.gcas_codigo||""),
+    lote:String(codigo?.lote||codigo?.lote_produccion||""),
+    cantidad:String(codigo?.cantidad_afectada||codigo?.cantidad||""),
+    unidad:String(codigo?.unidad||""),
+    lpn:String(codigo?.lpn||"")
+  };
+  const tipo=String(codigo?.error_tipo||"").trim();
+  const detalle=String(codigo?.error_detalle||"").trim();
+  if(tipo && tipo.toUpperCase()!=="NINGUNO"){
+    salida.push({...base,motivo:tipo+(detalle?" — "+detalle:""),tipo,detalle});
+  }
+  // Incluye desviaciones de las listas generales/inventario/pallet/granel,
+  // además de los hallazgos adicionales por bloque.
+  const hallazgosCalculados=typeof calcularHallazgos==="function"?calcularHallazgos(codigo):[];
+  hallazgosCalculados.filter(h=>h?.categoria!=="hallazgos_bloque").forEach(h=>{
+    salida.push({...base,motivo:String(h?.texto||"Desviación"),tipo:String(h?.categoria||"Desviación"),detalle:String(h?.campo||"")});
+  });
+  (Array.isArray(codigo?.hallazgos_bloque)?codigo.hallazgos_bloque:[]).forEach(h=>{
+    const tipoBloque=String(h?.tipo||"Desviación").trim();
+    const detalleBloque=String(h?.descripcion||"").trim();
+    salida.push({...base,motivo:[String(h?.bloque||"BLOQUE").trim(),tipoBloque,detalleBloque].filter(Boolean).join(" — "),tipo:tipoBloque,detalle:detalleBloque});
+  });
+  return salida;
+}
+
+function recolectarUrlsEvidencia(codigos){
+  const urls=[];
+  const recorrer=v=>{
+    if(typeof v==="string"){
+      if(/^https?:\/\//i.test(v))urls.push(v);
+    }else if(Array.isArray(v))v.forEach(recorrer);
+    else if(v && typeof v==="object")Object.values(v).forEach(recorrer);
+  };
+  (codigos||[]).forEach(c=>{
+    recorrer(c?.imagenes);
+    recorrer(c?.evidencias_por_tipo);
+    recorrer(c?.evidencia_campos_urls);
+    recorrer(c?.evidencia_positiva_urls);
+  });
+  return [...new Set(urls)];
+}
+
+async function crearIncidenciaAutomaticaDesdeAuditoria(datosAuditoria){
+  const codigos=Array.isArray(datosAuditoria?.codigos)?datosAuditoria.codigos:[];
+  const folioAuditoria=String(datosAuditoria?.folio||"").trim();
+  if(!folioAuditoria)throw new Error("No se encontró el folio de la auditoría para vincular la incidencia.");
+
+  const desviaciones=[];
+  codigos.forEach(c=>obtenerHallazgosParaIncidencia(c).forEach(d=>desviaciones.push({...d,auditoria_folio:folioAuditoria,_auditoria_folio:folioAuditoria,origen_registro:"AUDITORIA_RECIBO_V52"})));
+  if(!desviaciones.length)return {creada:false,folio:null,motivo:"SIN_HALLAZGOS"};
+
+  // Evita duplicar la incidencia si se reintenta el proceso para el mismo folio.
+  const {data:existentes,error:errorConsulta}=await supabaseClient
+    .from("incidencias_recibo").select("folio,consecutivo,desviaciones").order("consecutivo",{ascending:false}).limit(2000);
+  if(errorConsulta)throw new Error("No fue posible comprobar incidencias previas: "+errorConsulta.message);
+  const existente=(existentes||[]).find(r=>{
+    let ds=r?.desviaciones;
+    if(typeof ds==="string"){try{ds=JSON.parse(ds)}catch(e){ds=[]}}
+    return Array.isArray(ds)&&ds.some(d=>String(d?._auditoria_folio||d?.auditoria_folio||"")===folioAuditoria);
+  });
+  if(existente)return {creada:false,folio:existente.folio,motivo:"YA_EXISTIA"};
+
+  const max=Number((existentes||[]).reduce((m,r)=>Math.max(m,Number(r?.consecutivo)||0),0));
+  const consecutivo=max+1;
+  const folioRI=`RI-2627-${String(consecutivo).padStart(3,"0")}`;
+  const fotos=[...new Set([
+    ...recolectarUrlsEvidencia(codigos),
+    ...(Array.isArray(datosAuditoria?.imagenes)?datosAuditoria.imagenes:[])
+      .filter(v=>typeof v==="string"&&/^https?:\/\//i.test(v))
+  ])];
+  const fila={
+    folio:folioRI,
+    consecutivo,
+    nombre:String(datosAuditoria?.nombre||usuarioQA?.nombre||""),
+    area:String(usuarioQA?.area||""),
+    turno:String(datosAuditoria?.turno||document.getElementById("turno")?.value||""),
+    cuadrilla:String(datosAuditoria?.cuadrilla||document.getElementById("cuadrilla")?.value||""),
+    cortina:String(datosAuditoria?.cortina||""),
+    sto:String(datosAuditoria?.sto||""),
+    origen:String(datosAuditoria?.origen||""),
+    desviaciones,
+    fotos
+  };
+  const {error}=await supabaseClient.from("incidencias_recibo").insert([fila]);
+  if(error)throw new Error("La auditoría se guardó, pero no se pudo crear la incidencia automática: "+error.message);
+  return {creada:true,folio:folioRI,motivo:"CREADA",cantidad:desviaciones.length};
+}
+
 async function guardarAuditoria(){
 
   // Captura el estado actual antes de validar o finalizar.
@@ -8868,7 +9015,22 @@ mostrarAlertaQA(
     }
 
     /*
-       La auditoría ya quedó registrada en Supabase.
+       La auditoría ya quedó registrada. Si contiene hallazgos, crear
+       también su incidencia en la tabla que utiliza Incidencia en Recibo.
+       Un fallo aquí no revierte la auditoría ya guardada.
+    */
+    let resultadoIncidenciaAutomatica=null;
+    try{
+      resultadoIncidenciaAutomatica=await crearIncidenciaAutomaticaDesdeAuditoria(datos);
+      if(resultadoIncidenciaAutomatica?.motivo==="CREADA"){
+        console.info("Incidencia automática creada",resultadoIncidenciaAutomatica.folio,"para auditoría",folio);
+      }
+    }catch(errorIncidencia){
+      console.error("Auditoría guardada; falló la creación automática de incidencia:",errorIncidencia);
+      resultadoIncidenciaAutomatica={error:errorIncidencia?.message||"Error al crear la incidencia"};
+    }
+
+    /*
        Las tareas de seguimiento son posteriores y no deben
        convertir un guardado exitoso en un error de guardado.
     */
@@ -8923,83 +9085,15 @@ mostrarAlertaQA(
       );
 
     if(errorPlanta){
-
-      localStorage.setItem(
-        "tipoIncidencia",
-        "PLANTA"
-      );
-
-      localStorage.setItem(
-        "lpn",
-        errorPlanta.lpn
-      );
-
-      localStorage.setItem(
-        "detalleIncidencia",
-        errorPlanta.error_detalle ||
-        ""
-      );
-
-      localStorage.setItem(
-        "auditoriaFolio",
-        folio
-      );
-
-      localStorage.setItem(
-        "auditoriaCodigos",
-        JSON.stringify(
-          auditoriaActual
-        )
-      );
-
-      localStorage.setItem(
-        "folio",
-        folio
-      );
-
-      localStorage.setItem(
-        "cortina",
-        document
-          .getElementById(
-            "cortina"
-          )
-          .value
-          .trim()
-      );
-
-      localStorage.setItem(
-        "sto",
-        document
-          .getElementById(
-            "sto"
-          )
-          .value
-          .trim()
-      );
-
-      localStorage.setItem(
-        "origen",
-        document
-          .getElementById(
-            "origen"
-          )
-          .value
-          .trim()
-      );
-
-mostrarAlertaQA(
-  `La auditoría ${folio} fue guardada correctamente.\n\n` +
-  `Se detectó un error de PLANTA en la LPN ${errorPlanta.lpn}.\n\n` +
-  `Serás dirigido a Incidencia en Recibo para continuar con el registro.`,
-  "warning",
-  "Desviación de planta"
-);
-
-      window.location.href =
-        "Incidencia en Recibo.html";
-
-      return;
-
+      // La incidencia ya se generó automáticamente al detectar hallazgos;
+      // no enviar al usuario a capturarla por segunda vez.
+      if(resultadoIncidenciaAutomatica?.error){
+        mostrarAlertaQA(
+          `La auditoría ${folio} se guardó, pero la incidencia automática no pudo crearse.\n\n${resultadoIncidenciaAutomatica.error}\n\nConserva este folio para dar seguimiento.`,
+          "warning",
+          "Incidencia pendiente de sincronizar"
+        );
+      }
     }
 
     const tareaPendiente = tareasAuditoriaLpn[0];
@@ -9016,12 +9110,19 @@ mostrarAlertaQA(
       return;
     }
 
+    const detalleIncidencia=resultadoIncidenciaAutomatica?.error
+      ? `\n\nATENCIÓN: la incidencia automática no pudo crearse. ${resultadoIncidenciaAutomatica.error}`
+      : resultadoIncidenciaAutomatica?.folio
+        ? `\n\nIncidencia relacionada: ${resultadoIncidenciaAutomatica.folio}.`
+        : resultadoIncidenciaAutomatica?.motivo==="SIN_HALLAZGOS"
+          ? `\n\nNo se generó incidencia porque la auditoría no contiene desviaciones.`
+          : "";
     finalizarAuditoriaGuardadaYMostrarMenu(
       folio,
-      `La auditoría ${folio} fue guardada correctamente.\n\n` +
+      `La auditoría ${folio} fue guardada correctamente.${detalleIncidencia}\n\n` +
       `La información de esta auditoría fue limpiada de la pantalla.`,
-      "success",
-      "Auditoría guardada"
+      resultadoIncidenciaAutomatica?.error ? "warning" : "success",
+      resultadoIncidenciaAutomatica?.error ? "Auditoría guardada; revisar incidencia" : "Auditoría guardada"
     );
 
   }catch(error){
@@ -9094,6 +9195,9 @@ function construirDatosAuditoria(
         return {
 
           ...copia,
+          tamano_lote:Number(document.getElementById("tamanoLote")?.value||0),
+          codigo_muestreo:codigoLetraMuestra||"",
+          cantidad_muestra:Number(muestraCalculada||auditoriaActual.length||0),
           auditoria_borrador_id:auditoriaId,
           dictamen_auditoria:obtenerEstadoResultadoDinamico().dictamen,
           nivel_tamu:obtenerNivelTAMU().nombre,
@@ -9255,7 +9359,6 @@ function guardarTareaAuditoriaLpn(
     folio,
     detalle:item.error_detalle || construirDetalleAutomatico(item),
     tipo:item.error_tipo || "OPERACION",
-    usuario:item.responsable_usuario || "",
     cuadrilla:item.responsable_cuadrilla || "",
     coordinador:item.responsable_coordinador || "",
     fecha_creacion:
@@ -9449,60 +9552,62 @@ function abrirTareaPendiente(
 
 async function buscarLPNAlmacenaje(){
   const input=document.getElementById("buscarLpn");
-  const lpn=normalizarLpn(input?.value||"");
-  if(!lpn){
-    mostrarAlertaQA("Ingresa una LPN.","warning","LPN requerida");
-    return;
-  }
+  const busqueda=String(input?.value||"").trim();
   const contenedor=document.getElementById("resultadoAlmacenaje");
-  if(!contenedor)return;
-  contenedor.innerHTML='<div class="reportes-loading"><span class="qa-spinner"></span><span>Buscando LPN…</span></div>';
+  const lista=document.getElementById("consultaHallazgosLista");
+  if(!contenedor||!lista)return;
+  contenedor.innerHTML="";
+  lista.innerHTML='<div class="reportes-loading"><span class="qa-spinner"></span><span>Consultando LPN con hallazgos…</span></div>';
   try{
-    const {data,error}=await supabaseClient.rpc(RPC_BUSCAR_LPN,{p_lpn:lpn});
+    const {data,error}=await supabaseClient.from(TABLA).select("*").order("created_at",{ascending:false}).limit(1000);
     if(error)throw error;
-    const encontrados=(Array.isArray(data)?data:[]).map(x=>({
-      registro:x?.registro||{},
-      codigo:x?.codigo||{}
-    }));
-    encontrados.sort((a,b)=>
-      (new Date(b.registro?.created_at||0).getTime()||0)-
-      (new Date(a.registro?.created_at||0).getTime()||0)
-    );
-    const ultimoConError=encontrados.find(x=>x.codigo?.error_tipo&&x.codigo.error_tipo!=="NINGUNO");
-    const encontrado=ultimoConError||encontrados.find(x=>x.codigo?.error_tipo!=="NINGUNO")||encontrados[0];
-    if(!encontrado){
-      const tarea=tareasAuditoriaLpn.find(x=>normalizarLpn(x.lpn)===lpn);
-      if(tarea?.item){
-        const itemLocal={...tarea.item};
-        delete itemLocal.evidencia_campos;
-        encontrado={
-          registro:{
-            folio:tarea.folio||"",
-            etiqueta:tarea.item.tipo_recibo||"",
-            cortina:tarea.item.cortina||"",
-            sto:tarea.item.sto||"",
-            origen:tarea.item.origen||"",
-            turno:tarea.item.turno||"",
-            cuadrilla:tarea.item.cuadrilla||"",
-            coordinador:tarea.item.responsable_coordinador||tarea.coordinador||""
-          },
-          codigo:itemLocal
-        };
-      }else{
-        contenedor.innerHTML=`<div class="alert alert-warning" style="margin-top:12px">No se encontró la LPN <strong>${escapeHtml(lpn)}</strong> en las auditorías registradas y esta tarea no contiene información guardada para cargarla.</div>`;
-        return;
-      }
+    const filas=[];
+    const claveBusqueda=busqueda?clavesLpn(busqueda):[];
+    (Array.isArray(data)?data:[]).forEach(registro=>{
+      const codigos=obtenerCodigosRegistro(registro);
+      codigos.forEach(codigo=>{
+        if(!codigo||!codigo.error_tipo||codigo.error_tipo==="NINGUNO")return;
+        if(busqueda&&!clavesLpn(codigo.lpn).some(k=>claveBusqueda.includes(k)))return;
+        const fotos=[];
+        const agregarFoto=v=>{if(typeof v==="string"&&v)fotos.push(v);else if(v?.url)fotos.push(v.url);};
+        Object.values(codigo.evidencia_campos_urls||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(agregarFoto)));
+        Object.values(codigo.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(agregarFoto)));
+        filas.push({registro,codigo,fotos:[...new Set(fotos)]});
+      });
+    });
+    if(!filas.length){
+      lista.innerHTML=busqueda?`<div class="reportes-empty">No se encontraron hallazgos para la LPN <strong>${escapeHtml(busqueda)}</strong>.</div>`:'<div class="reportes-empty">No hay LPN con hallazgos registrados.</div>';
+      return;
     }
-    lpnAlmacenajeActual=encontrado;
-    correccionAlmacenaje="";
-    contenedor.innerHTML=crearVistaAlmacenaje(encontrado.registro,encontrado.codigo);
-    window.setTimeout(()=>{
-      document.querySelector(".storage-result")?.scrollIntoView({behavior:"smooth",block:"start"});
-    },100);
+    lista.innerHTML=filas.map((x,i)=>{
+      const r=x.registro,c=x.codigo;
+      const fotos=x.fotos.map(url=>`<a href="${escapeHtml(url)}" target="_blank" rel="noopener"><img src="${escapeHtml(url)}" alt="Evidencia LPN ${escapeHtml(c.lpn||"")}" loading="lazy"></a>`).join("");
+      return `<article class="consulta-hallazgo-card">
+        <div class="consulta-hallazgo-head"><strong>LPN ${escapeHtml(c.lpn||"—")}</strong><span class="status-pill status-error">${escapeHtml(c.error_tipo||"HALLAZGO")}</span></div>
+        <div class="consulta-hallazgo-datos">
+          <div class="consulta-hallazgo-dato"><span>Folio de auditoría</span>${escapeHtml(r.folio||"—")}</div>
+          <div class="consulta-hallazgo-dato"><span>Fecha</span>${escapeHtml(fechaRegistroReporte(r))}</div>
+          <div class="consulta-hallazgo-dato"><span>STO / Master Receipt</span>${escapeHtml(r.sto||c.sto||"—")}</div>
+          <div class="consulta-hallazgo-dato"><span>Origen</span>${escapeHtml(r.origen||c.origen||"—")}</div>
+          <div class="consulta-hallazgo-dato"><span>Auditor</span>${escapeHtml(r.nombre||"—")}</div>
+          <div class="consulta-hallazgo-dato"><span>Detalle del hallazgo</span>${escapeHtml(c.error_detalle||construirDetalleAutomatico(c)||"Sin detalle registrado")}</div>
+          <div class="consulta-hallazgo-dato"><span>Cuadrilla</span>${escapeHtml(c.responsable_cuadrilla||r.cuadrilla||"—")}</div>
+        </div>
+        ${fotos?`<div class="consulta-hallazgo-fotos">${fotos}</div>`:'<div class="consulta-hallazgo-datos"><div class="consulta-hallazgo-dato">Sin evidencia fotográfica disponible en el registro.</div></div>'}
+        <div class="consulta-hallazgo-acciones"><button type="button" class="btn btn-primary btn-small" onclick="generarPDFRegistroDesdeConsulta(${i})">PDF de auditoría</button></div>
+      </article>`;
+    }).join("");
+    window.qaHallazgosConsulta=filas;
   }catch(error){
-    console.error("Error buscando LPN en almacenaje:",error);
-    contenedor.innerHTML=`<div class="alert alert-error">No fue posible consultar la LPN. ${escapeHtml(error?.message||"Error de conexión con Supabase.")}</div>`;
+    console.error("Error consultando hallazgos de almacenaje:",error);
+    lista.innerHTML=`<div class="reportes-empty"><strong>No fue posible consultar los hallazgos.</strong><br>${escapeHtml(error?.message||"Error de conexión con Supabase.")}</div>`;
   }
+}
+
+function generarPDFRegistroDesdeConsulta(indice){
+  const item=window.qaHallazgosConsulta?.[indice];
+  if(!item?.registro){mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");return;}
+  generarPDFRegistro(item.registro);
 }
 
 function crearVistaAlmacenaje(
@@ -10197,6 +10302,7 @@ async function guardarResultadoAlmacenaje(){
 let reportesDatos=[];
 let reportesPaginaActual=1;
 let reportesTotal=0;
+let reportesFiltros={desde:"",hasta:"",sto:""};
 const REPORTES_POR_PAGINA=20;
 
 function abrirReportes(){
@@ -10231,9 +10337,11 @@ async function cargarReportes(pagina=reportesPaginaActual){
     const paginaSegura=Math.max(1,Number(pagina)||1);
     const inicio=(paginaSegura-1)*REPORTES_POR_PAGINA;
     const fin=inicio+REPORTES_POR_PAGINA-1;
-    const {data,error,count}=await supabaseClient
-      .from(TABLA)
-      .select("*",{count:"exact"})
+    let consulta=supabaseClient.from(TABLA).select("*",{count:"exact"});
+    if(reportesFiltros.desde) consulta=consulta.gte("created_at",`${reportesFiltros.desde}T00:00:00`);
+    if(reportesFiltros.hasta) consulta=consulta.lte("created_at",`${reportesFiltros.hasta}T23:59:59.999`);
+    if(reportesFiltros.sto) consulta=consulta.ilike("sto",`%${reportesFiltros.sto.replace(/[,%()]/g," ").trim()}%`);
+    const {data,error,count}=await consulta
       .order("consecutivo",{ascending:false})
       .order("created_at",{ascending:false})
       .range(inicio,fin);
@@ -10254,6 +10362,19 @@ async function cargarReportes(pagina=reportesPaginaActual){
     actualizarKpisReportes();
   }
 }
+function aplicarFiltrosReportes(){
+  const desde=document.getElementById("reportesFechaDesde")?.value||"";
+  const hasta=document.getElementById("reportesFechaHasta")?.value||"";
+  if(desde&&hasta&&desde>hasta){mostrarAlertaQA("La fecha inicial no puede ser posterior a la fecha final.","warning","Rango de fechas inválido");return;}
+  reportesFiltros={desde,hasta,sto:(document.getElementById("reportesFiltroSto")?.value||"").trim()};
+  reportesPaginaActual=1;
+  cargarReportes(1);
+}
+function limpiarFiltrosReportes(){
+  ["reportesFechaDesde","reportesFechaHasta","reportesFiltroSto"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  reportesFiltros={desde:"",hasta:"",sto:""};reportesPaginaActual=1;cargarReportes(1);
+}
+
 function actualizarKpisReportes(){
   const total=reportesTotal;
   const paginas=Math.max(1,Math.ceil(total/REPORTES_POR_PAGINA));
@@ -10297,8 +10418,9 @@ function renderReportes(){
     const indiceGlobal=inicio+indicePagina;
     const codigos=obtenerCodigosRegistro(r);
     const primera=codigos[0]||{};
-    const hallazgos=codigos.filter(x=>x?.error_tipo&&x.error_tipo!=="NINGUNO").length;
-    const dictamen=primera.dictamen_auditoria||(hallazgos?"RECHAZADO":"ACEPTADO");
+    const resultadoMuestreo=obtenerDictamenMuestreoRegistro(r);
+    const hallazgos=resultadoMuestreo.totalHallazgos;
+    const dictamen=resultadoMuestreo.dictamen;
     return `
       <tr>
         <td class="folio">${escapeHtml(r.folio||generarFolio(r.consecutivo||0))}</td>
@@ -10310,7 +10432,7 @@ function renderReportes(){
         <td>${escapeHtml(r.etiqueta||"—")}</td>
         <td class="hallazgos">${hallazgos}</td>
         <td class="dictamen">${escapeHtml(dictamen)}</td>
-        <td class="accion"><button type="button" class="btn btn-primary btn-small" onclick="generarPDFdesdeReporte(${indiceGlobal})">PDF</button></td>
+        <td class="accion"><div style="display:flex;gap:4px;justify-content:center"><button type="button" class="btn btn-primary btn-small" onclick="generarPDFdesdeReporte(${indiceGlobal})">PDF</button>${dictamen==="RECHAZADO"?`<button type="button" class="btn btn-secondary btn-small" onclick="generarCorreoAuditoria(${indiceGlobal})">Correo</button>`:`<button type="button" class="btn btn-secondary btn-small" disabled title="El correo solo está disponible cuando el dictamen de muestreo es RECHAZADO" style="opacity:.45;cursor:not-allowed">Correo</button>`}</div></td>
       </tr>`;
   }).join("");
 
@@ -10348,6 +10470,31 @@ function obtenerCodigosRegistro(r){
   return Array.isArray(c)?c:[];
 }
 
+/* Dictamen único por criterio de muestreo: Ac=1, Re=2.
+   El mismo resultado alimenta Reportes, PDF y elegibilidad del correo. */
+function obtenerDictamenMuestreoRegistro(r){
+  const codigos=obtenerCodigosRegistro(r);
+  const hallazgos=codigos.filter(c=>(c?.error_tipo&&c.error_tipo!=="NINGUNO")||(Array.isArray(c?.hallazgos_bloque)&&c.hallazgos_bloque.length>0));
+  const lpnConHallazgo=new Set(hallazgos.map((c,i)=>String(c?.lpn||`SIN_LPN_${i+1}`).trim()));
+  const totalRechazadas=lpnConHallazgo.size;
+  const totalAuditadas=codigos.filter(c=>String(c?.lpn??"").trim()!=="").length||codigos.length;
+  const muestreo=r?.muestreo||r?.sampling||r?.datosMuestreo||{};
+  let codigoMuestra=String(
+    r?.codigoLetraMuestra||r?.codigo_letra_muestra||r?.codigo_muestreo||r?.codigoMuestra||r?.codigo_muestra||
+    muestreo.codigoLetraMuestra||muestreo.codigo_muestreo||muestreo.codigoMuestra||muestreo.codigo||
+    codigos.map(c=>c?.codigo_muestreo||c?.codigoLetraMuestra||c?.codigoMuestra).find(v=>String(v??"").trim()!=="")||""
+  ).trim().toUpperCase();
+  if(!codigoMuestra&&typeof obtenerMuestraNivelII==="function"){
+    const lote=Number(r?.tamano_lote||r?.tamanoLote||r?.tamanoTotalLote||muestreo.tamano_lote||muestreo.tamanoLote||0);
+    const plan=lote>0?obtenerMuestraNivelII(lote):null;
+    if(plan?.letra)codigoMuestra=String(plan.letra).toUpperCase();
+  }
+  const aceptaHasta=1;
+  const rechazaDesde=2;
+  const dictamen=totalRechazadas>=rechazaDesde?"RECHAZADO":"ACEPTADO";
+  return {dictamen,codigoMuestra,totalAuditadas,totalRechazadas,totalHallazgos:hallazgos.length,aceptaHasta,rechazaDesde,hallazgos};
+}
+
 function obtenerImagenesRegistro(r){
   let imgs=r?.imagenes ?? [];
   if(typeof imgs==="string"){try{imgs=JSON.parse(imgs);}catch(e){imgs=[imgs];}}
@@ -10369,8 +10516,166 @@ async function cargarImagenDataURL(url){
   }catch(e){return null;}
 }
 
+async function generarCorreoAuditoria(indice){
+  const r=reportesDatos[indice];
+  if(!r){mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");return;}
+  const codigos=obtenerCodigosRegistro(r);
+  const resultadoMuestreo=obtenerDictamenMuestreoRegistro(r);
+  const hallazgos=resultadoMuestreo.hallazgos;
+  if(resultadoMuestreo.dictamen!=="RECHAZADO"){
+    mostrarAlertaQA(`No se puede enviar correo: el dictamen por muestreo es ${resultadoMuestreo.dictamen}. Con el criterio Ac=${resultadoMuestreo.aceptaHasta} / Re=${resultadoMuestreo.rechazaDesde}, se requiere alcanzar ${resultadoMuestreo.rechazaDesde} tarimas con hallazgo para dictaminar RECHAZADO.`,"warning","Correo no disponible para auditorías aceptadas");
+    return;
+  }
+  if(!hallazgos.length){mostrarAlertaQA("El correo solo está disponible para auditorías rechazadas por el criterio de muestreo.","warning","Auditoría sin hallazgos");return;}
+  const primera=codigos[0]||{};
+  // Lee los metadatos de muestreo tanto del registro principal como de las LPN,
+  // porque algunas auditorías históricas guardaron esos campos en lugares distintos.
+  const valorNumerico=(...valores)=>{
+    for(const valor of valores){
+      if(valor!==undefined&&valor!==null&&String(valor).trim()!==""){
+        const normalizado=typeof valor==="string"?valor.trim().replace(/\s/g,"").replace(/,(?=\d{1,2}$)/,".").replace(/,/g,""):valor;
+        const n=Number(normalizado);
+        if(Number.isFinite(n)&&n>0)return n;
+      }
+    }
+    return 0;
+  };
+  const muestreo=r.muestreo||r.sampling||r.datosMuestreo||{};
+  const lote=valorNumerico(
+    r.tamano_lote,r.tamanoLote,r.tamanoTotalLote,r.tamano_total_lote,
+    muestreo.tamano_lote,muestreo.tamanoLote,muestreo.tamanoTotalLote,
+    ...codigos.map(c=>c?.tamano_lote)
+  );
+  const lpnAuditadas=codigos.filter(c=>String(c?.lpn??"").trim()!=="").length||codigos.length;
+  // El porcentaje usa las LPN efectivamente guardadas en la auditoría, no una
+  // cantidad de muestra planeada que pudiera ser distinta o estar desactualizada.
+  const muestra=lpnAuditadas;
+  let letra=String(
+    r.codigoLetraMuestra||r.codigo_letra_muestra||r.codigo_muestreo||r.codigoMuestra||r.codigo_muestra||
+    muestreo.codigoLetraMuestra||muestreo.codigo_muestreo||muestreo.codigoMuestra||muestreo.codigo||
+    codigos.map(c=>c?.codigo_muestreo||c?.codigoLetraMuestra||c?.codigoMuestra).find(v=>String(v??"").trim()!=="")||""
+  ).trim();
+  // Si una auditoría histórica no guardó la letra, reconstruirla desde la tabla
+  // de muestreo del propio sistema: primero por tamaño del lote y luego por muestra.
+  if(!letra&&typeof obtenerMuestraNivelII==="function"){
+    const plan=lote>0?obtenerMuestraNivelII(lote):null;
+    const planPorCantidad=plan||(Array.isArray(tablaMuestreoNivelII)?tablaMuestreoNivelII.find(x=>Number(x.muestra)===muestra):null);
+    if(planPorCantidad?.letra)letra=String(planPorCantidad.letra);
+  }
+  // Para el correo se reporta el total realmente auditado y el resultado real;
+  // no se muestra el tamaño del lote ni un porcentaje cuando ese dato falta.
+  const totalRechazadas=resultadoMuestreo.totalRechazadas;
+  const totalAprobadas=Math.max(0,muestra-totalRechazadas);
+  const codigoMuestra=String(letra||resultadoMuestreo.codigoMuestra||"").trim().toUpperCase();
+  const aceptaHasta=resultadoMuestreo.aceptaHasta;
+  const rechazaDesde=resultadoMuestreo.rechazaDesde;
+  const dictamenMuestreo=resultadoMuestreo.dictamen==="RECHAZADO"?"SE EXCEDE EL NÚMERO DE RECHAZO: RECIBO RECHAZADO":"NO SE EXCEDE EL NÚMERO DE RECHAZO: RECIBO ACEPTADO SEGÚN ESTE CRITERIO";
+  const master=String(r.sto||primera.sto||"[MASTER RECEIPT NO REGISTRADO]");
+  const origen=String(r.origen||primera.origen||"[ORIGEN NO REGISTRADO]");
+  const asunto=`RECHAZO SIMULADO | ${master} | ${origen}`;
+  const paginasPdfPorLpn={};
+  // El PDF inicia con el bloque de datos generales antes de las LPN.
+  let paginaPdf=1,yPdf=83;
+  codigos.forEach((item,idx)=>{
+    if(yPdf+65>276){paginaPdf++;yPdf=28;}
+    if(yPdf+10>276){paginaPdf++;yPdf=28;} yPdf+=9;
+    yPdf+=14; yPdf+=14; yPdf+=18;
+    if(item?.error_tipo&&item.error_tipo!=="NINGUNO"){
+      if(yPdf+28>276){paginaPdf++;yPdf=28;} yPdf+=9; yPdf+=14; yPdf+=16;
+      if(yPdf+55>276){paginaPdf++;yPdf=28;} yPdf+=9;
+      paginasPdfPorLpn[String(item.lpn||idx+1)]=paginaPdf;
+      const fotos=(()=>{const a=[];Object.values(item.evidencia_campos_urls||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(u=>a.push(typeof u==="string"?u:u?.url))));return a.filter(Boolean);})();
+      const cantidad=Math.min([...new Set(fotos)].length,6);
+      yPdf+=Math.max(16,Math.ceil(Math.max(cantidad,1)/3)*(48+7));
+    }
+  });
+  const desviaciones=hallazgos.map((c,i)=>{
+    const pagina=paginasPdfPorLpn[String(c.lpn||codigos.indexOf(c)+1)];
+    return `${i+1}. LPN: ${c.lpn||"NO REGISTRADA"}
+Hallazgo: ${c.error_detalle||construirDetalleAutomatico(c)||"Sin detalle registrado"}
+Tipo: ${c.error_tipo||"NO ESPECIFICADO"}
+Evidencia fotográfica: página ${pagina||"consultar apartado de evidencia de esta LPN"} del PDF de auditoría.`;
+  }).join("\n\n");
+  const cuerpo=`Buenas tardes.
+Estimado equipo.
+Con atención a Julio Araiza Responsable Sanitario, Félix Montoya COORDINADOR DE SGC, Omar mendoza SUPERVISOR QA DHL.
+
+Les comparto el resultado de auditoría definido para la STO ${master}. Código de muestra aplicado: ${letra||"NO REGISTRADO"}. Total de tarimas auditadas: ${muestra}.
+
+Resultado de la muestra: ${totalAprobadas} tarimas aprobadas y ${totalRechazadas} tarimas rechazadas por presentar hallazgos. Para el código de muestra ${codigoMuestra||"no identificado"}, el criterio operativo configurado es aceptar hasta ${aceptaHasta} tarima(s) con hallazgo y rechazar a partir de ${rechazaDesde}. ${dictamenMuestreo} (${totalRechazadas} tarima(s) con hallazgo).
+
+Se identificó desalineación entre camas, con riesgo de colapso, ya que están en forma de escalera.
+
+DESVIACIONES:
+${desviaciones||"No hay hallazgos registrados."}
+
+ID DE QUEJA: <COLOCA AQUÍ EL ID>
+
+Folio de auditoría: ${r.folio||""}
+Origen: ${origen}
+ `;
+  // Destinatarios definidos para los correos de auditoría.
+  // Se quitaron los prefijos "http://" que venían delante de algunas direcciones,
+  // ya que son direcciones de correo y no enlaces web.
+  const para = [
+    "garciacruz.m@pg.com","valenciano.y@pg.com","molina.g@pg.com","anzorena.s@pg.com",
+    "araiza.j.1@pg.com","roque.jm@pg.com","bonilla.d.1@pg.com","vazquez.ri@pg.com",
+    "jazmin.contrerasgomez@dhl.com","alarcon.nopalo@dhl.com","alonso.ramirezc@dhl.com",
+    "mich.vicentecamargo@dhl.com","diego.zamoralopez@dhl.com","linareslopez.cs@pg.com",
+    "lopez.jm.18@pg.com","ramirezp.no@pg.com","gonzale.a.24@pg.com","martinezcervantes.da@pg.com",
+    "falcontinajero.pd@pg.com","matahernandez.am@pg.com","filoflores.sa@pg.com","beltrancortez.eu@pg.com",
+    "hernandezmaldonad.ne@pg.com","velazqueztinoco.je@pg.com","bautistaramirez.da@pg.com",
+    "poncetorres.jo@pg.com","callejafrias.la@pg.com","cocco.a@pg.com","lopez.va@pg.com",
+    "adrian.choab@dhl.com","canutocastillo.al@pg.com","chavezbarrera.hi.1@pg.com","hernandezmelendez.mi@pg.com",
+    "figueroaperez.fa.1@pg.com","sotosanchez.vs@pg.com","carlos.hernandezg@dhl.com",
+    "hernandezg.ca@pg.com","cortezacuna.i@pg.com","brioso.jg@pg.com","martinezhernandez.ma@pg.com",
+    "rodriguez.jf.3@pg.com","villagomezramirez.ma@pg.com","serrano.ar@pg.com","bolaos.ad@pg.com",
+    "leonbecerra.ju@pg.com","belencastellanos.mi@pg.com","chavarria.r.2@pg.com","guzmangutierrez.cg@pg.com",
+    "lehnenchavez.f@pg.com","diazjasso.d@pg.com","moreno.jf@pg.com","ricardo.a.ordonez@dhl.com",
+    "santosrojo.hs@pg.com","delgadoistamante.mb@pg.com","dejesush.ma@pg.com","ronquilloortiz.rm@pg.com",
+    "martinezsantiago.am@pg.com","dominguezmontano.jj@pg.com","arroyobravo.ac@pg.com","fueyoarce.gf@pg.com",
+    "mantillabaxin.ms@pg.com","garcia.ra@pg.com","cortes.c.3@pg.com","suri_viridiana.flores_perez@dhl.com",
+    "adrian.choab@dhl.com","chaobataller.ac@pg.com","daran.p@pg.com","sanchezbalcazar.jf@pg.com",
+    "perezjacome.ja@pg.com","lopezclemente.le@pg.com","castillo.la@pg.com","garciacar.jc@pg.com",
+    "juanfelix.rodrigueza@dhl.com","castillorodriguez.s@pg.com","trujillo.d@pg.com","ruizhernandez.jr@pg.com"
+  ];
+  const cc = [
+    "amontoyavallarta.fe@pg.com","salcedorosas.aa@pg.com","carlos.cc@pg.com",
+    "gonzalezavila.je@pg.com","morenogarcia.am@pg.com","badillaaguilar.aj@pg.com",
+    "coxantejecolorado.ic@pg.com","alvaradolopez.ag@pg.com","perezperez.jg@pg.com",
+    "garcia.ro.4@pg.com","omar.mendozai@dhl.com","mendozaibarra.of@pg.com","adrian.choab@dhl.com"
+  ].map(email=>String(email).trim()).filter((email,index,arr)=>arr.findIndex(x=>x.toLowerCase()===email.toLowerCase())===index);
+  // Garantiza que la dirección completa de Adrian quede en copia.
+  if(!cc.some(email=>email.toLowerCase()==="adrian.choab@dhl.com"))cc.push("adrian.choab@dhl.com");
+  const url=`mailto:${para.join(';')}?cc=${encodeURIComponent(cc.join(';'))}&subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  // Los navegadores no permiten adjuntar archivos a un enlace mailto por seguridad.
+  // Se genera y descarga automáticamente el PDF de esta auditoría; después se abre el correo.
+  // El usuario solo tendrá que agregar ese PDF descargado como adjunto.
+  const nombrePdf=`${String(r.folio||"Auditoria_Recibo").replace(/[\\/:*?"<>|]/g,"_")}.pdf`;
+  const abrirCorreo=()=>{window.location.href=url;};
+  try{
+    const pdfPromise=generarPDFRegistro(r);
+    abrirCorreo();
+    const pdfGenerado=await pdfPromise;
+    if(pdfGenerado){
+      mostrarAlertaQA(`Se descargó el PDF de la auditoría (${nombrePdf}). No olvides adjuntar también el PDF de la incidencia y el número de ID de la Power App.`,"info","PDF de auditoría descargado");
+    }else{
+      mostrarAlertaQA("Se abrió el correo, pero no fue posible generar el PDF automáticamente. Usa la opción PDF de auditoría y adjúntalo manualmente.","warning","Adjunto pendiente");
+    }
+  }catch(error){
+    console.error("No fue posible preparar el PDF para el correo:",error);
+    abrirCorreo();
+    mostrarAlertaQA("Se abrió el correo. No fue posible generar automáticamente el PDF; usa la opción PDF de auditoría y adjúntalo manualmente.","warning","Adjunto pendiente");
+  }
+}
+
 async function generarPDFdesdeReporte(indice){
   const r=reportesDatos[indice];
+  if(!r){mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");return;}
+  return generarPDFRegistro(r);
+}
+
+async function generarPDFRegistro(r){
   if(!r){mostrarAlertaQA("La auditoría seleccionada ya no está disponible.","warning","Auditoría no disponible");return;}
   try{
     if(!window.jspdf || !window.jspdf.jsPDF){mostrarAlertaQA("La librería para generar PDF no está disponible.","error","PDF no disponible");return;}
@@ -10424,7 +10729,17 @@ async function generarPDFdesdeReporte(indice){
     y=bloque("DATOS DE AUDITORÍA",y);
     campo(10,y,45,"Folio",r.folio);campo(58,y,45,"Auditor",r.nombre);campo(106,y,45,"Fecha",fecha);campo(154,y,46,"Turno",r.turno);y+=14;
     campo(10,y,45,"Cuadrilla",r.cuadrilla);campo(58,y,45,"STO",r.sto);campo(106,y,45,"Origen",r.origen);campo(154,y,46,"Tipo recibo",tipoRecibo);y+=14;
-    campo(10,y,60,"Cortina",r.cortina);campo(73,y,60,"Desviación",desviacion);campo(136,y,64,"Dictamen",codigos.length?(codigos.some(x=>x.error_tipo&&x.error_tipo!=="NINGUNO")?"ACEPTADO CON DESVIACIONES":"ACEPTADO"):"PENDIENTE");y+=18;
+    const resultadoMuestreoPDF=obtenerDictamenMuestreoRegistro(r);
+    campo(10,y,60,"Cortina",r.cortina);campo(73,y,60,"Desviación",desviacion);campo(136,y,64,"Dictamen",codigos.length?resultadoMuestreoPDF.dictamen:"PENDIENTE");y+=18;
+    if(codigos.length){
+      y=bloque("DICTAMEN SEGÚN CRITERIO DE MUESTREO",y);
+      campo(10,y,42,"Código muestra",resultadoMuestreoPDF.codigoMuestra||"NO IDENTIFICADO");
+      campo(55,y,42,"Tarimas auditadas",resultadoMuestreoPDF.totalAuditadas);
+      campo(100,y,42,"Tarimas con hallazgo",resultadoMuestreoPDF.totalRechazadas);
+      campo(145,y,55,"Criterio Ac / Re",`Ac=${resultadoMuestreoPDF.aceptaHasta} / Re=${resultadoMuestreoPDF.rechazaDesde}`);y+=18;
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(resultadoMuestreoPDF.dictamen==="RECHAZADO"?180:25,resultadoMuestreoPDF.dictamen==="RECHAZADO"?0:110,resultadoMuestreoPDF.dictamen==="RECHAZADO"?20:55);
+      doc.text(`DICTAMEN FINAL: ${resultadoMuestreoPDF.dictamen}`,12,y);y+=10;
+    }
 
     for(let i=0;i<codigos.length;i++){
       const item=codigos[i]||{}; const resultado=item.error_tipo&&item.error_tipo!=="NINGUNO"?"DESVIACIÓN":"OK";
@@ -10435,16 +10750,32 @@ async function generarPDFdesdeReporte(indice){
       if(resultado==="DESVIACIÓN"){
         if(y+28>M.bottom){doc.addPage();header();y=M.top;}
         campo(10,y,60,"Tipo de error",item.error_tipo);campo(75,y,125,"Detalle",item.error_detalle);y+=14;
-        campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Responsable",item.responsable_usuario);campo(140,y,60,"Cuadrilla",item.responsable_cuadrilla);y+=16;
+        campo(10,y,60,"Coordinador",r.coordinador);campo(75,y,60,"Cuadrilla",item.responsable_cuadrilla);y+=16;
         if(y+55>M.bottom){doc.addPage();header();y=M.top;}
         y=bloque("EVIDENCIA DE DESVIACIÓN",y);
         y=await agregarFotos(fotoUrlsDesviacion(item),y);
+      }
+      const hallazgosBloque=Array.isArray(item.hallazgos_bloque)?item.hallazgos_bloque:[];
+      for(let hi=0;hi<hallazgosBloque.length;hi++){
+        const h=hallazgosBloque[hi]||{};
+        if(y+30>M.bottom){doc.addPage();header();y=M.top;}
+        y=bloque(`HALLAZGO ${hi+1} · ${String(h.bloque||'BLOQUE').toUpperCase()}`,y);
+        campo(10,y,60,"Bloque auditado",h.bloque);campo(75,y,125,"Tipo de desviación",h.tipo||"NO CLASIFICADA");y+=14;
+        if(String(h.tipo||'')==='Otro'){
+          const detalle=String(h.descripcion||"Sin descripción");
+          doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(110);doc.text("DESCRIPCIÓN DEL HALLAZGO",10,y+2.5);
+          doc.setFillColor(245,245,245);doc.setDrawColor(220);const lines=doc.splitTextToSize(detalle,184);const boxH=Math.max(10,Math.min(30,lines.length*4+4));doc.roundedRect(10,y+3.5,190,boxH,2,2,"FD");doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(30);doc.text(lines.slice(0,6),13,y+8);y+=boxH+7;
+        }
+        const evs=item.evidencia_campos_urls?.hallazgos_bloque?.[h.id]||item.evidencia_campos?.hallazgos_bloque?.[h.id]||[];
+        const urls=evs.map(e=>typeof e==='string'?e:e?.url).filter(Boolean);
+        y=bloque("EVIDENCIA DEL HALLAZGO",y);y=await agregarFotos(urls,y);
       }
     }
     if(!codigos.length){y=bloque("EVIDENCIA FOTOGRÁFICA",y);y=await agregarFotos(obtenerImagenesRegistro(r),y);}
     const total=doc.getNumberOfPages();for(let page=1;page<=total;page++){doc.setPage(page);footer(page,total);}
     doc.save((r.folio||"Auditoria_Recibo")+".pdf");
-  }catch(e){console.error("Error PDF auditoría:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");}
+    return true;
+  }catch(e){console.error("Error PDF auditoría:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");return false;}
 }
 
 /* =========================================================
