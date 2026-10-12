@@ -220,6 +220,9 @@
   .field{
     min-width:0;
   }
+  .linea-tipo-field{margin-bottom:12px;max-width:420px;}
+  .linea-tipo-field select{font-weight:800;border-color:#CF002E;}
+
 
   .field label{
     display:block;
@@ -1647,12 +1650,23 @@ body.modo-transporte > main.wrap > .charts-grid{display:none !important;}
 .transport-dashboard .transport-kpi span{display:block;font-size:10px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:.45px;}
 .transport-dashboard .transport-kpi strong{display:block;font-size:28px;line-height:1.15;margin-top:7px;font-weight:900;}
 .transport-dashboard .transport-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;}
-.transport-dashboard .chart-card{height:330px;}
-.transport-dashboard .chart-wrap{height:260px;}
+.transport-dashboard .chart-card{height:330px;min-width:0;min-height:0;overflow:hidden;box-sizing:border-box;}
+.transport-dashboard .chart-wrap{height:260px;min-width:0;max-width:100%;overflow:hidden;position:relative;}
+.transport-dashboard .chart-wrap canvas{display:block!important;max-width:100%!important;max-height:100%!important;}
+.chart-card canvas{max-width:100%;}
 .transport-dashboard .transport-wide{grid-column:span 2;}
 .transport-dashboard .transport-area{grid-column:span 1;}
 .transport-dashboard .transport-section-heading{margin:0 0 12px;font-size:16px;font-weight:900;color:#252525;}
 .transport-dashboard .transport-subheading{font-size:10px;color:#777;margin:-5px 0 12px;}
+.transport-topbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
+.transport-tipo-label{font-size:12px;font-weight:800;color:var(--muted,#64748b);}
+.transport-tipo-select{min-width:130px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:9px;background:var(--card,#fff);color:var(--text,#172033);font-weight:800;}
+.transport-lineas-lista{height:auto!important;min-height:250px;max-height:420px;overflow:hidden;}
+.transport-lineas-lista .lineas-scroll{max-height:350px;overflow:auto;border-top:1px solid #eee;margin-top:8px;}
+.transport-lineas-lista ul{list-style:none;margin:0;padding:0;}
+.transport-lineas-lista li{padding:7px 9px;border-bottom:1px solid #f0f0f0;font-size:11px;overflow-wrap:anywhere;display:flex;justify-content:space-between;gap:10px;}
+.transport-lineas-lista .linea-total{font-weight:800;color:#CF002E;white-space:nowrap;}
+@media(max-width:620px){.transport-topbar-actions{justify-content:flex-start;width:100%;}.transport-dashboard-topbar{align-items:flex-start;flex-direction:column;}}
 .transport-dashboard .transport-empty{padding:25px 10px;text-align:center;color:#888;font-size:12px;}
 @media(max-width:950px){.transport-dashboard .transport-charts{grid-template-columns:repeat(2,minmax(0,1fr));}.transport-dashboard .transport-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:620px){.transport-dashboard .transport-charts{grid-template-columns:1fr;}.transport-dashboard .transport-wide,.transport-dashboard .transport-area{grid-column:span 1;}.transport-dashboard .chart-card{height:320px;}.transport-dashboard .chart-wrap{height:250px;}.transport-dashboard .transport-kpis .transport-kpi strong{font-size:24px;}}
@@ -1880,6 +1894,7 @@ body:has(.qa-unified-header) .header{display:none !important;}
 <h3>Filtros</h3>
 </div>
 <div class="card-body">
+
 <div class="filtros-grid">
 <div class="field multi-field">
 <label>Persona</label>
@@ -2034,7 +2049,15 @@ body:has(.qa-unified-header) .header{display:none !important;}
 <section class="transport-dashboard" id="transportDashboard">
   <div class="transport-dashboard-topbar">
     <h2 class="transport-section-heading">Dashboard de transporte</h2>
-    <button type="button" class="transport-back-button" onclick="volverDashboardPrincipal()">← Volver al dashboard principal</button>
+    <div class="transport-topbar-actions">
+      <label class="transport-tipo-label" for="filtroTipoLineaTransporte">Tipo de línea</label>
+      <select id="filtroTipoLineaTransporte" class="transport-tipo-select" onchange="actualizarDashboardTransporte(datosFiltrados)">
+        <option value="TODOS" selected>TR1 + TR2</option>
+        <option value="TR1">Solo TR1</option>
+        <option value="TR2">Solo TR2</option>
+      </select>
+      <button type="button" class="transport-back-button" onclick="volverDashboardPrincipal()">← Volver al dashboard principal</button>
+    </div>
   </div>
   <div class="transport-kpis">
     <div class="transport-kpi"><span>Hallazgos de transporte</span><strong id="transportKpiTotal">0</strong></div>
@@ -3268,6 +3291,103 @@ if(selector){
 }
 
   /* =========================================================
+    CLASIFICACIÓN TR1 / TR2
+    TR2 se identifica por el catálogo proporcionado. Cualquier
+    línea que no coincida razonablemente con ese catálogo es TR1.
+  ========================================================= */
+  const CATALOGO_LINEAS_TR2 = [
+    "AUTO TRANSPORTES DEL REAL",
+    "AUTOFLETES CHIHUAHUA SA D",
+    "AUTOLINEAS DE CULIACAN SA",
+    "AUTOTRANSPORTES GANSITO T",
+    "AUTOTRANSPORTES JAMAR SA",
+    "AUTOTRANSPORTES LEO SA DE",
+    "AUTOTRANSPORTES PILOT",
+    "BEST FREIGHT MATCH S.AP.I",
+    "BF CONNECT",
+    "CORPORACION INTERAMERICAN",
+    "DELTUM LOGISTIC SA DE CV",
+    "DHL LAST MILE DELIVERY SA",
+    "DHL METROPOLITAN LOGISTIC",
+    "DUMMY REFACTURACION",
+    "FLETES & LOGISTICA DE TLA",
+    "FLETES Y AUTOTRANSPORTES",
+    "GRUPO DE OPTIMIZACION LOG",
+    "GRUPO LOGISTICO CLG",
+    "GRUPO LOGISTICO PROGRESO",
+    "JOAQUIN MARTINEZ HERNANDEZ",
+    "JOSE EUTIMIO VAZQUEZ JUAR",
+    "JOSE JUAREZ GONZALEZ",
+    "LOGISTICA JAIC SA DE CV",
+    "MAWA LOGISTICS",
+    "METRO INTERMODAL SA DE CV",
+    "MONTES DE OCA TRANSPORTES",
+    "NIETO COMERCIAL & CIA SA",
+    "NUEVA WAL MART DE MEXICO",
+    "PRESTADORA DE SERVICIOS S",
+    "RETORNO LOGISTICO",
+    "RUNNERS TRANSPORTES",
+    "RUNNERS TRANSPORTES SA DE",
+    "SERVICIOS COMPLEMENTARIOS",
+    "TIENDAS SORIANA S A DE C V",
+    "TORRES TRANSPORTES TERRES",
+    "TRANSPORTES CALVILLO TRAC",
+    "TRANSPORTES CASTORES DE B",
+    "TRANSPORTES DE OCCIDENTE",
+    "TRANSPORTES HRG E HIJOS S",
+    "TRANSPORTES JOROVALU S A",
+    "TRANSPORTES LAR MEX SA DE",
+    "TRANSPORTES LOCALES ESPEC",
+    "TRANSPORTES MONROY SCHIAV",
+    "TRANSPORTES MONTERREY SA",
+    "TRANSPORTES NARCEA SA DE",
+    "TRANSPORTES UNIDOS DEL CE",
+    "TRANSPORTES Y ENLACES",
+    "TRATE DE OCCIDENTE SA DE",
+    "V MODAL MEXICANA SC",
+    "VERONICA HERNANDEZ HUERTA",
+    "XIKENTO"
+  ];
+
+  function normalizarNombreLinea(valor){
+    return String(valor ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+  }
+
+  const CATALOGO_LINEAS_TR2_NORMALIZADO = CATALOGO_LINEAS_TR2
+    .map(normalizarNombreLinea);
+
+  function obtenerTipoLinea(registro){
+    // Supabase puede entregar el nombre de la columna con espacios, acentos o
+    // variaciones de mayúsculas; resolverlo por alias evita clasificar todo como TR1.
+    const valorLinea = valorPorAlias(registro, [
+      "linea_transportista", "línea_transportista", "linea transportista",
+      "línea transportista", "transportista", "linea"
+    ]) || obtenerCampo(registro, "linea_transportista");
+    const linea = normalizarNombreLinea(valorLinea);
+    if(!linea) return "TR1";
+
+    const coincide = CATALOGO_LINEAS_TR2_NORMALIZADO.some(nombre => {
+      if(!nombre) return false;
+      // El catálogo contiene nombres abreviados; permitir que coincidan con
+      // el nombre completo en cualquiera de las dos direcciones.
+      if(linea === nombre || linea.includes(nombre) || nombre.includes(linea)) return Math.min(linea.length, nombre.length) >= 10;
+      // Respaldo para diferencias menores de sufijos o truncamientos.
+      let comun = 0;
+      while(comun < linea.length && comun < nombre.length && linea[comun] === nombre[comun]) comun++;
+      if(comun >= 14) return true;
+      const tokensLinea = linea.match(/[A-Z0-9]{3,}/g) || [];
+      const tokensNombre = nombre.match(/[A-Z0-9]{3,}/g) || [];
+      const compartidos = tokensNombre.filter(t => tokensLinea.some(x => x.includes(t) || t.includes(x))).length;
+      return compartidos >= 2 && compartidos / Math.max(tokensNombre.length, 1) >= 0.6;
+    });
+    return coincide ? "TR2" : "TR1";
+  }
+
+  /* =========================================================
     FILTROS
   ========================================================= */
 
@@ -3334,7 +3454,6 @@ const cuadrillas =
           if(!registro){
             return false;
           }
-
 
           if(
             personas.length > 0 &&
@@ -6187,7 +6306,7 @@ function crearGraficaDesviacionesTransporte(datos){
         indexAxis:opts.horizontal ? "y" : "x",
         plugins:{legend:{display:false},datalabels:{
           color:"#333",anchor:opts.horizontal?"end":"end",align:opts.horizontal?"right":"top",
-          clamp:true,clip:false,font:{size:10,weight:"bold"},
+          clamp:true,clip:true,font:{size:10,weight:"bold"},
           formatter:v=>Number(v).toLocaleString("es-MX")
         }},
         scales:{
@@ -6199,7 +6318,11 @@ function crearGraficaDesviacionesTransporte(datos){
   }
 
   function actualizarDashboardTransporte(datos){
-    const transportes = (Array.isArray(datos)?datos:[]).filter(r=>normalizar(obtenerCampo(r,"clasificacion"))==="TRANSPORTE");
+    const tipoSeleccionado = document.getElementById("filtroTipoLineaTransporte")?.value || "TODOS";
+    const transportes = (Array.isArray(datos)?datos:[]).filter(r=>{
+      if(normalizar(obtenerCampo(r,"clasificacion"))!=="TRANSPORTE") return false;
+      return tipoSeleccionado === "TODOS" || obtenerTipoLinea(r) === tipoSeleccionado;
+    });
     const areaAliases = ["area_deteccion","área de detección","area de deteccion","area","area_detectada","zona_deteccion","zona"];
     const idAliases = ["id_transporte"]; // ECO/identificador tomado directamente de la columna de Supabase id_transporte
     const conteo = (items, getter) => {
@@ -6209,7 +6332,11 @@ function crearGraficaDesviacionesTransporte(datos){
     };
     const areas=conteo(transportes,r=>valorPorAlias(r,areaAliases));
     const lineas=conteo(transportes,r=>valorPorAlias(r,["linea_transportista","línea transportista","transportista"]));
-    const ids=conteo(transportes,r=>valorPorAlias(r,idAliases)).filter(x=>x.total>1);
+    const esECOValido = valor => {
+      const v = normalizar(valor).replace(/[\s._-]+/g,"");
+      return !!v && !["N/A","NA","#NA","SD","S/D","#N/A","NAN","NULL","UNDEFINED","-"].includes(v);
+    };
+    const ids=conteo(transportes,r=>valorPorAlias(r,idAliases)).filter(x=>x.total>1 && esECOValido(x.nombre));
     const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=Number(value||0).toLocaleString("es-MX");};
     setText("transportKpiTotal",transportes.length);
     setText("transportKpiAreas",areas.length);
@@ -6230,6 +6357,7 @@ function crearGraficaDesviacionesTransporte(datos){
     crearGraficaTransporte("grafTransporteTendencia","line",serieMeses.map(x=>x[0]),serieMeses.map(x=>x[1]));
     const criticidad=conteo(transportes,r=>criticidadDeRegistro(r)||"Sin clasificar");
     crearGraficaTransporte("grafTransporteCriticidad","doughnut",criticidad.map(x=>x.nombre),criticidad.map(x=>x.total));
+
     ["grafTransporteArea","grafTransporteDuplicados","grafTransporteTendencia","grafTransporteCriticidad"].forEach(id=>{
       const chart=transportCharts[id];
       if(chart && chart.data.datasets[0].data.length===0){
