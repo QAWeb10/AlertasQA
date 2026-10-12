@@ -1631,6 +1631,32 @@ input:focus,select:focus,.multi-select.open .multi-select-box{border-color:var(-
   .evidencias-modal-content{max-height:94vh;border-radius:12px;}
 }
 
+
+/* DASHBOARD INDIVIDUAL DE TRANSPORTE */
+.transport-dashboard{display:none;margin-top:18px;}
+body.modo-transporte .transport-dashboard{display:block;}
+body.modo-transporte .row-1 > .semaforo-card,
+body.modo-transporte > main.wrap > .section-title,
+body.modo-transporte > main.wrap > .kpi-grid,
+body.modo-transporte > main.wrap > .charts-grid{display:none !important;}
+.transport-dashboard-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;}
+.transport-back-button{border:1px solid var(--ui-border,#dfe3e8);background:#fff;color:#252525;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:800;cursor:pointer;}
+.transport-back-button:hover{background:#f3f5f7;}
+.transport-dashboard .transport-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:0 0 12px;}
+.transport-dashboard .transport-kpi{background:#fff;border:1px solid var(--ui-border,#dfe3e8);border-radius:12px;padding:15px;box-shadow:var(--ui-shadow,0 8px 24px rgba(25,35,45,.08));min-width:0;}
+.transport-dashboard .transport-kpi span{display:block;font-size:10px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:.45px;}
+.transport-dashboard .transport-kpi strong{display:block;font-size:28px;line-height:1.15;margin-top:7px;font-weight:900;}
+.transport-dashboard .transport-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;}
+.transport-dashboard .chart-card{height:330px;}
+.transport-dashboard .chart-wrap{height:260px;}
+.transport-dashboard .transport-wide{grid-column:span 2;}
+.transport-dashboard .transport-area{grid-column:span 1;}
+.transport-dashboard .transport-section-heading{margin:0 0 12px;font-size:16px;font-weight:900;color:#252525;}
+.transport-dashboard .transport-subheading{font-size:10px;color:#777;margin:-5px 0 12px;}
+.transport-dashboard .transport-empty{padding:25px 10px;text-align:center;color:#888;font-size:12px;}
+@media(max-width:950px){.transport-dashboard .transport-charts{grid-template-columns:repeat(2,minmax(0,1fr));}.transport-dashboard .transport-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:620px){.transport-dashboard .transport-charts{grid-template-columns:1fr;}.transport-dashboard .transport-wide,.transport-dashboard .transport-area{grid-column:span 1;}.transport-dashboard .chart-card{height:320px;}.transport-dashboard .chart-wrap{height:250px;}.transport-dashboard .transport-kpis .transport-kpi strong{font-size:24px;}}
+
 </style>
 
 <style id="qa-unified-shell">
@@ -2005,6 +2031,46 @@ body:has(.qa-unified-header) .header{display:none !important;}
 </div>
 </div>
 </section>
+<section class="transport-dashboard" id="transportDashboard">
+  <div class="transport-dashboard-topbar">
+    <h2 class="transport-section-heading">Dashboard de transporte</h2>
+    <button type="button" class="transport-back-button" onclick="volverDashboardPrincipal()">← Volver al dashboard principal</button>
+  </div>
+  <div class="transport-kpis">
+    <div class="transport-kpi"><span>Hallazgos de transporte</span><strong id="transportKpiTotal">0</strong></div>
+    <div class="transport-kpi"><span>Áreas de detección</span><strong id="transportKpiAreas">0</strong></div>
+    <div class="transport-kpi"><span>Líneas transportistas</span><strong id="transportKpiLines">0</strong></div>
+    <div class="transport-kpi"><span>ECO repetidos</span><strong id="transportKpiDuplicates">0</strong></div>
+  </div>
+  <section class="charts-grid transport-section">
+    <div class="chart-card transport-main">
+      <div class="chart-title"><span class="dot"></span>Alertas por transportista <button class="transport-top-btn" onclick="abrirTransportistas()" title="Ver top 30" type="button">Top 30</button></div>
+      <div class="chart-wrap"><canvas id="grafTransportistas"></canvas></div>
+    </div>
+    <div class="chart-card transport-side">
+      <div class="chart-title"><span class="dot"></span>Principales desviaciones de transporte</div>
+      <div class="chart-wrap"><canvas id="grafDesviacionesTransporte"></canvas></div>
+    </div>
+  </section>
+  <div class="transport-charts">
+    <div class="chart-card transport-area">
+      <div class="chart-title"><span class="dot"></span>Hallazgos por área de detección</div>
+      <div class="chart-wrap"><canvas id="grafTransporteArea"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot"></span>ECO repetidos</div>
+      <div class="chart-wrap"><canvas id="grafTransporteDuplicados"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot"></span>Tendencia mensual</div>
+      <div class="chart-wrap"><canvas id="grafTransporteTendencia"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot"></span>Distribución por criticidad</div>
+      <div class="chart-wrap"><canvas id="grafTransporteCriticidad"></canvas></div>
+    </div>
+  </div>
+</section>
 <!-- =======================================================
       FILA 2 - 6 KPIs
   ======================================================= -->
@@ -2183,27 +2249,7 @@ body:has(.qa-unified-header) .header{display:none !important;}
 <!-- =======================================================
       FILA 5 - TRANSPORTE
   ======================================================= -->
-<section class="charts-grid transport-section">
-<div class="chart-card transport-main">
-<div class="chart-title">
-<span class="dot"></span>
-        Alertas por transportista
-        <button class="transport-top-btn" onclick="abrirTransportistas()" title="Ver top 30" type="button">Top 30</button>
-</div>
-<div class="chart-wrap">
-<canvas id="grafTransportistas"></canvas>
-</div>
-</div>
-<div class="chart-card transport-side">
-<div class="chart-title">
-<span class="dot"></span>
-        Principales desviaciones de transporte
-      </div>
-<div class="chart-wrap">
-<canvas id="grafDesviacionesTransporte"></canvas>
-</div>
-</div>
-</section>
+
 <div aria-hidden="true" class="transport-modal" id="transportistasModal">
 <div aria-labelledby="transportistasModalTitle" aria-modal="true" class="transport-modal-content" role="dialog">
 <div class="transport-modal-head">
@@ -2462,6 +2508,8 @@ body:has(.qa-unified-header) .header{display:none !important;}
   let chartRiskScore = null;
 let chartTransportistas = null;
   let chartDesviacionesTransporte = null;
+  let transportCharts = {};
+
 
 const selecciones = {
 
@@ -3397,9 +3445,14 @@ if(
       );
 
 
+    const modoTransporte = Array.isArray(clasificaciones) && clasificaciones.length===1 && normalizar(clasificaciones[0])==="TRANSPORTE";
+    actualizarModoTransporte(clasificaciones);
+
+    // El dashboard principal conserva sus totales globales; el dashboard de transporte usa los registros filtrados.
     actualizarDashboard(
-      datosFiltrados
+      modoTransporte ? datosOriginales : datosFiltrados
     );
+    actualizarDashboardTransporte(datosFiltrados);
 
     actualizarResumenEvidencias(
       datosFiltrados
@@ -3509,10 +3562,12 @@ if(
     datosFiltrados =
       [...datosOriginales];
 
+    actualizarModoTransporte([]);
 
     actualizarDashboard(
       datosFiltrados
     );
+    actualizarDashboardTransporte(datosFiltrados);
 
     actualizarResumenEvidencias(
       datosFiltrados
@@ -6072,6 +6127,132 @@ function crearGraficaDesviacionesTransporte(datos){
     ACTUALIZAR TODO EL DASHBOARD
   ========================================================= */
 
+
+  function claveNormalizada(valor){
+    return String(valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  }
+
+  function valorPorAlias(registro, aliases){
+    if(!registro || typeof registro !== "object") return "";
+    const keys = Object.keys(registro);
+    for(const alias of aliases){
+      const wanted = claveNormalizada(alias);
+      const key = keys.find(k => claveNormalizada(k) === wanted);
+      if(key && registro[key] !== null && registro[key] !== undefined && String(registro[key]).trim() !== "") return registro[key];
+    }
+    return "";
+  }
+
+  function fechaParaTransporte(registro){
+    const raw = obtenerFechaRegistro(registro);
+    if(raw){
+      const d = new Date(raw + "T12:00:00");
+      if(!Number.isNaN(d.getTime())) return d;
+    }
+    const candidates = ["fecha","fecha_registro","fecha_hora_evento","created_at","createdAt","timestamp"];
+    const value = valorPorAlias(registro,candidates);
+    if(!value) return null;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function destruirGraficasTransporte(){
+    Object.values(transportCharts).forEach(c=>{try{c.destroy();}catch(e){}});
+    transportCharts = {};
+  }
+
+  function crearGraficaTransporte(id, tipo, labels, values, opts={}){
+    const canvas = document.getElementById(id);
+    if(!canvas) return;
+    const oldEmpty = canvas.parentElement?.querySelector(".transport-empty");
+    if(oldEmpty) oldEmpty.remove();
+    if(transportCharts[id]){try{transportCharts[id].destroy();}catch(e){}}
+    const palette = (typeof PALETTE !== "undefined" && PALETTE.length) ? PALETTE : ["#CF002E","#FDD000","#A00023","#777777","#D97706","#1B8A3A"];
+    const datasets = [{
+      label: opts.datasetLabel || "Hallazgos",
+      data: values,
+      backgroundColor: tipo === "line" ? "rgba(207,0,46,.18)" : values.map((_,i)=>palette[i%palette.length]),
+      borderColor: tipo === "line" ? "#CF002E" : values.map((_,i)=>palette[i%palette.length]),
+      borderWidth: tipo === "line" ? 2 : 1,
+      fill: tipo === "line",
+      tension: .32,
+      pointRadius: tipo === "line" ? 3 : 0,
+      borderRadius: tipo === "bar" ? 5 : 0
+    }];
+    transportCharts[id] = new Chart(canvas,{
+      type:tipo,
+      data:{labels,datasets},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        indexAxis:opts.horizontal ? "y" : "x",
+        plugins:{legend:{display:false},datalabels:{
+          color:"#333",anchor:opts.horizontal?"end":"end",align:opts.horizontal?"right":"top",
+          clamp:true,clip:false,font:{size:10,weight:"bold"},
+          formatter:v=>Number(v).toLocaleString("es-MX")
+        }},
+        scales:{
+          x:{beginAtZero:tipo==="bar",grid:{display:!opts.horizontal},ticks:{precision:0,autoSkip:true,maxRotation:35}},
+          y:{beginAtZero:true,grid:{display:opts.horizontal},ticks:{precision:0,autoSkip:false}}
+        }
+      }
+    });
+  }
+
+  function actualizarDashboardTransporte(datos){
+    const transportes = (Array.isArray(datos)?datos:[]).filter(r=>normalizar(obtenerCampo(r,"clasificacion"))==="TRANSPORTE");
+    const areaAliases = ["area_deteccion","área de detección","area de deteccion","area","area_detectada","zona_deteccion","zona"];
+    const idAliases = ["id_transporte"]; // ECO/identificador tomado directamente de la columna de Supabase id_transporte
+    const conteo = (items, getter) => {
+      const map = new Map();
+      items.forEach(r=>{const raw=getter(r); const name=String(raw??"").trim(); if(name) map.set(name,(map.get(name)||0)+1);});
+      return [...map.entries()].map(([nombre,total])=>({nombre,total})).sort((a,b)=>b.total-a.total||a.nombre.localeCompare(b.nombre,"es"));
+    };
+    const areas=conteo(transportes,r=>valorPorAlias(r,areaAliases));
+    const lineas=conteo(transportes,r=>valorPorAlias(r,["linea_transportista","línea transportista","transportista"]));
+    const ids=conteo(transportes,r=>valorPorAlias(r,idAliases)).filter(x=>x.total>1);
+    const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=Number(value||0).toLocaleString("es-MX");};
+    setText("transportKpiTotal",transportes.length);
+    setText("transportKpiAreas",areas.length);
+    setText("transportKpiLines",lineas.length);
+    setText("transportKpiDuplicates",ids.length);
+    crearGraficaTransportistas(transportes);
+    crearGraficaDesviacionesTransporte(transportes);
+    crearGraficaTransporte("grafTransporteArea","bar",areas.slice(0,12).map(x=>x.nombre),areas.slice(0,12).map(x=>x.total),{horizontal:true});
+    crearGraficaTransporte("grafTransporteDuplicados","bar",ids.slice(0,10).map(x=>x.nombre),ids.slice(0,10).map(x=>x.total),{horizontal:true,datasetLabel:"Repeticiones ECO"});
+    const meses=new Map();
+    transportes.forEach(r=>{
+      const d=fechaParaTransporte(r);
+      if(!d) return;
+      const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+      meses.set(key,(meses.get(key)||0)+1);
+    });
+    const serieMeses=[...meses.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+    crearGraficaTransporte("grafTransporteTendencia","line",serieMeses.map(x=>x[0]),serieMeses.map(x=>x[1]));
+    const criticidad=conteo(transportes,r=>criticidadDeRegistro(r)||"Sin clasificar");
+    crearGraficaTransporte("grafTransporteCriticidad","doughnut",criticidad.map(x=>x.nombre),criticidad.map(x=>x.total));
+    ["grafTransporteArea","grafTransporteDuplicados","grafTransporteTendencia","grafTransporteCriticidad"].forEach(id=>{
+      const chart=transportCharts[id];
+      if(chart && chart.data.datasets[0].data.length===0){
+        const canvas=document.getElementById(id);
+        const parent=canvas?.parentElement;
+        if(parent && !parent.querySelector(".transport-empty")) parent.insertAdjacentHTML("beforeend",'<div class="transport-empty">Sin datos disponibles para este gráfico</div>');
+      }
+    });
+  }
+
+  function actualizarModoTransporte(clasificaciones){
+    const modo = Array.isArray(clasificaciones) && clasificaciones.length===1 && normalizar(clasificaciones[0])==="TRANSPORTE";
+    document.body.classList.toggle("modo-transporte",modo);
+  }
+
+  function volverDashboardPrincipal(){
+    if(selecciones && selecciones.clasificacion){
+      selecciones.clasificacion.clear();
+      actualizarTextoMulti("clasificacion");
+    }
+    aplicarFiltros();
+  }
+
   function actualizarDashboard(datos){
 
     if(!Array.isArray(datos)){
@@ -6124,14 +6305,6 @@ function crearGraficaDesviacionesTransporte(datos){
 
 
     
-    crearGraficaTransportistas(
-      datos
-    );
-
-    crearGraficaDesviacionesTransporte(
-      datos
-    );
-
     crearHeatMap(
       datos
     );
