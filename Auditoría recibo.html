@@ -21,6 +21,7 @@
   --accent-dark:#E6BC00;
   --critical:#CF002E;
   --major:#F59E0B;
+
   --minor:#1B8A3A;
 
   --ink:#202124;
@@ -6135,8 +6136,50 @@ function renderizarHallazgosBloque(index){
   const item=auditoriaActual[index], cont=document.getElementById(`hallazgosBloqueLista_${index}`); if(!item||!cont)return;
   const lista=asegurarHallazgosBloque(item);
   if(!lista.length){cont.innerHTML='<div class="muted" style="font-size:11px;padding:7px 0">Sin hallazgos adicionales registrados. Usa “Agregar hallazgo” cuando aplique.</div>';return;}
-  const bloques=['GENERALES','INVENTARIO','PALLET','GRANEL'];
-  const tipos=['Etiqueta ilegible','Empaque dañado','Humedad','Contaminación','Plagas','Caducidad incorrecta','Diferencia de inventario','Código incorrecto','Lote incorrecto','Pallet defectuoso','Tablas rotas','Clavos expuestos','Stretch incorrecto','Carga inestable','Otro'];
+  const bloques = [
+ 'Identificación y Trazabilidad',
+ 'Empaque y Producto',
+ 'Inocuidad y Calidad',
+ 'Inventario',
+ 'Tarimas',
+ 'Estabilidad de Carga'
+];
+  const tipos = [
+ 'Etiqueta ilegible',
+ 'Etiqueta faltante',
+ 'Etiqueta dañada',
+ 'Etiqueta duplicada',
+ 'Código incorrecto',
+ 'Lote incorrecto',
+ 'Fecha de caducidad incorrecta',
+ 'Fecha de caducidad ilegible',
+ 'Empaque dañado',
+ 'Empaque abierto',
+ 'Empaque deformado',
+ 'Empaque mojado',
+ 'Sellado violado',
+ 'Derrame detectado',
+ 'Humedad',
+ 'Presencia de plagas',
+ 'Polvo excesivo',
+ 'Olor extraño',
+ 'Sobrante',
+ 'Faltante',
+ 'Mezcla de códigos',
+ 'Mezcla de lotes',
+ 'Tablas rotas',
+ 'Clavos expuestos',
+ 'Taco dañado',
+ 'Taco faltante',
+ 'Stretch incorrecto',
+ 'Stretch roto',
+ 'Stretch insuficiente',
+ 'Carga inestable',
+ 'Carga ladeada',
+ 'Producto sobresaliente (Overhang)',
+ 'Desalineación de camas',
+ 'Otro'
+];
   cont.innerHTML=lista.map((h,i)=>{
     const ev=item.evidencia_campos?.hallazgos_bloque?.[h.id]||[];
     const opts=(arr,val,placeholder)=>`<option value="">${placeholder}</option>`+arr.map(x=>`<option value="${escapeHtml(x)}" ${val===x?'selected':''}>${escapeHtml(x)}</option>`).join('');
