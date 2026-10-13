@@ -1,0 +1,1224 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#CF002E">
+<title>QA | Quejas Recibo</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --brand:#CF002E;
+  --dark:#6E0018;
+  --accent:#FDD000;
+  --ink:#1A1A1A;
+  --muted:#777;
+  --line:#E5E5E5;
+  --shadow:0 3px 12px rgba(0,0,0,.055);
+  --radius:12px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#F7F7F7;
+  color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
+  text-transform:uppercase;
+  font-size:12px;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+
+.header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  min-height:62px;
+  padding:9px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+  background:linear-gradient(90deg,var(--dark),var(--brand));
+  box-shadow:0 4px 12px #0002;
+}
+.logo{
+  display:grid;
+  place-items:center;
+  width:39px;
+  height:39px;
+  flex-shrink:0;
+  border-radius:8px;
+  background:var(--accent);
+  color:var(--dark);
+  font-weight:900;
+  font-size:16px;
+}
+.brand-small{font-size:9px;letter-spacing:1px;opacity:.8}
+.brand-title{font-size:17px;font-weight:900;margin-top:3px}
+.grow{flex:1}
+.nav{display:flex;gap:5px;align-items:center}
+.nav a{
+  padding:9px 10px;
+  border:1px solid #ffffff35;
+  border-radius:7px;
+  color:#fff;
+  text-decoration:none;
+  font-size:9px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.nav a.active{
+  background:var(--accent);
+  color:var(--dark);
+  border-color:var(--accent);
+}
+.home{
+  padding:9px 10px;
+  border-radius:7px;
+  background:#fff;
+  color:var(--dark);
+  text-decoration:none;
+  font-weight:900;
+  font-size:9px;
+  white-space:nowrap;
+}
+.wrap{max-width:1800px;margin:auto;padding:12px 16px 25px}
+
+/* Carga */
+.toolbar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:8px 10px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  margin-bottom:8px;
+}
+.toolbar input[type=file]{
+  flex:1;
+  min-width:180px;
+  max-width:350px;
+  font-size:10px;
+}
+.file-info{font-size:9px;color:var(--muted);font-weight:700}
+.btn{
+  border:0;
+  border-radius:7px;
+  padding:9px 12px;
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.btn-red{background:var(--brand);color:#fff}
+.btn-light{background:#fff;border:1px solid #e2d5a0;color:var(--dark)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Filtros */
+.filters{
+  margin-bottom:11px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  box-shadow:var(--shadow);
+}
+.filters summary{
+  cursor:pointer;
+  list-style:none;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-weight:900;
+  font-size:10px;
+}
+.filters summary::-webkit-details-marker{display:none}
+.filter-count{
+  margin-left:auto;
+  background:#fff4bd;
+  color:var(--dark);
+  padding:5px 8px;
+  border-radius:6px;
+  font-size:9px;
+}
+.filter-body{padding:0 11px 11px;border-top:1px solid var(--line)}
+.filters-grid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:8px;
+  padding-top:10px;
+}
+.field{min-width:0}
+.field label{
+  display:block;
+  font-size:9px;
+  font-weight:900;
+  margin-bottom:4px;
+  color:#555;
+}
+.field input,.field select{
+  width:100%;
+  min-width:0;
+  padding:8px;
+  border:1px solid #ddd;
+  border-radius:7px;
+  background:#fff;
+  outline:none;
+  font-size:10px;
+}
+.field input:focus,.field select:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px #cf002e15;
+}
+.filter-actions{display:flex;align-items:end;gap:6px}
+
+/* Indicadores */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:11px;
+}
+.kpi{
+  position:relative;
+  overflow:hidden;
+  min-width:0;
+  padding:12px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.kpi:before{
+  content:"";
+  position:absolute;
+  top:0;left:0;right:0;
+  height:4px;
+  background:var(--brand);
+}
+.kpi:nth-child(2):before{background:var(--accent)}
+.kpi:nth-child(3):before{background:#FF8A00}
+.kpi:nth-child(4):before{background:#8B001F}
+.kpi:nth-child(5):before{background:#777}
+.kpi:nth-child(6):before{background:#b00020}
+.kpi-label{font-size:9px;font-weight:900;color:#777}
+.kpi-value{
+  font-size:25px;
+  font-weight:900;
+  color:var(--dark);
+  margin-top:8px;
+  overflow-wrap:anywhere;
+}
+
+/* Gráficas: tres por línea */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:11px;
+  align-items:stretch;
+}
+.card{
+  min-width:0;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:12px;
+}
+.card.full-width{grid-column:1 / -1}
+.card-title{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.3px;
+  line-height:1.4;
+  margin-bottom:9px;
+}
+.chart-box{height:255px;position:relative}
+.chart-box.tall{height:285px}
+
+/* Tablas */
+.list-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:9px;
+}
+.count-pill{
+  padding:5px 7px;
+  border-radius:6px;
+  background:#fff3b0;
+  color:var(--dark);
+  font-size:9px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.table-wrap{overflow:auto;max-height:430px}
+table{border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap}
+thead{position:sticky;top:0;z-index:2;background:#fff5c4}
+th,td{
+  text-align:left;
+  padding:8px 9px;
+  border-bottom:1px solid #eee;
+}
+th{font-weight:900;color:var(--dark)}
+td{color:#444;font-weight:600}
+tbody tr:hover{background:#fffdf3}
+.empty{
+  padding:22px;
+  text-align:center;
+  color:#888;
+  font-weight:800;
+  white-space:normal;
+}
+.tag{
+  display:inline-block;
+  border-radius:5px;
+  padding:4px 6px;
+  font-size:9px;
+  font-weight:900;
+}
+.tag-red{background:#ffe1e7;color:#a00023}
+.tag-yellow{background:#fff1b0;color:#705800}
+.status{
+  margin-top:10px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:9px;
+  text-align:center;
+  font-size:10px;
+  font-weight:800;
+  color:#666;
+}
+.status.error{color:var(--brand);border-color:#e5b5c1}
+.status.success{color:#176b2d}
+
+@media(max-width:1050px){
+  .filters-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+  .header{padding:8px 10px;overflow-x:auto}
+  .brand-title{font-size:13px}
+  .brand-small{font-size:7px}
+  .nav a{padding:8px 6px;font-size:8px}
+  .home{display:none}
+  .wrap{padding:9px}
+  .grid{grid-template-columns:1fr}
+  .card.full-width{grid-column:auto}
+  .filters-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .kpi-value{font-size:22px}
+  .chart-box{height:260px}
+}
+@media(max-width:430px){
+  .filters-grid{grid-template-columns:1fr 1fr}
+  .toolbar input[type=file]{flex-basis:100%;max-width:none}
+}
+</style>
+
+<style id="qa-unified-navigation-and-charts">
+:root{--qa-brand:#CF002E;--qa-brand-dark:#A00023;--qa-brand-deep:#6E0018;--qa-accent:#FDD000;--qa-ink:#1A1A1A;--qa-line:#E5E5E5}
+.qa-unified-header{position:sticky!important;top:0!important;z-index:1000!important;min-height:68px!important;padding:10px 18px!important;display:flex!important;align-items:center!important;gap:12px!important;background:linear-gradient(90deg,#6E0018 0%,#A00023 45%,#CF002E 100%)!important;color:#fff!important;box-shadow:0 4px 12px #0002!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;flex-wrap:wrap}
+.qa-unified-header .qa-unified-nav{display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;flex-wrap:wrap!important;order:3}
+.qa-unified-header .qa-unified-nav a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:0 10px!important;border:1px solid #ffffff55!important;border-radius:8px!important;background:transparent!important;color:#fff!important;text-decoration:none!important;font-size:10px!important;font-weight:800!important;white-space:nowrap!important;letter-spacing:.2px}
+.qa-unified-header .qa-unified-nav a:hover{background:#ffffff20!important}
+.qa-unified-header .qa-unified-nav a.active{background:#FDD000!important;border-color:#FDD000!important;color:#6E0018!important}
+.qa-unified-header .update-box,.qa-unified-header .qa-header-update{display:flex!important;flex-direction:column!important;gap:3px!important;align-items:flex-start!important;justify-content:center!important;padding:6px 10px!important;border:1px solid #ffffff45!important;border-radius:8px!important;background:#ffffff12!important;color:#fff!important;min-width:125px!important;order:4}
+.qa-unified-header .update-label{font-size:9px!important;font-weight:800!important;letter-spacing:.5px!important;text-transform:uppercase!important;opacity:.85!important}
+.qa-unified-header .update-value{font-size:11px!important;font-weight:800!important;color:#fff!important;white-space:nowrap!important}
+.qa-unified-header .qa-home,.qa-unified-header .back,.qa-unified-header a.home{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:0 11px!important;border:1px solid #ffffff65!important;border-radius:8px!important;background:#fff!important;color:#6E0018!important;text-decoration:none!important;font-size:10px!important;font-weight:900!important;white-space:nowrap!important;order:5}
+.qa-unified-header .spacer,.qa-unified-header .header-spacer,.qa-unified-header .grow{flex:1 1 12px!important;min-width:8px!important}
+.qa-unified-header .badge{order:2}
+@media(max-width:900px){.qa-unified-header{gap:8px!important;padding:8px 10px!important}.qa-unified-header .qa-unified-nav{order:6;width:100%;overflow-x:auto;flex-wrap:nowrap!important;justify-content:flex-start!important;padding-bottom:2px}.qa-unified-header .qa-unified-nav a{font-size:9px!important;padding:0 8px!important}.qa-unified-header .update-box{margin-left:auto;min-width:112px!important}.qa-unified-header .t2,.qa-unified-header .brand-title{font-size:14px!important}}
+@media(max-width:480px){.qa-unified-header{position:sticky!important}.qa-unified-header .update-box{min-width:108px!important;padding:5px 7px!important}.qa-unified-header .update-value{font-size:10px!important}.qa-unified-header .qa-unified-nav a{font-size:9px!important;min-height:31px!important}}
+</style>
+
+</head>
+
+<body>
+<header class="header qa-unified-header">
+  <div class="logo">QA</div>
+  <div>
+    <div class="brand-small">SISTEMA DE GESTIÓN DE CALIDAD</div>
+    <div class="brand-title">Quejas Recibo</div>
+  </div>
+  <div class="grow"></div>
+  <nav class="qa-unified-nav" aria-label="Navegación entre dashboards">
+    <a href="dashboard.html">📊 CALIDAD</a>
+    <a href="dashboard-auditorias.html">📋 AUDITORÍAS</a>
+    <a href="dashboard-incidencias.html">⚠️ INCIDENCIAS</a>
+    <a href="Dashboard_Quejas.html">📝 QUEJAS</a>
+    <a href="dashboard-Quejas%20recibo.html" class="active" aria-current="page">📦 QUEJAS RECIBO</a>
+  </nav>
+  <div class="update-box qa-header-update"><div class="update-label">Última actualización</div><div class="update-value" id="qaHeaderUpdate">—</div></div><a class="home" href="index.html">HOME</a>
+</header>
+
+<main class="wrap">
+
+  <section class="toolbar">
+    <input id="excelFile" type="file" accept=".xlsx,.xls,.xlsm,.csv">
+    <button id="btnLoad" class="btn btn-red">CARGAR EXCEL</button>
+    <button id="btnExport" class="btn btn-light" disabled>EXPORTAR</button>
+    <button id="btnDelete" class="btn btn-light">ELIMINAR EXCEL</button>
+    <span id="fileInfo" class="file-info">SIN ARCHIVO</span>
+  </section>
+
+  <details class="filters">
+    <summary>
+      FILTROS
+      <span class="filter-count" id="filterBadge">SIN FILTROS</span>
+      <span>＋ / −</span>
+    </summary>
+    <div class="filter-body">
+      <div class="filters-grid">
+        <div class="field">
+          <label>FECHA DESDE</label>
+          <input type="date" id="fDesde">
+        </div>
+        <div class="field">
+          <label>FECHA HASTA</label>
+          <input type="date" id="fHasta">
+        </div>
+        <div class="field">
+          <label>ORIGEN</label>
+          <select id="fOrigen"><option value="">TODOS</option></select>
+        </div>
+        <div class="field">
+          <label>DESVIACIÓN</label>
+          <select id="fDesviacion"><option value="">TODAS</option></select>
+        </div>
+        <div class="field">
+          <label>ESTATUS</label>
+          <select id="fEstatus"><option value="">TODOS</option></select>
+        </div>
+        <div class="field">
+          <label>SKU</label>
+          <input id="fSku" placeholder="SKU">
+        </div>
+        <div class="field">
+          <label>PO / STO</label>
+          <input id="fPo" placeholder="PO / STO">
+        </div>
+        <div class="field">
+          <label>ID</label>
+          <input id="fId" placeholder="ID">
+        </div>
+        <div class="field">
+          <label>BUSCAR</label>
+          <input id="fTexto" placeholder="TEXTO">
+        </div>
+        <div class="filter-actions">
+          <button id="btnApply" class="btn btn-red">APLICAR</button>
+          <button id="btnClear" class="btn btn-light">LIMPIAR</button>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <section class="kpis">
+    <article class="kpi">
+      <div class="kpi-label">TOTAL DE QUEJAS</div>
+      <div class="kpi-value" id="kTotal">0</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label">PRÓXIMAS A VENCER</div>
+      <div class="kpi-value" id="kVencer">0</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label">SUBMITTED +5 DÍAS</div>
+      <div class="kpi-value" id="kSubmitted">0</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label">INVESTIGATION +30 DÍAS</div>
+      <div class="kpi-value" id="kInvestigation">0</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label">VENCIDAS</div>
+      <div class="kpi-value" id="kExpired">0</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label">ORÍGENES</div>
+      <div class="kpi-value" id="kOrigenes">0</div>
+    </article>
+  </section>
+
+  <section class="grid">
+
+    <article class="card">
+      <div class="card-title">QUEJAS POR MES</div>
+      <div class="chart-box"><canvas id="chartMes"></canvas></div>
+    </article>
+
+    <article class="card">
+      <div class="card-title">QUEJAS POR ORIGEN</div>
+      <div class="chart-box"><canvas id="chartOrigen"></canvas></div>
+    </article>
+
+    <article class="card">
+      <div class="card-title">QUEJAS POR DESVIACIÓN</div>
+      <div class="chart-box tall"><canvas id="chartDesviacion"></canvas></div>
+    </article>
+
+    <article class="card">
+      <div class="list-head">
+        <div class="card-title">PRÓXIMAS A VENCER</div>
+        <span class="count-pill" id="countVencer">0</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>FECHA QUEJA</th>
+              <th>FECHA LÍMITE</th>
+              <th>DÍAS RESTANTES</th>
+              <th>ORIGEN</th>
+              <th>ESTATUS</th>
+            </tr>
+          </thead>
+          <tbody id="tablaVencer">
+            <tr><td colspan="6" class="empty">CARGA UN EXCEL.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="list-head">
+        <div class="card-title">QUEJAS VENCIDAS</div>
+        <span class="count-pill" id="countExpired">0</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>FECHA QUEJA</th><th>FECHA LÍMITE</th>
+            <th>DÍAS VENCIDOS</th><th>ORIGEN</th><th>ESTATUS</th>
+          </tr></thead>
+          <tbody id="tablaExpired"><tr><td colspan="6" class="empty">CARGA UN EXCEL.</td></tr></tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-title">SUBMITTED +5 DÍAS POR ORIGEN</div>
+      <div class="chart-box"><canvas id="chartSubmitted"></canvas></div>
+    </article>
+
+    <article class="card">
+      <div class="card-title">RECEIVED FOR INVESTIGATION +30 DÍAS POR ORIGEN</div>
+      <div class="chart-box"><canvas id="chartInvestigation"></canvas></div>
+    </article>
+
+    <article class="card full-width">
+      <div class="list-head">
+        <div class="card-title">DETALLE DE QUEJAS</div>
+        <span class="count-pill" id="countDetalle">0</span>
+      </div>
+      <div class="table-wrap" style="max-height:520px">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>FECHA DE QUEJA EN APP</th>
+              <th>MES</th>
+              <th>ORIGEN</th>
+              <th>DESVIACIÓN</th>
+              <th>SKU</th>
+              <th>CANT</th>
+              <th>UM</th>
+              <th>PO / STO</th>
+              <th>TIEMPO EN APP</th>
+              <th>ESTATUS</th>
+              <th>¿ES ATRIBUIBLE?</th>
+            </tr>
+          </thead>
+          <tbody id="tablaDetalle">
+            <tr><td colspan="12" class="empty">CARGA UN EXCEL.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+  </section>
+
+  <div id="status" class="status">ESPERANDO ARCHIVO EXCEL</div>
+</main>
+
+<script>
+'use strict';
+
+const SUPABASE_URL = "https://wpitemofrqzjcsetmmim.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu";
+const SUPABASE_BUCKET = "quejas-recibo-excel";
+const SUPABASE_METADATA_TABLE = "quejas_recibo_excel_actual";
+const SUPABASE_EXCEL_PATH = "actual.xlsx";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const $ = id => document.getElementById(id);
+const COLORS = ['#CF002E','#FF8A00','#FDD000','#8B001F','#FF4D6D','#FFE082','#6E0018','#FFC107','#E53935','#FFF176','#A00023','#FFD54F','#C1121F','#FFB300','#7A0018'];
+
+let allRows=[];
+let filteredRows=[];
+let charts={};
+
+function txt(v){return String(v??'').trim()}
+function norm(v){
+  return txt(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/\s+/g,' ').trim();
+}
+function headerKey(v){
+  return norm(v).replace(/[¿?]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function fieldKey(v){
+  const k=headerKey(v);
+  const map={
+    'id':'id',
+    'fecha de queja en app':'fecha',
+    'fecha queja en app':'fecha',
+    'fecha de queja':'fecha',
+    'fecha queja':'fecha',
+    'fecha de recibo':'fecha',
+    'fecha recibo':'fecha',
+    'date':'fecha',
+    'fecha':'fecha',
+    'mes':'mes',
+    'origen':'origen',
+    'desviacion':'desviacion',
+    'sku':'sku',
+    'cant':'cant',
+    'cantidad':'cant',
+    'um':'um',
+    'po sto':'po',
+    'po slash sto':'po',
+    'po sto number':'po',
+    'po sto no':'po',
+    'po':'po',
+    'tiempo en app':'tiempo',
+    'tiempo':'tiempo',
+    'estatus':'estatus',
+    'es atribuible':'atribuible',
+    'atribuible':'atribuible'
+  };
+  return map[k]||k;
+}
+function validDate(y,m,d){
+  const x=new Date(y,m-1,d);
+  return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d?x:null;
+}
+function dayOnly(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function parseDate(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(v instanceof Date&&!isNaN(v))return dayOnly(v);
+  if(typeof v==='number'&&window.XLSX){
+    const p=XLSX.SSF.parse_date_code(v);
+    if(p)return validDate(p.y,p.m,p.d);
+  }
+  const s=txt(v);
+  let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  if(m){
+    const a=+m[1],b=+m[2],y=+m[3];
+    if(a>12)return validDate(y,b,a);
+    if(b>12)return validDate(y,a,b);
+    return validDate(y,b,a);
+  }
+  m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m)return validDate(+m[1],+m[2],+m[3]);
+  const d=new Date(s);
+  return isNaN(d)?null:dayOnly(d);
+}
+function dateISO(d){
+  if(!d)return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateLabel(d){return d?d.toLocaleDateString('es-MX'):'SIN FECHA'}
+function today(){return dayOnly(new Date())}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function daysBetween(a,b){return Math.floor((dayOnly(b)-dayOnly(a))/86400000)}
+function num(v){
+  if(typeof v==='number')return Number.isFinite(v)?v:0;
+  const s=txt(v).replace(/,/g,'');
+  const n=Number(s);
+  return s&&Number.isFinite(n)?n:0;
+}
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function number(v){return Number(v||0).toLocaleString('es-MX',{maximumFractionDigits:2})}
+
+const DESVIACIONES_MAP = new Map([
+  ['TARIMA DANADA','TARIMA DAÑADA'],['TARIMAS DANADAS','TARIMA DAÑADA'],
+  ['TARIMA DAÑADA','TARIMA DAÑADA'],['TARIMAS DAÑADAS','TARIMA DAÑADA'],
+  ['FALTANTE','FALTANTE'],['FALTANTES','FALTANTE'],
+  ['SOBRANTE','SOBRANTE'],['SOBRANTES','SOBRANTE'],
+  ['CAJA DAÑADA','CAJA DAÑADA'],['CAJAS DAÑADAS','CAJA DAÑADA'],
+  ['PRODUCTO MOJADO','PRODUCTO MOJADO'],['MERCANCIA MOJADA','PRODUCTO MOJADO'],
+  ['MERCANCÍA MOJADA','PRODUCTO MOJADO']
+]);
+function normalizarDesviacion(value){
+  const original=txt(value);
+  if(!original)return 'SIN DESVIACIÓN';
+  const key=original.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+  return DESVIACIONES_MAP.get(key) || DESVIACIONES_MAP.get(original.toUpperCase().replace(/\s+/g,' ').trim()) || original.toUpperCase();
+}
+function normalizeRow(row){
+  const x={};
+  Object.entries(row).forEach(([k,v])=>x[fieldKey(k)]=v);
+  return {
+    id:txt(x.id),
+    fecha:parseDate(x.fecha),
+    mes:txt(x.mes),
+    origen:txt(x.origen)||'SIN ORIGEN',
+    desviacion:normalizarDesviacion(x.desviacion),
+    sku:txt(x.sku)||'SIN SKU',
+    cant:num(x.cant),
+    um:txt(x.um),
+    po:txt(x.po),
+    tiempo:txt(x.tiempo),
+    estatus:txt(x.estatus)||'SIN ESTATUS',
+    atribuible:txt(x.atribuible),
+    raw:row
+  };
+}
+function monthKey(r){
+  if(r.fecha)return `${r.fecha.getFullYear()}-${String(r.fecha.getMonth()+1).padStart(2,'0')}`;
+  return r.mes||'SIN MES';
+}
+function monthLabel(k){
+  if(!/^\d{4}-\d{2}$/.test(k))return k.toUpperCase();
+  const [y,m]=k.split('-').map(Number);
+  return new Date(y,m-1,1).toLocaleDateString('es-MX',{month:'short',year:'numeric'}).toUpperCase();
+}
+function countBy(rows,fn){
+  const m=new Map();
+  rows.forEach(r=>{
+    const k=txt(fn(r))||'SIN DATO';
+    m.set(k,(m.get(k)||0)+1);
+  });
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'es'));
+}
+function isSubmitted(r){return norm(r.estatus)==='submitted'}
+function isInvestigation(r){return norm(r.estatus)==='received for investigation'}
+function deadline(r){return r.fecha?addDays(r.fecha,30):null}
+function upcoming(r){
+  const d=deadline(r);
+  if(!d)return false;
+  const remaining=daysBetween(today(),d);
+  return remaining>=0&&remaining<=7;
+}
+function expired(r){
+  const d=deadline(r);
+  return !!d && daysBetween(d,today())>0;
+}
+function submittedOver5(r){
+  return isSubmitted(r)&&r.fecha&&daysBetween(r.fecha,today())>5;
+}
+function investigationOver30(r){
+  return isInvestigation(r)&&r.fecha&&daysBetween(r.fecha,today())>30;
+}
+
+function setOptions(id,values,label){
+  const el=$(id),old=el.value;
+  el.innerHTML=`<option value="">${esc(label)}</option>`+
+    values.map(v=>`<option value="${esc(v)}">${esc(v.toUpperCase())}</option>`).join('');
+  if(values.includes(old))el.value=old;
+}
+function populateFilters(){
+  const unique=a=>[...new Set(a.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  setOptions('fOrigen',unique(allRows.map(r=>r.origen)),'TODOS');
+  setOptions('fDesviacion',unique(allRows.map(r=>r.desviacion)),'TODAS');
+  setOptions('fEstatus',unique(allRows.map(r=>r.estatus)),'TODOS');
+}
+function activeFilterCount(){
+  return ['fDesde','fHasta','fOrigen','fDesviacion','fEstatus','fSku','fPo','fId','fTexto']
+    .filter(id=>txt($(id).value)).length;
+}
+function applyFilters(){
+  const start=$('fDesde').value,end=$('fHasta').value;
+  const origin=norm($('fOrigen').value);
+  const deviation=norm($('fDesviacion').value);
+  const status=norm($('fEstatus').value);
+  const sku=norm($('fSku').value),po=norm($('fPo').value);
+  const id=norm($('fId').value),search=norm($('fTexto').value);
+
+  return allRows.filter(r=>{
+    const f=dateISO(r.fecha);
+    if(start&&(!f||f<start))return false;
+    if(end&&(!f||f>end))return false;
+    if(origin&&norm(r.origen)!==origin)return false;
+    if(deviation&&norm(r.desviacion)!==deviation)return false;
+    if(status&&norm(r.estatus)!==status)return false;
+    if(sku&&!norm(r.sku).includes(sku))return false;
+    if(po&&!norm(r.po).includes(po))return false;
+    if(id&&!norm(r.id).includes(id))return false;
+    if(search&&!norm([r.id,r.origen,r.desviacion,r.sku,r.po,r.estatus,r.mes,r.tiempo].join(' ')).includes(search))return false;
+    return true;
+  });
+}
+function destroyCharts(){
+  Object.values(charts).forEach(c=>c.destroy());
+  charts={};
+}
+function chartOptions(horizontal=false){
+  return {
+    responsive:true,
+    maintainAspectRatio:false,
+    indexAxis:horizontal?'y':'x',
+    layout:{padding:{top:20,right:27,bottom:6,left:6}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>' '+number(c.raw)}},
+      datalabels:{
+        display:true,color:'#222',anchor:'end',
+        align:horizontal?'right':'top',offset:3,clamp:true,clip:false,
+        font:{size:9,weight:'bold'},
+        formatter:v=>number(v)
+      }
+    },
+    scales:{
+      x:{
+        beginAtZero:true,
+        grid:{color:'#0000000d'},
+        ticks:{font:{size:9,weight:'bold'},precision:0}
+      },
+      y:horizontal?{
+        grid:{display:false},
+        ticks:{autoSkip:false,font:{size:9,weight:'bold'}}
+      }:{
+        beginAtZero:true,
+        grid:{color:'#0000000d'},
+        ticks:{font:{size:9,weight:'bold'},precision:0}
+      }
+    }
+  };
+}
+function makeBar(id,labels,values,horizontal=false){
+  return new Chart($(id),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        data:values,
+        backgroundColor:labels.map((_,i)=>COLORS[i%COLORS.length]),
+        borderRadius:5,borderSkipped:false,maxBarThickness:38
+      }]
+    },
+    options:chartOptions(horizontal),
+    plugins:[ChartDataLabels]
+  });
+}
+function updateKpis(rows){
+  $('kTotal').textContent=number(rows.length);
+  $('kVencer').textContent=number(rows.filter(upcoming).length);
+  $('kSubmitted').textContent=number(rows.filter(submittedOver5).length);
+  $('kInvestigation').textContent=number(rows.filter(investigationOver30).length);
+  $('kExpired').textContent=number(rows.filter(expired).length);
+  $('kOrigenes').textContent=number([...new Set(rows.map(r=>r.origen).filter(v=>v!=='SIN ORIGEN'))].length);
+  const n=activeFilterCount();
+  $('filterBadge').textContent=n?`${n} ACTIVO(S)`:'SIN FILTROS';
+}
+function updateUpcoming(rows){
+  const list=rows.filter(upcoming).sort((a,b)=>deadline(a)-deadline(b));
+  $('countVencer').textContent=number(list.length);
+
+  if(!list.length){
+    $('tablaVencer').innerHTML=
+      '<tr><td colspan="6" class="empty">SIN QUEJAS PRÓXIMAS A VENCER</td></tr>';
+    return;
+  }
+
+  $('tablaVencer').innerHTML=list.map(r=>{
+    const limit=deadline(r);
+    const remaining=daysBetween(today(),limit);
+
+    return `<tr>
+      <td>${esc(r.id)}</td>
+      <td>${esc(dateLabel(r.fecha))}</td>
+      <td>${esc(dateLabel(limit))}</td>
+      <td>
+        <span class="tag ${remaining<=2?'tag-red':'tag-yellow'}">
+          ${remaining===0?'HOY':remaining+' DÍA(S)'}
+        </span>
+      </td>
+      <td>${esc(r.origen)}</td>
+      <td>${esc(r.estatus)}</td>
+    </tr>`;
+  }).join('');
+}
+function updateExpired(rows){
+  const list=rows.filter(expired).sort((a,b)=>deadline(a)-deadline(b));
+  $('countExpired').textContent=number(list.length);
+  if(!list.length){
+    $('tablaExpired').innerHTML='<tr><td colspan="6" class="empty">SIN QUEJAS VENCIDAS</td></tr>';
+    return;
+  }
+  $('tablaExpired').innerHTML=list.map(r=>{
+    const limit=deadline(r),days=daysBetween(limit,today());
+    return `<tr><td>${esc(r.id)}</td><td>${esc(dateLabel(r.fecha))}</td>
+      <td>${esc(dateLabel(limit))}</td><td><span class="tag tag-red">${days} DÍA(S)</span></td>
+      <td>${esc(r.origen)}</td><td>${esc(r.estatus)}</td></tr>`;
+  }).join('');
+}
+function updateDetail(rows){
+  $('countDetalle').textContent=number(rows.length);
+
+  if(!rows.length){
+    $('tablaDetalle').innerHTML=
+      '<tr><td colspan="12" class="empty">SIN REGISTROS</td></tr>';
+    return;
+  }
+
+  const ordered=[...rows].sort(
+    (a,b)=>(b.fecha?.getTime()||0)-(a.fecha?.getTime()||0)
+  );
+
+  $('tablaDetalle').innerHTML=ordered.map(r=>`
+    <tr>
+      <td>${esc(r.id)}</td>
+      <td>${esc(dateLabel(r.fecha))}</td>
+      <td>${esc(r.mes)}</td>
+      <td>${esc(r.origen)}</td>
+      <td>${esc(r.desviacion)}</td>
+      <td>${esc(r.sku)}</td>
+      <td>${esc(number(r.cant))}</td>
+      <td>${esc(r.um)}</td>
+      <td>${esc(r.po)}</td>
+      <td>${esc(r.tiempo)}</td>
+      <td>${esc(r.estatus)}</td>
+      <td>${esc(r.atribuible)}</td>
+    </tr>`).join('');
+}
+function render(){
+  if(!allRows.length){
+    destroyCharts();
+    filteredRows=[];
+    updateKpis([]);
+    updateUpcoming([]);
+    updateExpired([]);
+    updateDetail([]);
+    return;
+  }
+  filteredRows=applyFilters();
+  destroyCharts();
+
+  const monthsMap=new Map();
+  filteredRows.forEach(r=>{
+    const k=monthKey(r);
+    monthsMap.set(k,(monthsMap.get(k)||0)+1);
+  });
+
+  const months=[...monthsMap.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+  const origins=countBy(filteredRows.filter(r=>norm(r.origen)!=='sin origen' && norm(r.origen)!=='sin dato' && norm(r.origen)!==''),r=>r.origen);
+  const deviations=countBy(filteredRows.filter(r=>!['sin desviacion','sin dato',''].includes(norm(r.desviacion))),r=>r.desviacion);
+  const submitted=countBy(filteredRows.filter(submittedOver5),r=>r.origen);
+  const investigation=countBy(filteredRows.filter(investigationOver30),r=>r.origen);
+
+  charts.month=makeBar(
+    'chartMes',months.map(x=>monthLabel(x[0])),months.map(x=>x[1])
+  );
+  charts.origin=makeBar(
+    'chartOrigen',origins.map(x=>x[0]),origins.map(x=>x[1]),true
+  );
+  charts.deviation=makeBar(
+    'chartDesviacion',deviations.map(x=>x[0]),deviations.map(x=>x[1]),true
+  );
+  charts.submitted=makeBar(
+    'chartSubmitted',submitted.map(x=>x[0]),submitted.map(x=>x[1]),true
+  );
+  charts.investigation=makeBar(
+    'chartInvestigation',investigation.map(x=>x[0]),investigation.map(x=>x[1]),true
+  );
+
+  updateKpis(filteredRows);
+  updateUpcoming(filteredRows);
+  updateExpired(filteredRows);
+  updateDetail(filteredRows);
+
+  $('status').className='status success';
+  $('status').textContent=`${number(filteredRows.length)} QUEJAS`;
+}
+function showError(message){
+  $('status').className='status error';
+  $('status').textContent=message;
+}
+function guardarExcelLocal(buffer){
+  try{
+    const bytes=Array.from(new Uint8Array(buffer));
+    localStorage.setItem('quejasReciboExcelLocal',JSON.stringify(bytes));
+    return true;
+  }catch(e){console.warn('No fue posible guardar copia local',e);return false;}
+}
+function obtenerExcelLocal(){
+  try{
+    const saved=localStorage.getItem('quejasReciboExcelLocal');
+    return saved?new Uint8Array(JSON.parse(saved)).buffer:null;
+  }catch(e){return null;}
+}
+function eliminarExcelLocal(){
+  try{localStorage.removeItem('quejasReciboExcelLocal');}catch(e){}
+}
+async function guardarExcelCentral(buffer){
+  const file=new File([buffer],SUPABASE_EXCEL_PATH,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const {error:uploadError}=await supabaseClient.storage.from(SUPABASE_BUCKET)
+    .upload(SUPABASE_EXCEL_PATH,file,{upsert:true,contentType:file.type,cacheControl:'0'});
+  if(uploadError)throw uploadError;
+  const {error:deleteError}=await supabaseClient.from(SUPABASE_METADATA_TABLE)
+    .delete().eq('bucket_id',SUPABASE_BUCKET).eq('file_path',SUPABASE_EXCEL_PATH);
+  if(deleteError)throw deleteError;
+  const {error:insertError}=await supabaseClient.from(SUPABASE_METADATA_TABLE).insert({
+    bucket_id:SUPABASE_BUCKET,file_path:SUPABASE_EXCEL_PATH,
+    file_name:SUPABASE_EXCEL_PATH,uploaded_at:new Date().toISOString(),
+    updated_at:new Date().toISOString()
+  });
+  if(insertError)throw insertError;
+  guardarExcelLocal(buffer);
+}
+async function obtenerExcelCentral(){
+  const {data,error}=await supabaseClient.storage.from(SUPABASE_BUCKET).download(SUPABASE_EXCEL_PATH);
+  if(error){
+    if(/not found|404|object not found/i.test(error.message||''))return null;
+    throw error;
+  }
+  return data?await data.arrayBuffer():null;
+}
+async function eliminarExcelCentral(){
+  const {error:storageError}=await supabaseClient.storage.from(SUPABASE_BUCKET).remove([SUPABASE_EXCEL_PATH]);
+  if(storageError && !/not found|404/i.test(storageError.message||''))throw storageError;
+  const {error:metaError}=await supabaseClient.from(SUPABASE_METADATA_TABLE)
+    .delete().eq('bucket_id',SUPABASE_BUCKET).eq('file_path',SUPABASE_EXCEL_PATH);
+  if(metaError)throw metaError;
+}
+async function restaurarExcelGuardado(){
+  const buffer=await obtenerExcelCentral();
+  if(buffer){guardarExcelLocal(buffer);await processExcelBuffer(buffer,SUPABASE_EXCEL_PATH);return true;}
+  return false;
+}
+async function loadFromSupabase(){
+  try{
+    $('status').className='status';
+    $('status').textContent='CONSULTANDO EXCEL CENTRAL...';
+    const found=await restaurarExcelGuardado();
+    if(!found){
+      const local=obtenerExcelLocal();
+      if(local)await processExcelBuffer(local,'COPIA LOCAL');
+      else {$('status').className='status';$('status').textContent='NO HAY EXCEL CENTRAL. CARGA UN ARCHIVO.';}
+    }
+  }catch(e){
+    console.error(e);
+    const local=obtenerExcelLocal();
+    if(local){
+      try{await processExcelBuffer(local,'COPIA LOCAL');$('status').textContent='EXCEL LOCAL CARGADO. SUPABASE NO DISPONIBLE: '+(e.message||'ERROR');}
+      catch(err){showError('ERROR AL CARGAR EXCEL: '+(err.message||''));}
+    }else showError('NO SE PUDO CARGAR DESDE SUPABASE: '+(e.message||'VERIFICA CONFIGURACIÓN Y PERMISOS'));
+  }
+}
+async function uploadExcelToSupabase(buffer){
+  await guardarExcelCentral(buffer);
+}
+async function deleteExcelFromSupabase(){
+  await eliminarExcelCentral();
+  eliminarExcelLocal();
+  allRows=[];filteredRows=[];
+  destroyCharts();
+  ['kTotal','kVencer','kSubmitted','kInvestigation','kOrigenes','kExpired','countVencer','countExpired','countDetalle'].forEach(id=>$(id).textContent='0');
+  $('tablaVencer').innerHTML='<tr><td colspan="6" class="empty">CARGA UN EXCEL.</td></tr>';
+  $('tablaExpired').innerHTML='<tr><td colspan="6" class="empty">CARGA UN EXCEL.</td></tr>';
+  $('tablaDetalle').innerHTML='<tr><td colspan="12" class="empty">CARGA UN EXCEL.</td></tr>';
+  ['fOrigen','fDesviacion','fEstatus'].forEach((id)=>$(id).innerHTML=`<option value="">${id==='fDesviacion'?'TODAS':'TODOS'}</option>`);
+  $('fileInfo').textContent='SIN ARCHIVO';$('btnExport').disabled=true;$('excelFile').value='';
+  $('status').className='status success';$('status').textContent='EXCEL ELIMINADO. DASHBOARD LIMPIO.';
+}
+async function processExcelBuffer(buffer,fileName='actual.xlsx'){
+  if(typeof XLSX==='undefined')throw new Error('NO SE PUDO CARGAR LA LIBRERÍA EXCEL');
+  const wb=XLSX.read(buffer,{type:'array',cellDates:true});
+  if(!wb.SheetNames || !wb.SheetNames.length)throw new Error('EL ARCHIVO NO CONTIENE HOJAS');
+
+  // Elegir la hoja con mayor cantidad de encabezados reconocibles, no simplemente
+  // la primera hoja no vacía (muchos libros incluyen portadas o instrucciones).
+  const aliases = new Set([
+    'id','fecha de queja en app','fecha queja en app','fecha de queja','fecha','mes',
+    'origen','desviacion','sku','cant','cantidad','um','po sto','po','tiempo en app',
+    'estatus','es atribuible','atribuible','fecha de recibo','fecha queja','transportista'
+  ]);
+  let best=null, bestScore=-1, bestRows=[];
+  for(const name of wb.SheetNames){
+    const candidate=wb.Sheets[name];
+    if(!candidate)continue;
+    const rows=XLSX.utils.sheet_to_json(candidate,{defval:'',raw:true});
+    if(!rows.length)continue;
+    const keys=Object.keys(rows[0]).map(headerKey);
+    const score=keys.reduce((n,k)=>n+(aliases.has(k)?1:0),0);
+    if(score>bestScore){best=candidate;bestScore=score;bestRows=rows;}
+  }
+  if(!best || !bestRows.length)throw new Error('NO HAY REGISTROS EN EL ARCHIVO');
+  if(bestScore<3){
+    const actual=Object.keys(bestRows[0]||{}).join(', ');
+    throw new Error('NO SE RECONOCEN LOS ENCABEZADOS DEL EXCEL. ENCABEZADOS DETECTADOS: '+(actual||'NINGUNO'));
+  }
+
+  const raw=bestRows;
+  // Los nombres de columna pueden variar ligeramente entre versiones del Excel.
+  const requiredGroups=[
+    ['id'],['fecha de queja en app','fecha queja en app','fecha de queja','fecha'],
+    ['origen'],['desviacion','desviación']
+  ];
+  const headers=Object.keys(raw[0]).map(headerKey);
+  const missing=requiredGroups.filter(group=>!group.some(h=>headers.includes(h))).map(group=>group[0]);
+  if(missing.length)throw new Error('FALTAN COLUMNAS CLAVE: '+missing.join(', ')+'. ENCABEZADOS DETECTADOS: '+headers.join(' | '));
+
+  allRows=raw.map(normalizeRow).filter(r=>
+    r.id || r.fecha || r.origen!=='SIN ORIGEN' || r.sku!=='SIN SKU' || r.desviacion!=='SIN DESVIACIÓN'
+  );
+  if(!allRows.length)throw new Error('SE ENCONTRÓ LA HOJA, PERO NO HAY REGISTROS CON DATOS');
+  populateFilters();
+  $('fileInfo').textContent=`${esc(fileName)} · ${number(allRows.length)}`;
+  $('btnExport').disabled=false;
+  render();
+  return true;
+}
+async function loadExcel(){
+  const file=$('excelFile').files[0];
+  if(!file){showError('SELECCIONA UN EXCEL');return;}
+  $('btnLoad').disabled=true;
+  $('status').className='status';$('status').textContent='LEYENDO Y GUARDANDO EXCEL...';
+  try{
+    const buffer=await file.arrayBuffer();
+    await processExcelBuffer(buffer,file.name);
+    await uploadExcelToSupabase(buffer);
+    $('fileInfo').textContent=`actual.xlsx · ${number(allRows.length)} · SUPABASE`;
+    $('status').className='status success';
+    $('status').textContent='EXCEL GUARDADO EN SUPABASE Y DASHBOARD ACTUALIZADO.';
+  }catch(e){
+    console.error(e);
+    showError((e.message||'ERROR AL LEER EL EXCEL')+'');
+  }finally{$('btnLoad').disabled=false;}
+}
+function clearFilters(){
+  [
+    'fDesde','fHasta','fOrigen','fDesviacion','fEstatus',
+    'fSku','fPo','fId','fTexto'
+  ].forEach(id=>$(id).value='');
+  render();
+}
+function exportExcel(){
+  if(!filteredRows.length){
+    showError('NO HAY REGISTROS PARA EXPORTAR');
+    return;
+  }
+
+  const rows=filteredRows.map(r=>({
+    'ID':r.id,
+    'FECHA DE QUEJA EN APP':dateISO(r.fecha),
+    'MES':r.mes,
+    'ORIGEN':r.origen,
+    'Desviación':r.desviacion,
+    'SKU':r.sku,
+    'CANT':r.cant,
+    'UM':r.um,
+    'PO / STO':r.po,
+    'TIEMPO EN APP':r.tiempo,
+    'ESTATUS':r.estatus,
+    '¿Es atribuible?':r.atribuible
+  }));
+
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Quejas Recibo');
+  XLSX.writeFile(wb,'Quejas_Recibo_Filtradas.xlsx');
+}
+
+$('btnLoad').addEventListener('click',loadExcel);
+$('btnExport').addEventListener('click',exportExcel);
+$('btnApply').addEventListener('click',render);
+$('btnClear').addEventListener('click',clearFilters);
+$('btnDelete').addEventListener('click',async()=>{if(!confirm('¿ELIMINAR EL EXCEL CENTRAL Y LIMPIAR EL DASHBOARD?'))return; $('btnDelete').disabled=true;try{await deleteExcelFromSupabase();}catch(e){console.error(e);showError('NO SE PUDO ELIMINAR: '+(e.message||''));}finally{$('btnDelete').disabled=false;}});
+
+['fDesde','fHasta','fOrigen','fDesviacion','fEstatus'].forEach(id=>{
+  $(id).addEventListener('change',()=>{
+    if(allRows.length)render();
+  });
+});
+['fSku','fPo','fId','fTexto'].forEach(id=>{
+  $(id).addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&allRows.length)render();
+  });
+});
+
+Chart.defaults.font.family='Arial,Helvetica,sans-serif';
+Chart.defaults.color='#555';
+window.addEventListener('DOMContentLoaded',loadFromSupabase);
+</script>
+
+<script id="qa-unified-chart-style">
+(function(){
+  const stamp=()=>new Date().toLocaleString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+  function updateStamp(){
+    const value=stamp();
+    document.querySelectorAll('.qa-header-update .update-value, #qaHeaderUpdate, #ultimaActualizacion').forEach(el=>{if(el)el.textContent=value;});
+  }
+  updateStamp();
+  if(window.Chart){
+    const palette=['#CF002E','#FF8A00','#FDD000','#8B001F','#FF4D6D','#FFE082','#6E0018','#FFC107','#E53935','#FFF176','#A00023','#FFD54F','#C1121F','#FFB300','#7A0018'];
+    Chart.defaults.color='#4A4A4A';
+    Chart.defaults.borderColor='#E5E5E5';
+    Chart.defaults.font.family='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
+    Chart.defaults.plugins.legend.labels.usePointStyle=true;
+    Chart.defaults.plugins.legend.labels.boxWidth=9;
+    Chart.defaults.plugins.tooltip.backgroundColor='#1A1A1A';
+    Chart.defaults.plugins.tooltip.titleColor='#FFFFFF';
+    Chart.defaults.plugins.tooltip.bodyColor='#FFFFFF';
+    Chart.defaults.plugins.tooltip.padding=10;
+    Chart.defaults.plugins.tooltip.cornerRadius=8;
+    Chart.defaults.elements.line.borderWidth=2.5;
+    Chart.defaults.elements.point.radius=3;
+    Chart.defaults.elements.bar.borderRadius=5;
+    const unifyColors={
+      id:'qaUnifiedColors',
+      beforeUpdate(chart){
+        const type=chart.config.type;
+        chart.data.datasets.forEach((ds,i)=>{
+          const color=palette[i%palette.length];
+          if(type==='pie'||type==='doughnut'||type==='polarArea'){
+            ds.backgroundColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.borderColor='#FFFFFF'; ds.borderWidth=2;
+          }else if(type==='bar'||ds.type==='bar'){
+            // Apply the requested palette to each bar, not one color to the whole dataset.
+            ds.backgroundColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.borderColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.hoverBackgroundColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.hoverBorderColor=ds.data.map((_,j)=>palette[j%palette.length]);
+          }else{
+            // Keep line charts as continuous series in the brand color.
+            ds.backgroundColor=color+'26';
+            ds.borderColor=color;
+            ds.pointBackgroundColor=color;
+            ds.pointBorderColor='#FFFFFF';
+            ds.hoverBackgroundColor=color;
+            ds.hoverBorderColor=color;
+          }
+        });
+      }
+    };
+    Chart.register(unifyColors);
+    Object.values(Chart.instances||{}).forEach(chart=>{try{chart.update('none')}catch(e){}});
+  }
+})();
+</script>
+
+</body>
+</html>
