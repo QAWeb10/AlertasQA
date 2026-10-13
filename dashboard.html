@@ -1860,6 +1860,24 @@ body:has(.qa-unified-header) .header{display:none !important;}
 }
 </style>
 
+
+<style id="qa-unified-navigation-and-charts">
+:root{--qa-brand:#CF002E;--qa-brand-dark:#A00023;--qa-brand-deep:#6E0018;--qa-accent:#FDD000;--qa-ink:#1A1A1A;--qa-line:#E5E5E5}
+.qa-unified-header{position:sticky!important;top:0!important;z-index:1000!important;min-height:68px!important;padding:10px 18px!important;display:flex!important;align-items:center!important;gap:12px!important;background:linear-gradient(90deg,#6E0018 0%,#A00023 45%,#CF002E 100%)!important;color:#fff!important;box-shadow:0 4px 12px #0002!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;flex-wrap:wrap}
+.qa-unified-header .qa-unified-nav{display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;flex-wrap:wrap!important;order:3}
+.qa-unified-header .qa-unified-nav a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:0 10px!important;border:1px solid #ffffff55!important;border-radius:8px!important;background:transparent!important;color:#fff!important;text-decoration:none!important;font-size:10px!important;font-weight:800!important;white-space:nowrap!important;letter-spacing:.2px}
+.qa-unified-header .qa-unified-nav a:hover{background:#ffffff20!important}
+.qa-unified-header .qa-unified-nav a.active{background:#FDD000!important;border-color:#FDD000!important;color:#6E0018!important}
+.qa-unified-header .update-box,.qa-unified-header .qa-header-update{display:flex!important;flex-direction:column!important;gap:3px!important;align-items:flex-start!important;justify-content:center!important;padding:6px 10px!important;border:1px solid #ffffff45!important;border-radius:8px!important;background:#ffffff12!important;color:#fff!important;min-width:125px!important;order:4}
+.qa-unified-header .update-label{font-size:9px!important;font-weight:800!important;letter-spacing:.5px!important;text-transform:uppercase!important;opacity:.85!important}
+.qa-unified-header .update-value{font-size:11px!important;font-weight:800!important;color:#fff!important;white-space:nowrap!important}
+.qa-unified-header .qa-home,.qa-unified-header .back,.qa-unified-header a.home{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:0 11px!important;border:1px solid #ffffff65!important;border-radius:8px!important;background:#fff!important;color:#6E0018!important;text-decoration:none!important;font-size:10px!important;font-weight:900!important;white-space:nowrap!important;order:5}
+.qa-unified-header .spacer,.qa-unified-header .header-spacer,.qa-unified-header .grow{flex:1 1 12px!important;min-width:8px!important}
+.qa-unified-header .badge{order:2}
+@media(max-width:900px){.qa-unified-header{gap:8px!important;padding:8px 10px!important}.qa-unified-header .qa-unified-nav{order:6;width:100%;overflow-x:auto;flex-wrap:nowrap!important;justify-content:flex-start!important;padding-bottom:2px}.qa-unified-header .qa-unified-nav a{font-size:9px!important;padding:0 8px!important}.qa-unified-header .update-box{margin-left:auto;min-width:112px!important}.qa-unified-header .t2,.qa-unified-header .brand-title{font-size:14px!important}}
+@media(max-width:480px){.qa-unified-header{position:sticky!important}.qa-unified-header .update-box{min-width:108px!important;padding:5px 7px!important}.qa-unified-header .update-value{font-size:10px!important}.qa-unified-header .qa-unified-nav a{font-size:9px!important;min-height:31px!important}}
+</style>
+
 </head>
 <body>
 <header class="appbar qa-unified-header" id="mainHeader">
@@ -1869,12 +1887,13 @@ body:has(.qa-unified-header) .header{display:none !important;}
 <div class="t2">Dashboard de Alertas</div>
 </div>
 <div class="spacer header-spacer"></div>
-<nav class="nav-dash qa-unified-nav">
-<a class="active" href="dashboard.html">📊 Calidad</a>
-<a href="dashboard-auditorias.html">📋 Auditorías</a>
-<a href="dashboard-incidencias.html">⚠️ Incidencias</a>
-<a href="Dashboard_Quejas.html">📝 Quejas</a>
-</nav>
+<nav class="qa-unified-nav" aria-label="Navegación entre dashboards">
+    <a href="dashboard.html" class="active" aria-current="page">📊 CALIDAD</a>
+    <a href="dashboard-auditorias.html">📋 AUDITORÍAS</a>
+    <a href="dashboard-incidencias.html">⚠️ INCIDENCIAS</a>
+    <a href="Dashboard_Quejas.html">📝 QUEJAS</a>
+    <a href="dashboard-Quejas%20recibo.html">📦 QUEJAS RECIBO</a>
+  </nav>
 <div class="badge">FY2627</div>
 <div class="update-box qa-header-update">
 <div class="update-label">Última actualización</div>
@@ -2345,25 +2364,7 @@ body:has(.qa-unified-header) .header{display:none !important;}
   const ACCENT = "#FDD000";
   const INK = "#1A1A1A";
 
-  const PALETTE = [
-
-    "#CF002E",
-    "#FF8A00",
-    "#FDD000",
-    "#8B001F",
-    "#FF4D6D",
-    "#FFE082",
-    "#6E0018",
-    "#FFC107",
-    "#E53935",
-    "#FFF176",
-    "#A00023",
-    "#FFD54F",
-    "#C1121F",
-    "#FFB300",
-    "#7A0018"
-
-  ];
+  const PALETTE = ['#CF002E','#FF8A00','#FDD000','#8B001F','#FF4D6D','#FFE082','#6E0018','#FFC107','#E53935','#FFF176','#A00023','#FFD54F','#C1121F','#FFB300','#7A0018'];
 
   if(typeof ChartDataLabels !== "undefined"){
     Chart.register(ChartDataLabels);
@@ -6929,5 +6930,62 @@ function toggleHeatmap(){
   });
 
 </script>
-<script>document.addEventListener("DOMContentLoaded",function(){const e=document.getElementById("qaHeaderUpdate");const old=document.getElementById("ultimaActualizacion");if(e&&old){const sync=()=>{e.textContent=old.textContent||"—"};sync();new MutationObserver(sync).observe(old,{childList:true,subtree:true,characterData:true});}});</script></body>
+<script>document.addEventListener("DOMContentLoaded",function(){const e=document.getElementById("qaHeaderUpdate");const old=document.getElementById("ultimaActualizacion");if(e&&old){const sync=()=>{e.textContent=old.textContent||"—"};sync();new MutationObserver(sync).observe(old,{childList:true,subtree:true,characterData:true});}});</script>
+<script id="qa-unified-chart-style">
+(function(){
+  const stamp=()=>new Date().toLocaleString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+  function updateStamp(){
+    const value=stamp();
+    document.querySelectorAll('.qa-header-update .update-value, #qaHeaderUpdate, #ultimaActualizacion').forEach(el=>{if(el)el.textContent=value;});
+  }
+  updateStamp();
+  if(window.Chart){
+    const palette=['#CF002E','#FF8A00','#FDD000','#8B001F','#FF4D6D','#FFE082','#6E0018','#FFC107','#E53935','#FFF176','#A00023','#FFD54F','#C1121F','#FFB300','#7A0018'];
+    Chart.defaults.color='#4A4A4A';
+    Chart.defaults.borderColor='#E5E5E5';
+    Chart.defaults.font.family='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
+    Chart.defaults.plugins.legend.labels.usePointStyle=true;
+    Chart.defaults.plugins.legend.labels.boxWidth=9;
+    Chart.defaults.plugins.tooltip.backgroundColor='#1A1A1A';
+    Chart.defaults.plugins.tooltip.titleColor='#FFFFFF';
+    Chart.defaults.plugins.tooltip.bodyColor='#FFFFFF';
+    Chart.defaults.plugins.tooltip.padding=10;
+    Chart.defaults.plugins.tooltip.cornerRadius=8;
+    Chart.defaults.elements.line.borderWidth=2.5;
+    Chart.defaults.elements.point.radius=3;
+    Chart.defaults.elements.bar.borderRadius=5;
+    const unifyColors={
+      id:'qaUnifiedColors',
+      beforeUpdate(chart){
+        const type=chart.config.type;
+        chart.data.datasets.forEach((ds,i)=>{
+          const color=palette[i%palette.length];
+          if(type==='pie'||type==='doughnut'||type==='polarArea'){
+            ds.backgroundColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.borderColor='#FFFFFF'; ds.borderWidth=2;
+          }else if(type==='bar'||ds.type==='bar'){
+            // Apply the requested palette to each bar, not one color to the whole dataset.
+            ds.backgroundColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.borderColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.hoverBackgroundColor=ds.data.map((_,j)=>palette[j%palette.length]);
+            ds.hoverBorderColor=ds.data.map((_,j)=>palette[j%palette.length]);
+          }else{
+            // Keep line charts as continuous series in the brand color.
+            ds.backgroundColor=color+'26';
+            ds.borderColor=color;
+            ds.pointBackgroundColor=color;
+            ds.pointBorderColor='#FFFFFF';
+            ds.hoverBackgroundColor=color;
+            ds.hoverBorderColor=color;
+          }
+        });
+      }
+    };
+    Chart.register(unifyColors);
+    Object.values(Chart.instances||{}).forEach(chart=>{try{chart.update('none')}catch(e){}});
+  }
+})();
+</script>
+
+</body>
 </html>
