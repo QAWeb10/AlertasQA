@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#CF002E">
 
-<title>QA · Auditoría en Recibo · V56 FLUJO LPN</title>
+<title>QA · Auditoría en Recibo</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -130,7 +130,6 @@ button{
   white-space:nowrap;
 }
 
-/* Navegación unificada QA */
 .nav-dash{
   display:flex;
   align-items:center;
@@ -284,10 +283,6 @@ button{
   display:none!important;
 }
 
-/* =========================================================
-   TIPO AUDITORÍA
-========================================================= */
-
 .audit-type-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -335,10 +330,6 @@ button{
   font-size:9px;
   font-weight:900;
 }
-
-/* =========================================================
-   MUESTREO
-========================================================= */
 
 .sampling-box{
   border:1px solid var(--line);
@@ -447,10 +438,6 @@ button{
   line-height:1.45;
   color:var(--ink-muted);
 }
-
-/* =========================================================
-   ARCHIVO DE RECIBO / EXCEL
-========================================================= */
 
 .qa-file-input-mobile{
   position:absolute !important;
@@ -612,10 +599,6 @@ button{
   font-weight:800;
 }
 
-/* =========================================================
-   DATOS RECIBO
-========================================================= */
-
 .data-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -655,10 +638,6 @@ button{
   color:var(--ink-muted);
   font-size:9px;
 }
-
-/* =========================================================
-   BOTONES
-========================================================= */
 
 .acciones{
   display:flex;
@@ -733,10 +712,6 @@ button{
 }
 
 .btn:active{transform:translateY(1px);}
-
-/* =========================================================
-   PROGRESO / KPI
-========================================================= */
 
 .qa-progress{
   position:sticky;
@@ -816,9 +791,6 @@ button{
   border-left:4px solid var(--minor);
 }
 
-/* =========================================================
-   SECCIONES SUPERIORES COMPACTAS
-========================================================= */
 .compact-section{
   overflow:hidden;
 }
@@ -882,11 +854,6 @@ button{
   padding:8px;
 }
 
-/* =========================================================
-   CONFIGURACIÓN SUPERIOR · V20 VISUAL CORREGIDA
-   - Configuración de archivo y muestreo en columnas equilibradas.
-   - Datos de recibo permanece debajo, sin ser arrastrado al grid.
-========================================================= */
 .wrap{
   width:min(100% - 28px,1180px);
   margin:14px auto 38px;
@@ -910,7 +877,6 @@ button{
   padding:14px;
 }
 
-/* Solo 02 y 03 comparten fila. Ninguna otra sección entra aquí. */
 .top-config-grid{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);
@@ -982,10 +948,6 @@ button{
     grid-column:1/-1;
   }
 }
-
-/* =========================================================
-   LPN
-========================================================= */
 
 .audit-list{
   display:flex;
@@ -1142,10 +1104,6 @@ button{
   margin-top:8px;
 }
 
-/* =========================================================
-   QA AVANZADO
-========================================================= */
-
 .qa-category{
   border:1px solid var(--line);
   border-radius:10px;
@@ -1257,7 +1215,6 @@ button{
   border:1px solid var(--line-soft);
 }
 
-
 .severity-badge.critico{
   background:#ffe1e7;
   color:#8b001f;
@@ -1321,7 +1278,6 @@ button{
   font-size:9px;
   font-weight:900;
 }
-/* EVIDENCIA POSITIVA · 100% APROBADO */
 .evidencia-positiva-panel{margin-top:12px;padding:11px;border:1px solid #9fd8aa;border-radius:10px;background:#f5fbf6}
 .evidencia-positiva-title{font-size:11px;font-weight:900;color:#17652c}
 .evidencia-positiva-subtitle{margin-top:4px;color:var(--ink-muted);font-size:9px;line-height:1.4}
@@ -1335,10 +1291,6 @@ button{
 .evidencia-positiva-thumb button{position:absolute;top:2px;right:2px;width:19px;height:19px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:900}
 .evidencia-positiva-empty{margin-top:7px;color:var(--ink-muted);font-size:8px}
 @media(max-width:520px){.evidencia-positiva-preview{grid-template-columns:repeat(3,1fr);}}
-
-/* =========================================================
-   ALMACENAJE
-========================================================= */
 
 .storage-search{
   display:grid;
@@ -1455,10 +1407,6 @@ button{
   margin:0 0 9px;
   font-size:11px;
 }
-
-/* =========================================================
-   EVIDENCIA
-========================================================= */
 
 .photo-zone{
   border:2px dashed var(--line);
@@ -1617,10 +1565,6 @@ button{
   border-radius:6px;
 }
 
-/* =========================================================
-   ALERTAS
-========================================================= */
-
 .alert{
   padding:10px 11px;
   border-radius:9px;
@@ -1658,10 +1602,6 @@ button{
   color:var(--ink-muted);
   font-size:9px;
 }
-
-/* =========================================================
-   DESKTOP
-========================================================= */
 
 @media(min-width:701px){
 
@@ -1809,7 +1749,6 @@ button{
 .inventory-compare-pending{border:1px solid #d1d5db}
 @media(max-width:760px){.inventory-compare-grid{grid-template-columns:1fr}}
 
-/* V45 · Hallazgos por bloque; se retiran los paneles QA antiguos */
 .hallazgos-bloque-panel{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfcfe}
 .hallazgos-bloque-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .hallazgo-bloque-item{margin-top:10px;padding:12px;border:1px solid #e4b8b8;border-radius:10px;background:#fff}
@@ -1818,7 +1757,6 @@ button{
 .hallazgo-bloque-grid textarea{width:100%;min-height:68px;resize:vertical}
 @media(max-width:620px){.hallazgo-bloque-grid{grid-template-columns:1fr}}
 
-/* CONSULTA DE HALLAZGOS EN ALMACENAJE */
 .consulta-hallazgos-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
 .consulta-hallazgo-card{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;min-width:0}
 .consulta-hallazgo-head{padding:10px 12px;background:#fff7f8;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1832,9 +1770,6 @@ button{
 .consulta-hallazgo-acciones{display:flex;gap:7px;flex-wrap:wrap;padding:0 12px 12px}
 @media(max-width:700px){.consulta-hallazgos-lista{grid-template-columns:1fr}.consulta-hallazgo-datos{grid-template-columns:1fr 1fr}}
 
-/* =========================================================
-   PANEL REPORTES · 20 REGISTROS POR PÁGINA
-========================================================= */
 .reportes-overlay{
   position:fixed;
   inset:0;
@@ -1902,16 +1837,11 @@ button{
 .auditoria-proceso-meta{font-size:12px;color:#666;line-height:1.5;margin-bottom:10px;}
 .auditoria-proceso-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
-
-/* V42: el tipo de auditoría ya no se muestra como bloque independiente. */
 #tipoAuditoriaSection{display:none !important;}
 #tipoAuditoriaSection{display:none!important}
 </style>
 
 <style>
-/* =========================================================
-   ALERTAS PERSONALIZADAS QA
-========================================================= */
 
 .qa-alert-overlay{
   position:fixed;
@@ -2085,10 +2015,6 @@ button{
 
 <main class="wrap">
 
-  <!-- =====================================================
-       Selector interno oculto: se conserva para compatibilidad con la lógica existente
-  ====================================================== -->
-
 <details class="card compact-section" id="tipoAuditoriaSection" open>
 
     <summary class="card-head">
@@ -2153,10 +2079,6 @@ button{
     </div>
 
   </details>
-
-  <!-- =====================================================
-       02 · ARCHIVO DE RECIBO
-  ====================================================== -->
 
 <div class="top-config-grid">
 
@@ -2249,10 +2171,6 @@ button{
 
   </details>
 
-  <!-- =====================================================
-       03 · MUESTREO
-  ====================================================== -->
-
 <details class="card compact-section" id="samplingSection" open>
 
     <summary class="card-head">
@@ -2290,7 +2208,6 @@ button{
               readonly>
 
           </div>
-
 
         </div>
 
@@ -2373,12 +2290,7 @@ button{
 
   </details>
 
-</div><!-- /.top-config-grid -->
-
-  <!-- =====================================================
-       04 · DATOS DE RECIBO
-       SOLO TIEMPO REAL
-  ====================================================== -->
+</div>
 
 <section class="card" id="datosReciboSection">
 
@@ -2611,10 +2523,6 @@ button{
 
   </section>
 
-  <!-- =====================================================
-       05 · LPN A AUDITAR
-  ====================================================== -->
-
 <section
     class="card"
     id="tiempoRealSection">
@@ -2656,9 +2564,6 @@ button{
 
   </section>
 
-  <!-- =====================================================
-     06 · EVIDENCIA POSITIVA · 100% APROBADO
-====================================================== -->
 <section class="card hidden" id="evidenciaPositivaSection">
   <div class="card-head"><div><h2><span class="section-number">05</span> Evidencia positiva</h2><small>LPN con 100% de aprobación</small></div></div>
   <div class="card-body">
@@ -2666,10 +2571,6 @@ button{
     <div id="evidenciaPositivaLista" class="evidencia-positiva-list"></div>
   </div>
 </section>
-
-<!-- =====================================================
-     06 · RESULTADO
-====================================================== -->
 
 <section class="card" id="resultadoSection">
 
@@ -2780,10 +2681,6 @@ button{
 
   </section>
 
-  <!-- =====================================================
-       CONSULTA DE LPN CON DESVIACIÓN · ACCESO SOLO DESDE EL OVERLAY PRINCIPAL
-  ====================================================== -->
-
 <section
     class="card hidden"
     id="almacenajeSection">
@@ -2851,14 +2748,8 @@ button{
 
 </div>
 
-
-
 </main>
 
-
-<!-- =========================================================
-     PANEL INICIAL DE AUDITORÍAS
-========================================================= -->
 <div id="auditoriasInicioOverlay" class="auditorias-inicio-overlay" aria-hidden="false">
   <div class="auditorias-inicio-shell">
     <div class="auditorias-inicio-head">
@@ -2886,9 +2777,6 @@ button{
   </div>
 </div>
 
-<!-- =========================================================
-     PANEL REPORTES
-========================================================= -->
 <div id="reportesOverlay" class="reportes-overlay" aria-hidden="true">
   <div class="reportes-shell">
     <div class="reportes-head">
@@ -2948,10 +2836,6 @@ button{
 </style>
 
 <script>
-
-/* =========================================================
-   CONFIGURACIÓN
-========================================================= */
 
 const supabaseClient = supabase.createClient(
   "https://wpitemofrqzjcsetmmim.supabase.co",
@@ -3016,9 +2900,6 @@ let qaScannerStream = null;
 let qaScannerIndex = null;
 let qaScannerReader = null;
 let qaScannerFallbackActivo = false;
-// Bloquea restauraciones remotas mientras la cámara/galería está incorporando
-// evidencia. Evita que el polling remoto restaure un snapshot anterior y
-// borre fotografías recién tomadas.
 let qaEvidenciaEnProceso = false;
 let qaUltimaEvidenciaLocal = 0;
 let qaUltimaSincronizacion = "";
@@ -3054,10 +2935,6 @@ let auditoriaId = "";
 let lpnAlmacenajeActual = null;
 
 let correccionAlmacenaje = "";
-
-/* =========================================================
-   BORRADOR LOCAL + SUPABASE
-========================================================= */
 
 const QA_DRAFT_DB_NAME = "QA_AuditoriaRecibo_Local";
 const QA_DRAFT_DB_VERSION = 1;
@@ -3259,10 +3136,6 @@ function obtenerChecksFaltantesLpn(item){
     if(!String(item?.lote||"").trim())faltantes.push("lote");
     if(item?.sistema_cantidad===""||item?.sistema_cantidad===null||item?.sistema_cantidad===undefined)faltantes.push("cantidad sistema");
   }
-  // V53: los botones BIEN/MAL de los criterios antiguos ya no forman parte
-  // de la tarjeta visible de LPN. No deben bloquear la finalización.
-  // La gestión del hallazgo solo es obligatoria si el auditor agregó
-  // explícitamente un +Agregar hallazgo y seleccionó un tipo de desviación.
   const hallazgoExplicito=(item?.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
   if(hallazgoExplicito){
     if(!["PLANTA","OPERACION"].includes(item.error_tipo))faltantes.push("clasificación del hallazgo");
@@ -3406,10 +3279,8 @@ async function manejarFotoFinal(event){
       if(foto)fotosGeneralesAuditoria.push(foto);
     }
     renderizarFotosFinales();
-    // Persistencia local inmediata antes de permitir cualquier lectura remota.
     await guardarBorradorAhora(false);
     guardarRespaldoEmergencia();
-    // Después se sincroniza al servidor sin bloquear la cámara.
     guardarBorrador();
   }catch(error){
     console.error("Error guardando fotografía de cierre:",error);
@@ -3457,13 +3328,9 @@ async function escanearLpn(index){
     overlay.classList.add("show");
     mensaje.textContent="Centra la etiqueta dentro del recuadro…";
 
-    // Primero usamos BarcodeDetector cuando está disponible.
     if("BarcodeDetector" in window){
       try{
         const formatos=await BarcodeDetector.getSupportedFormats();
-        // Estas etiquetas son GS1-128: el símbolo físico es CODE 128.
-        // Si BarcodeDetector no soporta CODE 128 en este dispositivo,
-        // dejamos que el flujo caiga automáticamente a ZXing.
         if(!formatos.includes("code_128")) throw new Error("BarcodeDetector sin soporte para CODE 128");
         const preferidos=["code_128"].filter(x=>formatos.includes(x));
         const detector=new BarcodeDetector({formats:preferidos});
@@ -3499,7 +3366,6 @@ async function escanearLpn(index){
       }catch(e){console.warn("BarcodeDetector no disponible, se usará ZXing:",e);}
     }
 
-    // Fallback para móviles/navegadores donde BarcodeDetector falla o no existe.
     if(window.ZXingBrowser?.BrowserMultiFormatReader){
       qaScannerFallbackActivo=true;
       let reader;
@@ -3546,7 +3412,6 @@ function buscarRegistroExcelPorLpnRobusto(valor){
     if(directo) return directo;
   }
 
-  // Segundo nivel: comparación exclusivamente numérica para GS1/SSCC.
   const scan=normalizarLpn(valor).replace(/\D/g,"");
   if(scan){
     const equivalentes=new Set([scan]);
@@ -3646,11 +3511,6 @@ async function obtenerAuditoriasEnProceso(){
       })).filter(x=>x.auditoriaId);
     }
 
-    /*
-       Las LPN ya no dependen de una sola columna JSONB gigante.
-       Cada bloque/LPN tiene su propia fila en Supabase. Esto evita que
-       una auditoría grande se quede solamente con los primeros bloques.
-    */
     const {data:bloques,error:errorBloques}=await supabaseClient
       .from(QA_DRAFT_BLOCKS_TABLE)
       .select("auditoria_id,usuario,bloque_id,indice,lpn,estado,actualizado")
@@ -3688,9 +3548,6 @@ async function obtenerAuditoriasEnProceso(){
       }
     }
 
-    // Una auditoría finalizada deja una marca de cierre dentro de codigos.
-    // Si el borrador todavía existe por una falla de red, NO debe ofrecerse
-    // nuevamente como "Continuar" ni permitir sobrescribirla.
     try{
       const {data:cerradas,error:cerradasError}=await supabaseClient.from(TABLA).select("folio,created_at,codigos").order("created_at",{ascending:false}).limit(1000);
       if(!cerradasError&&Array.isArray(cerradas)){
@@ -3727,9 +3584,6 @@ async function obtenerAuditoriasEnProceso(){
 }
 
 function sincronizarDatosAntesDeGuardar(){
-  // Antes de cualquier guardado manual o automático tomamos el valor real
-  // de cada input LPN. Esto evita que el usuario pueda presionar Guardar
-  // mientras el temporizador de búsqueda del Excel todavía está pendiente.
   for(let index=0; index<auditoriaActual.length; index++){
     const item=auditoriaActual[index];
     if(!item)continue;
@@ -3743,8 +3597,6 @@ function sincronizarDatosAntesDeGuardar(){
       clearTimeout(item._excelTimer);
       item._excelTimer=null;
     }
-    // La búsqueda es local contra el índice del Excel; no esperamos una
-    // petición de red. Así el LPN y sus datos quedan en el snapshot actual.
     if(item.lpn && excelCargado && excelIndexLpn?.size){
       buscarLpnExcel(index,false);
     }
@@ -3759,9 +3611,6 @@ function asegurarIdBorradorUUID(){
   const nuevo=generarIdUnico();
   auditoriaId=nuevo;
 
-  // Si venimos de una versión anterior que creó IDs qa-xxxx, migramos
-  // también la copia local al UUID nuevo para que no se vuelva a generar
-  // un UUID diferente en cada guardado.
   try{
     const raw=localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]";
     const lista=JSON.parse(raw);
@@ -3836,9 +3685,6 @@ function guardarRespaldoEmergencia(){
 }
 
 async function guardarBorradorLocal(){
-  // IMPORTANTE: entrar a la página NO crea una auditoría.
-  // Solo se guarda un borrador cuando el usuario eligió "AUDITORIA NUEVA"
-  // o abrió una auditoría existente.
   if(!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal){
     return null;
   }
@@ -4017,7 +3863,6 @@ function qaEsTimeout(error){
   return !!(error?.qaTimeout || error?.code==="QA_TIMEOUT" || /tiempo de espera agotado/i.test(String(error?.message||"")));
 }
 
-
 function contarDatosCompletosLpn(item){
   if(!item)return 0;
   let score=0;
@@ -4080,8 +3925,6 @@ async function leerEstadoRemotoCompleto(id){
       "Lectura de cabecera remota",6000
     );
   }catch(error){
-    // Una lectura remota lenta no debe bloquear la auditoría local ni llenar la consola.
-    // La siguiente sincronización automática volverá a intentarlo.
     if(qaEsTimeout(error))return null;
     throw error;
   }
@@ -4096,8 +3939,6 @@ async function leerEstadoRemotoCompleto(id){
       "Lectura de bloques remotos",6000
     );
   }catch(error){
-    // La cabecera ya contiene una copia completa del avance en las versiones actuales.
-    // Si los bloques tardan, usamos esa copia y continuamos sin marcar la auditoría como fallida.
     if(qaEsTimeout(error)){
       rowsResult={data:[],error:null};
     }else{
@@ -4107,9 +3948,6 @@ async function leerEstadoRemotoCompleto(id){
   const {data:rows,error:rowsError}=rowsResult||{data:[],error:null};
   if(rowsError)throw rowsError;
   const estado={...(header.estado||{}),auditoriaId:header.auditoria_id,propietario:header.estado?.propietario||header.usuario||"",usuario:header.usuario||header.estado?.propietario||"",actualizado:header.actualizado||header.estado?.actualizado||"",_qaOrigenRemoto:true};
-  // La cabecera conserva ahora una copia completa del avance. Esto hace la
-  // sincronización robusta aunque la tabla de bloques tenga RLS, latencia o
-  // registros antiguos. Los bloques quedan como respaldo/compatibilidad.
   if(Array.isArray(header.estado?.auditoriaActual) && header.estado.auditoriaActual.length){
     estado.auditoriaActual=header.estado.auditoriaActual;
   }else{
@@ -4126,10 +3964,7 @@ function normalizarParaVerificacion(valor){
   if(typeof valor==='object'){
     const out={};
     Object.keys(valor).sort().forEach(k=>{
-      // Campos internos/transitorios del navegador que no forman parte del avance.
       if(k==='_qaOrigenRemoto'||k==='_qaLocal'||k==='__proto__')return;
-      // JSON/Supabase omite propiedades undefined. La firma debe hacer lo mismo
-      // para evitar falsos errores de sincronización entre el equipo y el servidor.
       if(valor[k]===undefined)return;
       out[k]=normalizarParaVerificacion(valor[k]);
     });
@@ -4178,14 +4013,6 @@ async function sincronizarRemotoConFusion(estado){
   );
   if(headerError)throw headerError;
 
-  // Mantener el servidor exactamente igual al dispositivo: primero eliminamos
-  // bloques antiguos que ya no forman parte del estado actual y después hacemos
-  // el upsert de los bloques vigentes. Esto evita que queden LPN viejas en
-  // Supabase y provoquen la validación "no confirmó exactamente el mismo avance".
-  // El identificador de auditoría es único. Eliminamos TODOS los bloques de
-  // esta auditoría antes de reconstruirlos; filtrar también por usuario podía
-  // dejar bloques de una versión anterior y la comprobación posterior los
-  // interpretaba como avance adicional.
   const {error:deleteAllError}=await qaSupabaseConTimeout(
     supabaseClient.from(QA_DRAFT_BLOCKS_TABLE)
       .delete()
@@ -4236,8 +4063,6 @@ async function sincronizarDesdeServidorSiHayAvance(){
       marcarSincronizacionCompleta(new Date());
     }
   }catch(error){
-    // Los timeouts de red son transitorios: no convierten la auditoría local en error.
-    // Solo registramos problemas reales de Supabase.
     if(!qaEsTimeout(error)){
       console.warn("Sincronización automática entre dispositivos pendiente:",error);
       marcarErrorGuardado();
@@ -4257,8 +4082,6 @@ async function guardarBorradorRemoto(estado){
     if(ok){
       window.qaUltimoErrorGuardado="";
       marcarSincronizacionCompleta(new Date());
-      // Las evidencias se suben después, pero jamás vuelven a escribir bloques
-      // completos con un snapshot antiguo.
       const versionGuard=qaDraftVersion;
       prepararBorradorCompartido(estado).then(async compartido=>{
         if(versionGuard!==qaDraftVersion)return;
@@ -4505,10 +4328,6 @@ async function cargarAuditoriaEnProceso(id){
 }
 
 function esUsuarioAdministrador(){
-  // El portal de Calidad define el rol real del usuario en:
-  // localStorage.adminPortal = "true" cuando personal[usuario].admin === true.
-  // También soportamos la sesión activa para evitar depender de un campo que
-  // actualmente no se copia dentro de sesionActiva.
   const adminPortal = localStorage.getItem("adminPortal");
   if(String(adminPortal).toLowerCase() === "true") return true;
 
@@ -4516,8 +4335,6 @@ function esUsuarioAdministrador(){
     localStorage.getItem("usuarioPortal") || ""
   ).trim();
 
-  // Respaldo directo contra la misma estructura de sesión:
-  // si adminPortal no existe, revisamos los datos disponibles.
   const sesionRaw = localStorage.getItem("sesionActiva");
   if(sesionRaw){
     try{
@@ -4539,8 +4356,6 @@ function esUsuarioAdministrador(){
     }
   }
 
-  // Último respaldo: consultar el usuario guardado en el portal.
-  // Esto replica exactamente la fuente de roles del index.
   if(usuarioPortal){
     const nombresAdmin = [
       "Felix Montoya"
@@ -4579,9 +4394,6 @@ async function eliminarAuditoriaEnProceso(id){
   if(!confirmar)return;
 
   try{
-    // Las auditorías antiguas de versiones previas pueden tener IDs qa-*.
-    // Esos IDs NO existen en Supabase (la columna es UUID), por lo que en
-    // ese caso eliminamos la copia local y NO hacemos ninguna consulta UUID.
     const idEsUUID=esUUIDValido(id);
     if(idEsUUID){
       const {error:bloquesError}=await supabaseClient
@@ -4596,7 +4408,6 @@ async function eliminarAuditoriaEnProceso(id){
         .eq("auditoria_id",id);
       if(headerError)throw headerError;
     }
-    // Limpieza local siempre, aunque el registro remoto ya no existiera.
     let nueva=[];
     try{
       const raw=localStorage.getItem(QA_DRAFTS_STATE_KEY)||"[]";
@@ -4661,9 +4472,6 @@ async function mostrarAuditoriasEnProceso(){
   }).join("");
 }
 
-// La selección de una auditoría en proceso es independiente de "AUDITORIA NUEVA".
-// Se maneja por delegación para evitar que el botón dinámico dispare cualquier
-// comportamiento del menú inicial y para garantizar que se cargue el ID elegido.
 document.addEventListener("click",async function manejarClickAuditoriaEnProceso(event){
   const continuar=event.target.closest?.(".btn-continuar-auditoria");
   if(continuar){
@@ -4712,8 +4520,6 @@ function mostrarInicioAuditorias(){
 
 function abrirConsultaLpnDesviacion(){
   const overlayInicio=document.getElementById("auditoriasInicioOverlay");
-  // Solo se permite abrir esta consulta desde el menú principal, nunca desde
-  // una auditoría nueva o una auditoría que se está continuando.
   if(!overlayInicio || overlayInicio.classList.contains("hidden") || auditoriaEnEdicion){
     console.warn("La consulta de LPN con desviación solo se abre desde el menú principal.");
     return;
@@ -4724,7 +4530,6 @@ function abrirConsultaLpnDesviacion(){
   mostrarSistemaAuditoria();
   const seccion=document.getElementById("almacenajeSection");
   if(seccion){seccion.classList.remove("hidden");seccion.scrollIntoView({behavior:"smooth",block:"start"});}
-  // El modo de consulta es independiente de crear una auditoría nueva.
 }
 
 function iniciarAuditoriaNueva(){
@@ -4750,16 +4555,12 @@ function iniciarAuditoriaNueva(){
   mostrarSistemaAuditoria();
 }
 
-
 async function guardarAvance(){
 
-  // El guardado manual toma primero una fotografía consistente de los datos
-  // que están actualmente en pantalla. No es necesario esperar al usuario.
   sincronizarDatosAntesDeGuardar();
 
   if(!validarLpnDuplicadasAntesDeGuardar())return;
 
-  // Un clic durante un guardado en curso no genera otra alerta ni otra petición.
   if(qaAvanceGuardando || qaGuardandoFinal || qaDraftFinalizando)return;
 
   qaAvanceGuardando=true;
@@ -4813,9 +4614,6 @@ Las fotografías continúan sincronizándose en segundo plano si están pendient
     }
   }
 }
-/* =========================================================
-   SESIÓN
-========================================================= */
 
 function cargarSesion(){
   const sesion=localStorage.getItem("sesionActiva");
@@ -4842,10 +4640,6 @@ function cargarSesion(){
   }
 }
 
-/* =========================================================
-   TIPOS DE AUDITORÍA
-========================================================= */
-
 document
   .querySelectorAll('input[name="tipoAuditoria"]')
   .forEach(radio => {
@@ -4857,7 +4651,6 @@ document
 
   });
 
-
 function obtenerTipoAuditoria(){
 
   return document
@@ -4866,7 +4659,6 @@ function obtenerTipoAuditoria(){
     )?.value || "TIEMPO_REAL";
 
 }
-
 
 function cambiarTipoAuditoria(){
 
@@ -4941,16 +4733,10 @@ function cambiarTipoAuditoria(){
     const buscar=document.getElementById("buscarLpn");
     if(buscar)buscar.value="";
     window.scrollTo({top:0,behavior:"smooth"});
-    // Almacenaje ahora es únicamente consulta: mostrar desde el inicio todas las LPN con hallazgos.
     buscarLPNAlmacenaje();
   }
 
 }
-
-
-/* =========================================================
-   TIPO RECIBO
-========================================================= */
 
 document
   .querySelectorAll('input[name="tipoRecibo"]')
@@ -4988,7 +4774,6 @@ document
 
   });
 
-
 function obtenerTipoRecibo(){
 
   return document.querySelector(
@@ -4996,11 +4781,6 @@ function obtenerTipoRecibo(){
   )?.value || "PALLET";
 
 }
-
-
-/* =========================================================
-   MUESTREO MIL-STD-105 / NIVEL GENERAL II
-========================================================= */
 
 const tablaMuestreoNivelII = [
 
@@ -5118,7 +4898,6 @@ const tablaMuestreoNivelII = [
 
 ];
 
-
 function obtenerMuestraNivelII(lote){
 
   return tablaMuestreoNivelII.find(
@@ -5128,7 +4907,6 @@ function obtenerMuestraNivelII(lote){
   );
 
 }
-
 
 function calcularMuestra(){
 
@@ -5209,8 +4987,6 @@ function calcularMuestra(){
     .textContent =
     `Muestra calculada: ${resultado.muestra} LPN/tarimas.`;
 
-  // Sincroniza el número de bloques con la muestra del Excel vigente y
-  // conserva las respuestas de los bloques que permanecen en la muestra.
   if(!Array.isArray(auditoriaActual) || auditoriaActual.length===0){
     generarMuestra();
   }else{
@@ -5224,11 +5000,6 @@ function calcularMuestra(){
   if(samplingSection) samplingSection.open=false;
 
 }
-
-
-/* =========================================================
-   GENERAR LPN DE LA MUESTRA
-========================================================= */
 
 function crearItemLpnVacio(indice){
   return {
@@ -5253,8 +5024,6 @@ function crearItemLpnVacio(indice){
 function ajustarBloquesLpnAMuestra(){
   const objetivo=Math.max(0,Number(muestraCalculada)||0);
   if(!Array.isArray(auditoriaActual))auditoriaActual=[];
-  // Conserva las respuestas existentes y sincroniza la cantidad de bloques
-  // con la muestra calculada a partir del Excel que está cargado actualmente.
   if(auditoriaActual.length>objetivo)auditoriaActual=auditoriaActual.slice(0,objetivo);
   while(auditoriaActual.length<objetivo)auditoriaActual.push(crearItemLpnVacio(auditoriaActual.length+1));
   auditoriaActual.forEach((item,i)=>item.indice=i+1);
@@ -5280,13 +5049,9 @@ function actualizarLpn(index,campo,valor){
   if(typeof actualizarEstadoLpn === "function"){
     actualizarEstadoLpn(index);
   }
-  // Mostrar inmediatamente la decisión SIN DESVIACIÓN / PLANTA / OPERACIÓN
-  // al capturar una LPN, incluso antes de que termine la búsqueda en Excel.
   if(String(item.lpn||"").trim() && typeof mostrarEstadoLpn === "function"){
     mostrarEstadoLpn(index);
   }
-  // No minimizar automáticamente al capturar la LPN: el auditor debe poder
-  // decidir primero si existe desviación y clasificarla como planta/operación.
   if(typeof actualizarIndicadorCompletoLpn === "function")actualizarIndicadorCompletoLpn(index);
 
   if(typeof actualizarResultadoGeneral === "function"){
@@ -5323,7 +5088,6 @@ function actualizarLpnEntrada(
   index,
   valor
 ){
-  // V42: las LPN capturadas manualmente solo admiten dígitos.
   valor=String(valor??"").replace(/\D/g,"");
   const campoLpn=document.getElementById(`lpn_${index}`);
   if(campoLpn && campoLpn.value!==valor)campoLpn.value=valor;
@@ -5359,7 +5123,6 @@ function actualizarLpnEntrada(
   }
 
 }
-
 
 function buscarLpnExcel(index,mostrarAviso=true){
   const item=auditoriaActual[index];
@@ -5429,8 +5192,6 @@ function buscarLpnExcel(index,mostrarAviso=true){
 
   }else{
     item.excel_encontrada=false;
-    // Elimina datos derivados del Excel anterior si la LPN no aparece en el
-    // archivo actual, evitando que sobrevivan STO/GCAS/lote/cantidad obsoletos.
     item.sto="";item.gcas="";item.lote="";item.sistema_cantidad="";
     item.descripcion="";item.cliente="";item.inventory_status="";item.storage_location="";
     if(status) status.className="hidden";
@@ -5568,7 +5329,6 @@ function actualizarVistaLpn(
 
 }
 
-
 function actualizarEstadoLpn(
   index
 ){
@@ -5627,9 +5387,6 @@ function actualizarEstadoLpn(
 
 }
 
-
-
-
 function renderizarAuditoria(){
 
   const contenedor =
@@ -5637,8 +5394,6 @@ function renderizarAuditoria(){
       "auditList"
     );
 
-  // Completa automáticamente los datos responsables desde el encabezado,
-  // sin sobrescribir cambios manuales ya capturados por LPN.
   const coordinadorBase=document.getElementById("coordinador")?.value||"";
   const cuadrillaBase=document.getElementById("cuadrilla")?.value||"";
   const turnoBase=document.getElementById("turno")?.value||"";
@@ -5653,7 +5408,6 @@ function renderizarAuditoria(){
 
   contenedor.innerHTML = "";
 
-  // Solo una LPN permanece abierta: la primera que aún requiere trabajo.
   const indiceActivo = auditoriaActual.findIndex(item => !lpnEstaCompleta(item));
   auditoriaActual.forEach(
     (item,index) => {
@@ -5690,11 +5444,6 @@ function renderizarAuditoria(){
   actualizarKPIs();
 
 }
-
-
-/* =========================================================
-   CREAR CARD LPN
-========================================================= */
 
 function crearLpnCard(item,index,abrir=false){
 
@@ -6021,7 +5770,6 @@ function crearLpnCard(item,index,abrir=false){
 
 }
 
-
 function aplicarValoresBaseResponsables(){
   const coordinador=document.getElementById("coordinador")?.value||"";
   const cuadrilla=document.getElementById("cuadrilla")?.value||"";
@@ -6092,13 +5840,6 @@ function restaurarValoresLpn(index){
 
 }
 
-
-/* =========================================================
-   V45 · HALLAZGOS POR BLOQUE
-   Cada hallazgo guarda bloque, clasificación, descripción e imágenes
-   en evidencia_campos.hallazgos_bloque[hallazgo.id] para reutilizar
-   el mecanismo existente de sincronización de evidencias.
-========================================================= */
 function asegurarHallazgosBloque(item){
   if(!Array.isArray(item.hallazgos_bloque)) item.hallazgos_bloque=[];
   item.evidencia_campos=item.evidencia_campos||{};
@@ -6109,7 +5850,7 @@ function agregarHallazgoBloque(index){
   const item=auditoriaActual[index]; if(!item)return;
   const lista=asegurarHallazgosBloque(item);
   const id=(typeof generarIdUnico==='function'?generarIdUnico():('h'+Date.now()+Math.random().toString(36).slice(2,8))).toString().replace(/[^a-zA-Z0-9_-]/g,'');
-  lista.push({id, bloque:'GENERALES', tipo:'', descripcion:''});
+  lista.push({id, bloque:'', tipo:'', descripcion:''});
   item.evidencia_campos.hallazgos_bloque[id]=[];
   renderizarHallazgosBloque(index); guardarBorrador();
 }
@@ -6117,11 +5858,22 @@ function actualizarHallazgoBloque(index,id,campo,valor){
   const item=auditoriaActual[index]; if(!item)return;
   const h=asegurarHallazgosBloque(item).find(x=>String(x.id)===String(id)); if(!h)return;
   h[campo]=String(valor??'');
-  // La descripción solo existe cuando el tipo de desviación es OTRO.
-  if(campo==='tipo' && h.tipo!=='Otro') h.descripcion='';
-  if(campo==='descripcion' && h.tipo!=='Otro') h.descripcion='';
+  const catalogoPorBloque = {
+    'Identificación y Trazabilidad': ['Etiqueta ilegible','Etiqueta faltante','Etiqueta dañada','Etiqueta duplicada','Código incorrecto','Lote incorrecto','Fecha de caducidad incorrecta','Fecha de caducidad ilegible'],
+    'Empaque y Producto': ['Empaque dañado','Empaque abierto','Empaque deformado','Empaque mojado','Sellado violado','Derrame detectado'],
+    'Inocuidad y Calidad': ['Humedad','Presencia de plagas','Polvo excesivo','Olor extraño'],
+    'Inventario': ['Sobrante','Faltante','Mezcla de códigos','Mezcla de lotes'],
+    'Tarimas': ['Tablas rotas','Clavos expuestos','Taco dañado','Taco faltante'],
+    'Estabilidad de Carga': ['Stretch incorrecto','Stretch roto','Stretch insuficiente','Carga inestable','Carga ladeada','Producto sobresaliente (Overhang)','Desalineación de camas']
+  };
+  if(campo==='bloque' && !(catalogoPorBloque[h.bloque]||[]).includes(h.tipo)){
+    h.tipo='';
+    h.descripcion='';
+  }
+  if(campo==='tipo') h.descripcion='';
+  
   guardarBorrador();
-  if(campo==='tipo'){
+  if(campo==='tipo' || campo==='bloque'){
     renderizarHallazgosBloque(index);
     evaluarLpn(index);
   }
@@ -6144,44 +5896,17 @@ function renderizarHallazgosBloque(index){
  'Tarimas',
  'Estabilidad de Carga'
 ];
-  const tipos = [
- 'Etiqueta ilegible',
- 'Etiqueta faltante',
- 'Etiqueta dañada',
- 'Etiqueta duplicada',
- 'Código incorrecto',
- 'Lote incorrecto',
- 'Fecha de caducidad incorrecta',
- 'Fecha de caducidad ilegible',
- 'Empaque dañado',
- 'Empaque abierto',
- 'Empaque deformado',
- 'Empaque mojado',
- 'Sellado violado',
- 'Derrame detectado',
- 'Humedad',
- 'Presencia de plagas',
- 'Polvo excesivo',
- 'Olor extraño',
- 'Sobrante',
- 'Faltante',
- 'Mezcla de códigos',
- 'Mezcla de lotes',
- 'Tablas rotas',
- 'Clavos expuestos',
- 'Taco dañado',
- 'Taco faltante',
- 'Stretch incorrecto',
- 'Stretch roto',
- 'Stretch insuficiente',
- 'Carga inestable',
- 'Carga ladeada',
- 'Producto sobresaliente (Overhang)',
- 'Desalineación de camas',
- 'Otro'
-];
+  const tiposPorBloque = {
+  'Identificación y Trazabilidad': ['Etiqueta ilegible','Etiqueta faltante','Etiqueta dañada','Etiqueta duplicada','Código incorrecto','Lote incorrecto','Fecha de caducidad incorrecta','Fecha de caducidad ilegible'],
+  'Empaque y Producto': ['Empaque dañado','Empaque abierto','Empaque deformado','Empaque mojado','Sellado violado','Derrame detectado'],
+  'Inocuidad y Calidad': ['Humedad','Presencia de plagas','Polvo excesivo','Olor extraño'],
+  'Inventario': ['Sobrante','Faltante','Mezcla de códigos','Mezcla de lotes'],
+  'Tarimas': ['Tablas rotas','Clavos expuestos','Taco dañado','Taco faltante'],
+  'Estabilidad de Carga': ['Stretch incorrecto','Stretch roto','Stretch insuficiente','Carga inestable','Carga ladeada','Producto sobresaliente (Overhang)','Desalineación de camas']
+};
   cont.innerHTML=lista.map((h,i)=>{
     const ev=item.evidencia_campos?.hallazgos_bloque?.[h.id]||[];
+   const tipos = tiposPorBloque[h.bloque] || [];
     const opts=(arr,val,placeholder)=>`<option value="">${placeholder}</option>`+arr.map(x=>`<option value="${escapeHtml(x)}" ${val===x?'selected':''}>${escapeHtml(x)}</option>`).join('');
     return `<article class="hallazgo-bloque-item"><div class="hallazgos-bloque-head"><strong>Hallazgo ${i+1}</strong><button type="button" class="btn btn-secondary btn-small" onclick="eliminarHallazgoBloque(${index},'${escapeHtml(h.id)}')">Eliminar</button></div>
       <div class="hallazgo-bloque-grid">
@@ -6196,10 +5921,6 @@ function renderizarHallazgosBloque(index){
   }).join('');
   lista.forEach(h=>renderizarEvidenciaCampo(index,'hallazgos_bloque',h.id));
 }
-
-/* =========================================================
-   PREGUNTA QA
-========================================================= */
 
 function preguntaQA(
   index,
@@ -6314,7 +6035,6 @@ function preguntaQA(
 
 }
 
-
 function preguntaCheck(
   index,
   campo,
@@ -6329,11 +6049,6 @@ function preguntaCheck(
   );
 
 }
-
-
-/* =========================================================
-   EXCEL · CARGA, ÍNDICE Y AUTOCOMPLETADO LPN
-========================================================= */
 
 function normalizarClave(valor){
   return String(valor ?? "")
@@ -6409,24 +6124,12 @@ function limpiarResultadoScannerGS1(valor){
     .replace(/[\u200B-\u200D\uFEFF]/g,"")
     .trim();
 
-  // ZXing puede devolver el identificador de simbología GS1-128
-  // antes del dato, por ejemplo ]C1. Ese prefijo NO forma parte de
-  // la LPN y debe eliminarse antes de comparar contra Excel.
   s=s.replace(/^\]C[0-3]/i,"");
 
-  // Algunos lectores entregan el AI 00 con separadores o texto.
-  // Conservamos los dígitos para que la normalización posterior
-  // pueda reconstruir el GS1 completo.
   return s.trim();
 }
 
 function normalizarLpn(valor){
-  // Las etiquetas físicas son GS1-128 con AI (00).
-  // Ejemplo de la etiqueta del usuario:
-  // (00) 1 00 37000 310474626 6
-  // El valor que aparece en el Excel es el GS1 COMPLETO de 20 dígitos:
-  // 00100370003104746266
-  // Por eso el formato canónico para LPN GS1 es AI(00) + SSCC de 18 dígitos.
   let v=limpiarResultadoScannerGS1(valor)
     .replace(/\u00A0/g," ")
     .replace(/[\u200B-\u200D\uFEFF]/g,"")
@@ -6443,35 +6146,23 @@ function normalizarLpn(valor){
 
   const sinSeparadores=v.replace(/[\s\-().]/g,"");
 
-  // 1) GS1-128 completo: AI 00 + SSCC (20 dígitos).
-  //    Este es el formato que utiliza el Excel del usuario.
   if(/^00\d{18}$/.test(sinSeparadores)){
     return sinSeparadores;
   }
 
-  // 2) Si el lector entrega solamente el SSCC de 18 dígitos,
-  //    conservarlo como SSCC para que clavesLpn() pueda compararlo
-  //    también contra el formato GS1 completo.
   if(/^\d{18}$/.test(sinSeparadores)){
     return sinSeparadores;
   }
 
-  // 3) Texto GS1 con AI (00), espacios u otros separadores.
-  //    Ejemplo: (00) 1 00 37000 310474626 6
   const gs1=v.match(/(?:^|\D)00[^0-9]*(\d{18})(?:\D|$)/);
   if(gs1?.[1]) return "00"+gs1[1];
 
-  // 4) Si el lector entrega texto adicional alrededor del dato,
-  //    recuperamos primero un bloque GS1 de 20 dígitos o SSCC de 18.
-  //    Esto cubre prefijos/sufijos propios del lector sin alterar
-  //    una LPN alfanumérica válida.
   const bloque20=v.match(/(?<!\d)(00\d{18})(?!\d)/);
   if(bloque20?.[1]) return bloque20[1];
 
   const bloque18=v.match(/(?<!\d)(\d{18})(?!\d)/);
   if(bloque18?.[1]) return bloque18[1];
 
-  // 5) Para LPN alfanuméricas, conservar la normalización anterior.
   return v.replace(/\s+/g,"");
 }
 
@@ -6490,9 +6181,6 @@ function clavesLpn(valor){
   const compacta=base.replace(/[^A-Z0-9]/g,"");
   agregar(compacta);
 
-  // Compatibilidad GS1: el Excel puede contener el AI (00) y el
-  // escáner puede devolver únicamente el SSCC de 18 dígitos.
-  // Permitimos ambas claves para que la comparación sea robusta.
   if(/^\d{18}$/.test(compacta)){
     agregar("00"+compacta);
   }else if(/^00\d{18}$/.test(compacta)){
@@ -6708,9 +6396,6 @@ function seleccionarArchivoExcel(){
   const input=document.getElementById("archivoExcel");
   if(!input)return;
 
-  // En iPhone/iPad y algunos Android, un input file con display:none
-  // puede no abrir el selector. El input ahora es visualmente oculto y
-  // usamos showPicker cuando el navegador lo soporta.
   try{input.value="";}catch(e){}
 
   try{
@@ -6797,25 +6482,17 @@ function limpiarExcel(){
 }
 
 async function procesarArchivoExcel(file,opciones={}){
-  // Esta función debe ser completamente independiente de cualquier variable
-  // llamada "index" usada para las LPN. El cargador del Excel no depende de
-  // índices globales y así evitamos el ReferenceError "index is not defined".
   const guardar=opciones.guardar!==false;
   const subir=opciones.subir!==false;
   if(!file) return;
 
   const nombre=String(file.name||"").trim();
 
-  // IMPORTANTE: algunos equipos/navegadores invalidan la referencia al
-  // archivo seleccionado después de un await (especialmente archivos en
-  // OneDrive, SharePoint, red o carpetas protegidas). Copiamos el archivo
-  // INMEDIATAMENTE a memoria antes de cualquier operación asíncrona.
   let archivoTrabajo=file;
   let buffer;
   try{
     buffer=await file.arrayBuffer();
   }catch(readError){
-    // Fallback para navegadores que fallen con File.arrayBuffer().
     buffer=await new Promise((resolve,reject)=>{
       try{
         const lector=new FileReader();
@@ -6967,8 +6644,6 @@ async function procesarArchivoExcel(file,opciones={}){
     if(guardar) await guardarBorrador();
 
     if(Array.isArray(auditoriaActual) && auditoriaActual.length){
-      // Limpia los campos importados del Excel anterior antes de cruzar las LPN
-      // con el nuevo archivo ya validado.
       auditoriaActual.forEach(item=>{
         item.excel_encontrada=false;
         item.sto="";item.gcas="";item.lote="";item.sistema_cantidad="";
@@ -6983,14 +6658,10 @@ async function procesarArchivoExcel(file,opciones={}){
       });
       renderizarAuditoria();
       actualizarResultadoGeneral();
-      // El cruce de LPN es un paso posterior a la carga; nunca debe invalidar
-      // el Excel que ya fue leído ni impedir el guardado del avance.
     }
 
     console.log("Excel cargado:",{nombre,totalRegistros,totalLpn,filasLeidas,hojas});
   }catch(error){
-    // No borramos el archivo local ni el nombre seleccionado ante un error de
-    // procesamiento. El usuario puede volver a intentarlo sin perder el avance.
     console.error("Error procesando Excel:",error, error?.stack || "");
     excelCargado=false;
     excelIndexLpn=new Map();
@@ -7003,10 +6674,6 @@ async function procesarArchivoExcel(file,opciones={}){
     }
   }
 }
-
-/* =========================================================
-   MARCAR QA
-========================================================= */
 
 function marcarQA(
   index,
@@ -7118,19 +6785,9 @@ function marcarQA(
   evaluarLpn(index);
   actualizarEstadoLpn(index);
   actualizarIndicadorCompletoLpn(index);
-  // Se conserva abierta la tarjeta hasta que el usuario decida minimizarla.
   guardarBorrador();
 
 }
-
-
-/* =========================================================
-   ACTUALIZAR
-========================================================= */
-
-/* =========================================================
-   EVALUACIÓN DEL ERROR
-========================================================= */
 
 function actualizarVisibilidadEvidencias(index){
   const item = auditoriaActual[index];
@@ -7209,7 +6866,6 @@ async function manejarEvidenciaPositiva(event,index){
     qaEvidenciaEnProceso=false;
   }
 }
-
 
 function eliminarEvidenciaPositiva(index,evidenciaIndex){
   const item=auditoriaActual[index],arr=item?.evidencia_positiva;if(!arr||!arr[evidenciaIndex])return;
@@ -7292,8 +6948,6 @@ function evaluarLpn(
     obtenerTodosLosChecks(item).some(x => x.valor === "ERROR");
 
   if(!item.error_tipo_manual){
-    // Los checks pueden sugerir el tipo, pero no cuentan como selección del auditor.
-    // La gestión del hallazgo solo se abre tras elegir explícitamente un tipo.
     item.error_tipo = "";
   }
 
@@ -7355,15 +7009,11 @@ function evaluarLpn(
     );
 
   if(panel){
-    // El panel permanece disponible dentro de la LPN con error, pero no
-    // hacemos scroll automático. Así el auditor puede continuar con las
-    // siguientes LPN sin ser enviado constantemente al panel del hallazgo.
     const desviacionSeleccionada = item.error_tipo_manual === true && ["PLANTA","OPERACION"].includes(String(item.error_tipo||""));
     panel.classList.toggle("hidden", !desviacionSeleccionada);
   }
 
   actualizarVisibilidadEvidencias(index);
-
 
   mostrarEstadoLpn(
     index
@@ -7372,7 +7022,6 @@ function evaluarLpn(
   actualizarKPIs();
 
 }
-
 
 function mostrarEstadoLpn(
   index
@@ -7421,8 +7070,6 @@ function mostrarEstadoLpn(
 
   if(!tieneDesviacion){
 
-    // Capturar una LPN no debe abrir Gestión del hallazgo. Solo se muestra
-    // cuando existe un hallazgo agregado manualmente con tipo seleccionado.
     const hallazgoExplicito=(item.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
     panel.classList.toggle("hidden",!hallazgoExplicito);
 
@@ -7464,11 +7111,6 @@ function mostrarEstadoLpn(
   actualizarResultadoGeneral();
 
 }
-
-
-/* =========================================================
-   KPI
-========================================================= */
 
 function obtenerSeveridadHallazgo(item, check = null){
 
@@ -7518,7 +7160,6 @@ function actualizarError(index){
   guardarBorrador();
 }
 
-
 function obtenerResumenCumplimiento(){
   const items=Array.isArray(auditoriaActual)?auditoriaActual:[];
   let totalChecks=0,checksOK=0,checksError=0;
@@ -7550,10 +7191,6 @@ function obtenerNivelTAMU(){
   const incompletas=auditoriaActual.filter(x=>!lpnEstaCompleta(x));
   if(incompletas.length)return {codigo:"PENDIENTE",nombre:"PENDIENTE",descripcion:`Faltan ${incompletas.length} LPN por completar.`};
   const r=obtenerResumenCumplimiento();
-  // El nivel ya no se determina únicamente por el hallazgo más crítico de una
-  // sola LPN. Se informa el porcentaje real de cumplimiento y las desviaciones
-  // por severidad. Los umbrales son configurables y no convierten una crítica
-  // aislada en rechazo automático.
   let nivel="TARGET";
   if(r.cumplimiento<95)nivel="MARGINAL";
   else if(r.cumplimiento<100)nivel="ACCEPTABLE";
@@ -7601,10 +7238,6 @@ function actualizarKPIs(){
   actualizarDictamenYtamu();
 }
 
-/* =========================================================
-   RESULTADO GENERAL
-========================================================= */
-
 function actualizarResultadoGeneral(){
   const resultado=document.getElementById("resultadoGeneral");
   if(!resultado)return;
@@ -7636,10 +7269,6 @@ function actualizarResultadoGeneral(){
   }
   actualizarKPIs();renderizarEvidenciaPositiva();
 }
-
-/* =========================================================
-   FOTOS / EVIDENCIAS
-========================================================= */
 
 async function manejarEvidenciaCampo(
   event,
@@ -7675,7 +7304,6 @@ async function manejarEvidenciaCampo(
   renderizarEvidenciaCampo(index,categoria,campo);
   actualizarResultadoGeneral();
 
-  // Primero queda físicamente en IndexedDB/local; después se sincroniza en segundo plano.
   try{
     await guardarBorradorAhora(false);
     guardarRespaldoEmergencia();
@@ -7684,7 +7312,6 @@ async function manejarEvidenciaCampo(
     qaEvidenciaEnProceso=false;
   }
 }
-
 
 function renderizarEvidenciaCampo(
   index,
@@ -7731,8 +7358,6 @@ function renderizarEvidenciaCampo(
       }else if(file && typeof file.url === "string"){
         url = file.url;
       }
-      // Los registros serializados (por ejemplo {tipo:"local", localId:"..."})
-      // no son Blob/File y no deben pasarse a URL.createObjectURL.
       if(!url) return;
 
       cont.insertAdjacentHTML(
@@ -7759,7 +7384,6 @@ function renderizarEvidenciaCampo(
   );
 
 }
-
 
 function eliminarEvidenciaCampo(
   index,
@@ -7806,11 +7430,6 @@ function eliminarEvidenciaCampo(
   guardarBorrador();
 
 }
-
-
-/* =========================================================
-   OPTIMIZAR IMAGEN
-========================================================= */
 
 function comprimirImagen(
   file,
@@ -7955,7 +7574,6 @@ function comprimirImagen(
 
 }
 
-
 async function prepararFotoParaGuardadoLocal(file){
   if(!file)return null;
   try{
@@ -7974,11 +7592,6 @@ async function prepararFotoParaGuardadoLocal(file){
   }
 }
 
-
-/* =========================================================
-   SUBIR EVIDENCIAS
-========================================================= */
-
 async function subirEvidencias(
   folio
 ){
@@ -7989,8 +7602,6 @@ async function subirEvidencias(
   const normalizarArchivoEvidencia = async (archivo) => {
     if(!archivo) throw new Error("Archivo de evidencia vacío.");
 
-    // Las evidencias guardadas en borradores pueden llegar como URL o como
-    // descriptor {tipo:"local", localId}, no como un objeto File directamente.
     if(typeof archivo === "string") return {url:archivo};
     if(archivo?.tipo === "url" && archivo.url) return {url:archivo.url};
 
@@ -8259,8 +7870,6 @@ async function subirEvidencias(
 
   if(fallas.length){
     const detalle=fallas.map(x=>x.detalle).join("\n");
-    // La evidencia es complementaria: una falla de Storage no debe borrar
-    // ni impedir registrar la auditoría principal.
     mostrarAlertaQA(
       "La auditoría continuará guardándose, pero algunas fotografías no pudieron subir a Supabase:\n\n" + detalle,
       "warning",
@@ -8271,10 +7880,6 @@ async function subirEvidencias(
   return urls;
 
 }
-
-/* =========================================================
-   FOLIO
-========================================================= */
 
 async function obtenerConsecutivo(){
   const {data,error}=await supabaseClient.rpc(RPC_CONSECUTIVO);
@@ -8301,11 +7906,6 @@ function generarFolio(
   );
 
 }
-
-
-/* =========================================================
-   VALIDAR TIEMPO REAL
-========================================================= */
 
 function checksRequeridosParaItem(
   item
@@ -8412,7 +8012,6 @@ function checksRequeridosParaItem(
 
 }
 
-
 function validarTiempoReal(){
   const faltantes=[];
   const campo=(id,nombre)=>{
@@ -8432,8 +8031,6 @@ function validarTiempoReal(){
     const sto=document.getElementById("sto")?.value?.trim()||"";
     if(!/^\d{10}$/.test(sto)) faltantes.push("STO de exactamente 10 dígitos");
   }
-
-  // V54: Origen se conserva como dato opcional; ya no bloquea el guardado.
 
   campo("turno","turno");
   campo("cuadrilla","cuadrilla");
@@ -8465,10 +8062,6 @@ function validarTiempoReal(){
       if(item.sistema_cantidad==="" || item.sistema_cantidad===null || item.sistema_cantidad===undefined) faltantes.push(`cantidad de sistema de la LPN ${n}`);
     }
 
-    // V53: ya no se solicitan respuestas BIEN/MAL de los criterios heredados.
-    // Se validan los datos visibles de la LPN y los hallazgos que el usuario
-    // haya agregado explícitamente en "HALLAZGOS POR BLOQUE".
-
       (item.hallazgos_bloque||[]).forEach((h,hi)=>{
         if(!String(h.bloque||"").trim())faltantes.push(`bloque del hallazgo ${hi+1} de la LPN ${n}`);
         if(!String(h.tipo||"").trim())faltantes.push(`tipo de desviación del hallazgo ${hi+1} de la LPN ${n}`);
@@ -8479,13 +8072,11 @@ function validarTiempoReal(){
 
     const hallazgoExplicito=(item.hallazgos_bloque||[]).some(h=>String(h?.tipo||"").trim());
     if(hallazgoExplicito){
-      // V54: la descripción manual del hallazgo por LPN ya no es un campo obligatorio.
       if(item.error_tipo==="NINGUNO") faltantes.push(`clasificación PLANTA u OPERACIÓN del hallazgo de la LPN ${n}`);
       if(!item.responsable_cuadrilla) faltantes.push(`cuadrilla responsable de la LPN ${n}`);
       if(!item.responsable_coordinador) faltantes.push(`coordinador responsable de la LPN ${n}`);
       if(!["SI","NO"].includes(item.desviacion_corregida)) faltantes.push(`indicación de si el error de la LPN ${n} fue corregido`);
 
-      // Una desviación no puede finalizarse sin evidencia fotográfica.
       const evidenciasDesviacion = [];
       Object.values(item.evidencia_campos || {}).forEach(cat=>
         Object.values(cat || {}).forEach(arr=>
@@ -8511,10 +8102,6 @@ function validarTiempoReal(){
 
   return true;
 }
-
-/* =========================================================
-   SISTEMA DE ALERTAS PERSONALIZADAS
-========================================================= */
 
 let qaAlertResolver = null;
 
@@ -8599,7 +8186,6 @@ function mostrarAlertaQA(
   };
 
 }
-
 
 function confirmarQA(
   mensaje,
@@ -8693,12 +8279,6 @@ function confirmarQA(
 
 }
 
-
-/* =========================================================
-   REEMPLAZO GLOBAL DE ALERT Y CONFIRM
-   EVITA "ESTA PÁGINA DICE"
-========================================================= */
-
 window.alert = function(mensaje){
 
   mostrarAlertaQA(
@@ -8708,7 +8288,6 @@ window.alert = function(mensaje){
   );
 
 };
-
 
 window.confirm = function(mensaje){
 
@@ -8727,10 +8306,6 @@ async function eliminarArchivosLocalesDeAuditoria(items){
   });
   for(const id of [...new Set(ids)])await eliminarArchivoBorradorLocal(id);
 }
-
-/* =========================================================
-   ELIMINAR BORRADOR AL FINALIZAR AUDITORÍA
-========================================================= */
 
 async function eliminarBorradorDespuesDeGuardar(id){
   if(!id)return;
@@ -8817,13 +8392,7 @@ async function eliminarBorradorDespuesDeGuardar(id){
   }
 }
 
-/* =========================================================
-   GUARDAR AUDITORÍA
-========================================================= */
-
 function finalizarAuditoriaGuardadaYMostrarMenu(folio, mensaje, tipo="success", titulo="Auditoría guardada"){
-  // La auditoría ya está registrada. El estado de trabajo NO debe quedar activo.
-  // Limpiamos pantalla, memoria y estado local antes de regresar al menú.
   try{
     limpiarFormulario();
   }catch(error){
@@ -8840,8 +8409,6 @@ function finalizarAuditoriaGuardadaYMostrarMenu(folio, mensaje, tipo="success", 
   window.qaBorradorPropietario="";
   qaBorradorPropietario="";
 
-  // El menú es el punto de entrada para TODA nueva auditoría.
-  // No se llama a iniciarAuditoriaNueva() aquí.
   mostrarInicioAuditorias();
 
   const overlay=document.getElementById("qaAlertOverlay");
@@ -8855,12 +8422,6 @@ function finalizarAuditoriaGuardadaYMostrarMenu(folio, mensaje, tipo="success", 
   }
 }
 
-/* =========================================================
-   CONEXIÓN AUTOMÁTICA CON INCIDENCIAS EN RECIBO
-   Inserta una incidencia en incidencias_recibo cuando la auditoría
-   contiene hallazgos. La referencia de auditoría viaja en desviaciones
-   para no requerir columnas nuevas en la tabla existente.
-========================================================= */
 function obtenerHallazgosParaIncidencia(codigo){
   const salida=[];
   const base={
@@ -8875,8 +8436,6 @@ function obtenerHallazgosParaIncidencia(codigo){
   if(tipo && tipo.toUpperCase()!=="NINGUNO"){
     salida.push({...base,motivo:tipo+(detalle?" — "+detalle:""),tipo,detalle});
   }
-  // Incluye desviaciones de las listas generales/inventario/pallet/granel,
-  // además de los hallazgos adicionales por bloque.
   const hallazgosCalculados=typeof calcularHallazgos==="function"?calcularHallazgos(codigo):[];
   hallazgosCalculados.filter(h=>h?.categoria!=="hallazgos_bloque").forEach(h=>{
     salida.push({...base,motivo:String(h?.texto||"Desviación"),tipo:String(h?.categoria||"Desviación"),detalle:String(h?.campo||"")});
@@ -8915,7 +8474,6 @@ async function crearIncidenciaAutomaticaDesdeAuditoria(datosAuditoria){
   codigos.forEach(c=>obtenerHallazgosParaIncidencia(c).forEach(d=>desviaciones.push({...d,auditoria_folio:folioAuditoria,_auditoria_folio:folioAuditoria,origen_registro:"AUDITORIA_RECIBO_V52"})));
   if(!desviaciones.length)return {creada:false,folio:null,motivo:"SIN_HALLAZGOS"};
 
-  // Evita duplicar la incidencia si se reintenta el proceso para el mismo folio.
   const {data:existentes,error:errorConsulta}=await supabaseClient
     .from("incidencias_recibo").select("folio,consecutivo,desviaciones").order("consecutivo",{ascending:false}).limit(2000);
   if(errorConsulta)throw new Error("No fue posible comprobar incidencias previas: "+errorConsulta.message);
@@ -8954,7 +8512,6 @@ async function crearIncidenciaAutomaticaDesdeAuditoria(datosAuditoria){
 
 async function guardarAuditoria(){
 
-  // Captura el estado actual antes de validar o finalizar.
   sincronizarDatosAntesDeGuardar();
 
   if(
@@ -8995,8 +8552,6 @@ if(!confirmarGuardar){
   ++qaDraftVersion;
 
   try{
-    // Evita que un autoguardado iniciado justo antes del botón Guardar
-    // pueda sobrescribir o borrar el estado mientras finalizamos.
     try{ await qaDraftSaveChain; }catch(e){ console.warn("Cola de borradores finalizada con aviso:",e); }
     try{ await qaDraftRemotePromise; }catch(e){ console.warn("Sincronización de borrador finalizada con aviso:",e); }
 
@@ -9042,7 +8597,6 @@ mostrarAlertaQA(
   "Error al guardar"
 );
 
-      // El registro principal no se insertó: permitimos reintentar sin perder el formulario.
       qaGuardandoFinal=false;
       qaDraftFinalizando=false;
       auditoriaEnEdicion=true;
@@ -9050,11 +8604,6 @@ mostrarAlertaQA(
 
     }
 
-    /*
-       La auditoría ya quedó registrada. Si contiene hallazgos, crear
-       también su incidencia en la tabla que utiliza Incidencia en Recibo.
-       Un fallo aquí no revierte la auditoría ya guardada.
-    */
     let resultadoIncidenciaAutomatica=null;
     try{
       resultadoIncidenciaAutomatica=await crearIncidenciaAutomaticaDesdeAuditoria(datos);
@@ -9066,10 +8615,6 @@ mostrarAlertaQA(
       resultadoIncidenciaAutomatica={error:errorIncidencia?.message||"Error al crear la incidencia"};
     }
 
-    /*
-       Las tareas de seguimiento son posteriores y no deben
-       convertir un guardado exitoso en un error de guardado.
-    */
     try{
       auditoriaActual.forEach(
         item => {
@@ -9101,11 +8646,6 @@ mostrarAlertaQA(
       console.error("La auditoría fue guardada, pero ocurrió un error al actualizar las tareas de seguimiento:",errorTareas);
     }
 
-    /*
-       Si la auditoría nació de un borrador, el borrador se elimina
-       únicamente después de confirmar que el registro principal
-       fue insertado correctamente en Auditoria_Recibo.
-    */
     qaDraftFinalizando=true;
     auditoriaEnEdicion=false;
     clearTimeout(qaDraftRemoteTimer);
@@ -9121,8 +8661,6 @@ mostrarAlertaQA(
       );
 
     if(errorPlanta){
-      // La incidencia ya se generó automáticamente al detectar hallazgos;
-      // no enviar al usuario a capturarla por segunda vez.
       if(resultadoIncidenciaAutomatica?.error){
         mostrarAlertaQA(
           `La auditoría ${folio} se guardó, pero la incidencia automática no pudo crearse.\n\n${resultadoIncidenciaAutomatica.error}\n\nConserva este folio para dar seguimiento.`,
@@ -9180,10 +8718,6 @@ mostrarAlertaQA(
   }
 
 }
-
-/* =========================================================
-   CONSTRUIR REGISTRO
-========================================================= */
 
 function construirDatosAuditoria(
   folio,
@@ -9355,22 +8889,12 @@ function construirDatosAuditoria(
         .value
         .trim(),
 
-    // IMPORTANTE: estos son exclusivamente los campos que existen
-    // actualmente en public.Auditoria_Recibo.
-    // El resultado detallado ya viaja dentro de cada elemento de
-    // `codigos` mediante dictamen_auditoria / resultado_resumen.
-
     etapa_auditoria:
       "TIEMPO_REAL",
 
   };
 
 }
-
-
-/* =========================================================
-   BUSCAR LPN EN ALMACENAJE
-========================================================= */
 
 function guardarTareaAuditoriaLpn(
   item,
@@ -9431,7 +8955,6 @@ function guardarTareaAuditoriaLpn(
 
 }
 
-
 function completarTareaAuditoriaLpn(
   lpn,
   folio=""
@@ -9459,7 +8982,6 @@ function completarTareaAuditoriaLpn(
   renderizarTareasPendientes();
 
 }
-
 
 function renderizarTareasPendientes(){
 
@@ -9527,7 +9049,6 @@ function renderizarTareasPendientes(){
 
 }
 
-
 function eliminarTareaPendiente(index){
 
   if(!esUsuarioAdministrador()){
@@ -9560,7 +9081,6 @@ function eliminarTareaPendiente(index){
 
 }
 
-
 function abrirTareaPendiente(
   index
 ){
@@ -9585,7 +9105,6 @@ function abrirTareaPendiente(
   buscarLPNAlmacenaje();
 
 }
-
 
 async function buscarLPNAlmacenaje(){
   const input=document.getElementById("buscarLpn");
@@ -9954,7 +9473,6 @@ function crearVistaAlmacenaje(
 
 }
 
-
 function construirDetalleAutomatico(
   item
 ){
@@ -10011,11 +9529,6 @@ function construirDetalleAutomatico(
     : "Error registrado durante la auditoría de recibo.";
 
 }
-
-
-/* =========================================================
-   CORRECCIÓN ALMACENAJE
-========================================================= */
 
 function seleccionarCorreccionAlmacenaje(
   valor
@@ -10080,7 +9593,6 @@ function seleccionarCorreccionAlmacenaje(
   }
 
 }
-
 
 async function guardarResultadoAlmacenaje(){
 
@@ -10332,10 +9844,6 @@ async function guardarResultadoAlmacenaje(){
 
 }
 
-
-/* =========================================================
-   REPORTES · 20 REGISTROS POR PÁGINA
-========================================================= */
 let reportesDatos=[];
 let reportesPaginaActual=1;
 let reportesTotal=0;
@@ -10345,8 +9853,6 @@ const REPORTES_POR_PAGINA=20;
 function abrirReportes(){
   const inicio=document.getElementById("auditoriasInicioOverlay");
   if(inicio){
-    // Reportes es una ventana independiente. Ocultamos el menú mientras está abierto
-    // y cerrar Reportes lo restaura, sin crear una auditoría nueva.
     inicio.classList.add("hidden");
     inicio.setAttribute("aria-hidden","true");
   }
@@ -10363,7 +9869,6 @@ function cerrarReportes(){
     overlay.classList.remove("show");
     overlay.setAttribute("aria-hidden","true");
   }
-  // Al cerrar Reportes siempre regresamos al menú inicial, nunca iniciamos una auditoría.
   mostrarInicioAuditorias();
 }
 async function cargarReportes(pagina=reportesPaginaActual){
@@ -10507,8 +10012,6 @@ function obtenerCodigosRegistro(r){
   return Array.isArray(c)?c:[];
 }
 
-/* Dictamen único por criterio de muestreo: Ac=1, Re=2.
-   El mismo resultado alimenta Reportes, PDF y elegibilidad del correo. */
 function obtenerDictamenMuestreoRegistro(r){
   const codigos=obtenerCodigosRegistro(r);
   const hallazgos=codigos.filter(c=>(c?.error_tipo&&c.error_tipo!=="NINGUNO")||(Array.isArray(c?.hallazgos_bloque)&&c.hallazgos_bloque.length>0));
@@ -10565,8 +10068,6 @@ async function generarCorreoAuditoria(indice){
   }
   if(!hallazgos.length){mostrarAlertaQA("El correo solo está disponible para auditorías rechazadas por el criterio de muestreo.","warning","Auditoría sin hallazgos");return;}
   const primera=codigos[0]||{};
-  // Lee los metadatos de muestreo tanto del registro principal como de las LPN,
-  // porque algunas auditorías históricas guardaron esos campos en lugares distintos.
   const valorNumerico=(...valores)=>{
     for(const valor of valores){
       if(valor!==undefined&&valor!==null&&String(valor).trim()!==""){
@@ -10584,23 +10085,17 @@ async function generarCorreoAuditoria(indice){
     ...codigos.map(c=>c?.tamano_lote)
   );
   const lpnAuditadas=codigos.filter(c=>String(c?.lpn??"").trim()!=="").length||codigos.length;
-  // El porcentaje usa las LPN efectivamente guardadas en la auditoría, no una
-  // cantidad de muestra planeada que pudiera ser distinta o estar desactualizada.
   const muestra=lpnAuditadas;
   let letra=String(
     r.codigoLetraMuestra||r.codigo_letra_muestra||r.codigo_muestreo||r.codigoMuestra||r.codigo_muestra||
     muestreo.codigoLetraMuestra||muestreo.codigo_muestreo||muestreo.codigoMuestra||muestreo.codigo||
     codigos.map(c=>c?.codigo_muestreo||c?.codigoLetraMuestra||c?.codigoMuestra).find(v=>String(v??"").trim()!=="")||""
   ).trim();
-  // Si una auditoría histórica no guardó la letra, reconstruirla desde la tabla
-  // de muestreo del propio sistema: primero por tamaño del lote y luego por muestra.
   if(!letra&&typeof obtenerMuestraNivelII==="function"){
     const plan=lote>0?obtenerMuestraNivelII(lote):null;
     const planPorCantidad=plan||(Array.isArray(tablaMuestreoNivelII)?tablaMuestreoNivelII.find(x=>Number(x.muestra)===muestra):null);
     if(planPorCantidad?.letra)letra=String(planPorCantidad.letra);
   }
-  // Para el correo se reporta el total realmente auditado y el resultado real;
-  // no se muestra el tamaño del lote ni un porcentaje cuando ese dato falta.
   const totalRechazadas=resultadoMuestreo.totalRechazadas;
   const totalAprobadas=Math.max(0,muestra-totalRechazadas);
   const codigoMuestra=String(letra||resultadoMuestreo.codigoMuestra||"").trim().toUpperCase();
@@ -10611,7 +10106,6 @@ async function generarCorreoAuditoria(indice){
   const origen=String(r.origen||primera.origen||"[ORIGEN NO REGISTRADO]");
   const asunto=`RECHAZO SIMULADO | ${master} | ${origen}`;
   const paginasPdfPorLpn={};
-  // El PDF inicia con el bloque de datos generales antes de las LPN.
   let paginaPdf=1,yPdf=83;
   codigos.forEach((item,idx)=>{
     if(yPdf+65>276){paginaPdf++;yPdf=28;}
@@ -10651,9 +10145,6 @@ ID DE QUEJA: <COLOCA AQUÍ EL ID>
 Folio de auditoría: ${r.folio||""}
 Origen: ${origen}
  `;
-  // Destinatarios definidos para los correos de auditoría.
-  // Se quitaron los prefijos "http://" que venían delante de algunas direcciones,
-  // ya que son direcciones de correo y no enlaces web.
   const para = [
     "garciacruz.m@pg.com","valenciano.y@pg.com","molina.g@pg.com","anzorena.s@pg.com",
     "araiza.j.1@pg.com","roque.jm@pg.com","bonilla.d.1@pg.com","vazquez.ri@pg.com",
@@ -10682,12 +10173,8 @@ Origen: ${origen}
     "coxantejecolorado.ic@pg.com","alvaradolopez.ag@pg.com","perezperez.jg@pg.com",
     "garcia.ro.4@pg.com","omar.mendozai@dhl.com","mendozaibarra.of@pg.com","adrian.choab@dhl.com"
   ].map(email=>String(email).trim()).filter((email,index,arr)=>arr.findIndex(x=>x.toLowerCase()===email.toLowerCase())===index);
-  // Garantiza que la dirección completa de Adrian quede en copia.
   if(!cc.some(email=>email.toLowerCase()==="adrian.choab@dhl.com"))cc.push("adrian.choab@dhl.com");
   const url=`mailto:${para.join(';')}?cc=${encodeURIComponent(cc.join(';'))}&subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
-  // Los navegadores no permiten adjuntar archivos a un enlace mailto por seguridad.
-  // Se genera y descarga automáticamente el PDF de esta auditoría; después se abre el correo.
-  // El usuario solo tendrá que agregar ese PDF descargado como adjunto.
   const nombrePdf=`${String(r.folio||"Auditoria_Recibo").replace(/[\\/:*?"<>|]/g,"_")}.pdf`;
   const abrirCorreo=()=>{window.location.href=url;};
   try{
@@ -10749,7 +10236,6 @@ async function generarPDFRegistro(r){
       const urls=[];
       const push=u=>{if(!u)return; if(typeof u==="string")urls.push(u); else if(u.url)urls.push(u.url);};
       Object.values(item.evidencia_campos_urls||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(push)));
-      // Compatibilidad con evidencias almacenadas directamente en el objeto.
       Object.values(item.evidencia_campos||{}).forEach(cat=>Object.values(cat||{}).forEach(arr=>(arr||[]).forEach(push)));
       return [...new Set(urls)].filter(Boolean);
     }
@@ -10815,18 +10301,9 @@ async function generarPDFRegistro(r){
   }catch(e){console.error("Error PDF auditoría:",e);mostrarAlertaQA("No fue posible generar el PDF.\n\n"+(e.message||"Error desconocido."),"error","Error al generar PDF");return false;}
 }
 
-/* =========================================================
-   PDF
-========================================================= */
-
 function generarPDF(){
   abrirReportes();
 }
-
-
-/* =========================================================
-   LIMPIAR FORMULARIO
-========================================================= */
 
 function limpiarFormulario(){
   auditoriaEnEdicion=false;
@@ -10874,10 +10351,6 @@ function limpiarFormulario(){
   actualizarResultadoGeneral();
 }
 
-/* =========================================================
-   UTILIDADES
-========================================================= */
-
 function escapeHtml(
   valor
 ){
@@ -10908,18 +10381,12 @@ function escapeHtml(
 
 }
 
-
-/* =========================================================
-   INICIO
-========================================================= */
-
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
 
     cargarSesion();
 
-    // Al entrar no se crea ni se guarda una auditoría automáticamente.
     auditoriaEnEdicion=false;
     auditoriaId="";
     qaBorradorPropietario="";
@@ -10927,8 +10394,6 @@ document.addEventListener(
     limpiarBorradoresLocalesVacios();
     mostrarInicioAuditorias();
 
-    // Sincronización inicial: la lista de auditorías en proceso se consulta
-    // desde Supabase en cada dispositivo, no depende del localStorage del equipo.
     try{
       await mostrarAuditoriasEnProceso();
       const panelInicial=document.getElementById("auditoriasEnProcesoPanel");
@@ -10964,11 +10429,9 @@ qaSincronizacionPolling=setInterval(()=>{
 },10000);
 setInterval(() => {
   if (!auditoriaEnEdicion || qaDraftRestoring || qaDraftFinalizando || qaGuardandoFinal) return;
-  // Cada 30 s toma una fotografía completa del estado actual y la sincroniza.
   guardarRespaldoEmergencia();
   guardarBorrador();
 }, QA_AUTOGUARDADO_MS);
-
 
     const excelInput =
       document.getElementById(
@@ -10988,7 +10451,6 @@ setInterval(() => {
           return;
         }
         try{
-          // Copia inmediata: evita referencias vivas al archivo del selector.
           const datos=await file.arrayBuffer();
           const copia=new File([datos],file.name,{type:file.type||"application/vnd.ms-excel",lastModified:file.lastModified||Date.now()});
           await procesarArchivoExcel(copia);
@@ -11115,17 +10577,10 @@ setInterval(() => {
   }
 );
 
-
-// Diagnóstico controlado de errores JavaScript. Si vuelve a aparecer un
-// ReferenceError, el mensaje exacto queda visible en la alerta y en consola
-// sin bloquear el guardado del borrador.
 window.addEventListener("error",function(event){
   const mensaje=String(event?.message||"");
   if(/index is not defined/i.test(mensaje)){
     console.error("ReferenceError detectado:",event?.error||event, event?.filename||"", event?.lineno||"");
-    // No sobrescribir el estado del Excel por errores ajenos al lector.
-    // El procesamiento real de Excel maneja sus propios errores en
-    // procesarArchivoExcel().
   }
 });
 
@@ -11145,10 +10600,6 @@ window.addEventListener("error",function(event){
   window.addEventListener("beforeunload",function(){guardarRespaldoEmergencia();});
 })();
 </script>
-
-<!-- =========================================================
-     ALERTA PERSONALIZADA QA
-========================================================= -->
 
 <div
   id="qaAlertOverlay"
