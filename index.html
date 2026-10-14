@@ -339,10 +339,6 @@ font-weight:600;
 text-align:left;
 }
 
-/* ================================
-   ESTILO GENERAL DE ALERTAS
-================================ */
-
 .swal2-popup{
     border-radius:18px !important;
     padding:28px !important;
@@ -381,8 +377,6 @@ font-weight:500;
 .creditos b{
 color:#CF002E;
 }
-
-/* ===== LOGIN PREMIUM ===== */
 
 .card-login{
 
@@ -624,12 +618,6 @@ box-shadow:
 0 6px 14px rgba(207,0,46,.18);
 
 }
-
-
-/* =========================================================
-   HOME — DISEÑO RESPONSIVE
-   No modifica login, usuarios, permisos ni funciones.
-   ========================================================= */
 
 .home-shell{
   width:calc(100% - 32px);
@@ -892,7 +880,6 @@ box-shadow:
   border-color:#CF002E;
 }
 
-/* En administrador: aprovecha el espacio de escritorio */
 .home-shell.home-admin{
   max-width:1280px;
 }
@@ -909,7 +896,6 @@ box-shadow:
   grid-template-columns:repeat(3,minmax(0,1fr));
 }
 
-/* Tablets */
 @media(max-width:900px){
   .home-shell,
   .home-shell.home-admin{
@@ -927,7 +913,6 @@ box-shadow:
   }
 }
 
-/* Celular */
 @media(max-width:600px){
   .home-shell,
   .home-shell.home-admin{
@@ -1244,7 +1229,6 @@ INGRESAR
 
 </div>
 
-<!-- HOME -->
 <div id="homeBox" class="card hidden home-shell">
 
   <div class="home-header">
@@ -1335,6 +1319,14 @@ INGRESAR
           <span class="home-card-text">
             <span class="tituloBoton">Dashboard Quejas</span>
             <span class="subtituloBoton">Seguimiento y análisis de quejas</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
+
+        <button id="btnDashboardQuejasRecibo" class="home-card home-dashboard" onclick="location.href='dashboard-Quejas recibo.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">Dashboard Quejas Recibo</span>
+            <span class="subtituloBoton">Seguimiento de quejas de recibo</span>
           </span>
           <span class="home-arrow">›</span>
         </button>
@@ -1462,13 +1454,6 @@ const personal = {
     cuadrilla:"N/A",
     area:"TRANSPORTE",
     pass:"TRANSPORTE1710",
-    rol:"VISUALIZADOR"
-},
-
-"FERNANDA BAUTISTA": {
-    cuadrilla:"N/A",
-    area:"TRANSPORTE",
-    pass:"TRANSPORTEPG1710",
     rol:"VISUALIZADOR"
 },
 
@@ -1787,17 +1772,15 @@ function mostrarHome(usuario){
 
 const info = personal[usuario];
 
-/* Solo clase visual: no cambia permisos ni navegación */
 document.getElementById("homeBox").classList.toggle("home-admin", !!(info && info.admin));
 
 document.getElementById("loginBox").classList.add("hidden");
 document.getElementById("homeBox").classList.remove("hidden");
 document.getElementById("usuarioActual").innerText = usuario;
 
-/* OCULTAR TODO */
 const botones = [
 "btnAlertas","btnAuditoria","btnIncidencia",
-"btnDashboardAlertas","btnDashboardAuditorias","btnDashboardIncidencias","btnDashboardQuejas",
+"btnDashboardAlertas","btnDashboardAuditorias","btnDashboardIncidencias","btnDashboardQuejas","btnDashboardQuejasRecibo",
 "btnExcelAlertas","btnExcelAuditorias","btnExcelIncidencias",
 "tituloTemplates","tituloDashboards","tituloConcentrados"
 ];
@@ -1807,18 +1790,14 @@ botones.forEach(id=>{
   if(elemento) elemento.style.display="none";
 });
 
-/* Ocultar también las secciones cuyo contenido no está autorizado,
-   para que no quede visible el encabezado MONITOREO/DATOS. */
 const seccionDashboards = document.getElementById("tituloDashboards").closest(".home-section");
 const seccionConcentrados = document.getElementById("tituloConcentrados").closest(".home-section");
 if(seccionDashboards) seccionDashboards.style.display="none";
 if(seccionConcentrados) seccionConcentrados.style.display="none";
 
-/* TEMPLATES: disponibles para los perfiles que ya tenían acceso */
 const tituloTemplates = document.getElementById("tituloTemplates");
 if(tituloTemplates) tituloTemplates.style.display="block";
 
-/* ADMIN */
 if(info.admin){
   document.getElementById("tituloDashboards").style.display="block";
   document.getElementById("tituloConcentrados").style.display="block";
@@ -1833,6 +1812,7 @@ if(info.admin){
   document.getElementById("btnDashboardAuditorias").style.display="block";
   document.getElementById("btnDashboardIncidencias").style.display="block";
   document.getElementById("btnDashboardQuejas").style.display="block";
+  document.getElementById("btnDashboardQuejasRecibo").style.display="block";
 
   document.getElementById("btnExcelAlertas").style.display="block";
   document.getElementById("btnExcelAuditorias").style.display="block";
@@ -1840,7 +1820,6 @@ if(info.admin){
   return;
 }
 
-/* VISUALIZADOR: Dashboard sí, Concentrados no */
 if(info.rol === "VISUALIZADOR"){
   document.getElementById("tituloDashboards").style.display="block";
   if(seccionDashboards) seccionDashboards.style.display="block";
@@ -1850,16 +1829,15 @@ if(info.rol === "VISUALIZADOR"){
   document.getElementById("btnDashboardAuditorias").style.display="block";
   document.getElementById("btnDashboardIncidencias").style.display="block";
   document.getElementById("btnDashboardQuejas").style.display="block";
+  document.getElementById("btnDashboardQuejasRecibo").style.display="block";
   return;
 }
 
-/* COORDINADORES / HS&E */
 if(usuario.startsWith("COORDINADOR") || usuario.startsWith("HS&E")){
   document.getElementById("btnAlertas").style.display="block";
   return;
 }
 
-/* RESTO DEL PERSONAL */
 document.getElementById("btnAlertas").style.display="block";
 document.getElementById("btnAuditoria").style.display="block";
 document.getElementById("btnIncidencia").style.display="block";
@@ -1904,18 +1882,10 @@ mostrarHome(usuario);
 
 }
 
-// =========================
-// SUPABASE
-// =========================
-
 const supabaseClient = supabase.createClient(
 "https://wpitemofrqzjcsetmmim.supabase.co",
 "sb_publishable_lHlAJ8Q2lThBAd9oDy69cw_QkSTlJLu"
 );
-
-// =========================
-// ALERTAS
-// =========================
 
 async function descargarExcelAlertas(){
 
@@ -1978,10 +1948,6 @@ todos.forEach(r => {
  descargarCSV(csv,"Alertas_Completo.csv");
 }
 
-// =========================
-// AUDITORIAS
-// =========================
-
 async function descargarExcelAuditorias(){
 
  const { data,error } =
@@ -2011,10 +1977,6 @@ async function descargarExcelAuditorias(){
  descargarCSV(csv,"Auditorias_Completo.csv");
 
 }
-
-// =========================
-// INCIDENCIAS
-// =========================
 
 async function descargarExcelIncidencias(){
 
@@ -2065,8 +2027,6 @@ function limpiar(valor){
    .replace(/\r/g,' ')}"`;
 
 }
-
-// =========================
 
 function descargarCSV(csv,nombre){
 
