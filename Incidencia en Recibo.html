@@ -3427,6 +3427,10 @@ async function cargarImagen(file){
 
 for(let i=0;i<fotosSeleccionadas.length;i++){
 
+   if(i >= posiciones.length){
+      break;
+   }
+
  const base64 =
   await cargarImagen(fotosSeleccionadas[i]);
 
@@ -3588,7 +3592,7 @@ pdfCodigos = r.desviaciones || [];
 fotosSeleccionadas = [];
 
 if(r.fotos && r.fotos.length > 0){
-  fotosSeleccionadas = r.fotos;
+   fotosSeleccionadas = (r.fotos || []).slice(0,8);
 }
 
 await generarPDF();
