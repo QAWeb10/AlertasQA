@@ -1330,6 +1330,14 @@ INGRESAR
           </span>
           <span class="home-arrow">›</span>
         </button>
+
+        <button id="btnDashboardDDSQASMO" class="home-card home-dashboard" onclick="location.href='dds-qa-smo.html'">
+          <span class="home-card-text">
+            <span class="tituloBoton">DDS QA SMO</span>
+            <span class="subtituloBoton">Captura y seguimiento de métricas diarias y semanales</span>
+          </span>
+          <span class="home-arrow">›</span>
+        </button>
       </div>
     </section>
 
@@ -1780,7 +1788,7 @@ document.getElementById("usuarioActual").innerText = usuario;
 
 const botones = [
 "btnAlertas","btnAuditoria","btnIncidencia",
-"btnDashboardAlertas","btnDashboardAuditorias","btnDashboardIncidencias","btnDashboardQuejas","btnDashboardQuejasRecibo",
+"btnDashboardAlertas","btnDashboardAuditorias","btnDashboardIncidencias","btnDashboardQuejas","btnDashboardQuejasRecibo","btnDashboardDDSQASMO",
 "btnExcelAlertas","btnExcelAuditorias","btnExcelIncidencias",
 "tituloTemplates","tituloDashboards","tituloConcentrados"
 ];
@@ -1813,6 +1821,7 @@ if(info.admin){
   document.getElementById("btnDashboardIncidencias").style.display="block";
   document.getElementById("btnDashboardQuejas").style.display="block";
   document.getElementById("btnDashboardQuejasRecibo").style.display="block";
+  document.getElementById("btnDashboardDDSQASMO").style.display="block";
 
   document.getElementById("btnExcelAlertas").style.display="block";
   document.getElementById("btnExcelAuditorias").style.display="block";
@@ -1830,6 +1839,7 @@ if(info.rol === "VISUALIZADOR"){
   document.getElementById("btnDashboardIncidencias").style.display="block";
   document.getElementById("btnDashboardQuejas").style.display="block";
   document.getElementById("btnDashboardQuejasRecibo").style.display="block";
+  document.getElementById("btnDashboardDDSQASMO").style.display="block";
   return;
 }
 
